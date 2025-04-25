@@ -23,20 +23,17 @@ const CheckboxParameter = ({ parameter, value, onChange, error }) => {
   const handleChange = (optionId) => {
     if (!onChange || typeof onChange !== 'function') return;
     
-    // Create a new array with or without the selected option
+    // Create a new array with or without the selected option's ID
     if (safeValue.includes(optionId)) {
-      // Remove the option
+      // Remove the option ID
       onChange(safeValue.filter(id => id !== optionId));
     } else {
-      // Add the option
+      // Add the option ID
       onChange([...safeValue, optionId]);
     }
   };
   
-  // Get the selected option labels for display
-  const selectedLabels = options
-    .filter(option => safeValue.includes(option.id))
-    .map(option => option.label);
+  // safeValue already contains labels, so we can use it directly
 
   return (
     <Box sx={{ mb: 3 }}>
@@ -54,12 +51,12 @@ const CheckboxParameter = ({ parameter, value, onChange, error }) => {
             {options.length > 0 ? (
               options.map((option) => (
                 <FormControlLabel
-                  key={option.id}
+                  key={option.id || option.label}
                   control={
                     <Checkbox
                       checked={safeValue.includes(option.id)}
                       onChange={() => handleChange(option.id)}
-                      name={option.id}
+                      name={option.id || option.label}
                       color="primary"
                     />
                   }

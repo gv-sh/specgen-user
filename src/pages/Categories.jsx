@@ -1,23 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Box, 
-  Typography, 
-  Container, 
-  Button, 
-  Grid, 
-  Card, 
-  CardContent, 
-  CardActions,
-  CircularProgress, 
-  Alert,
-  Chip,
-  Stack
-} from '@mui/material';
 import { fetchCategories } from '../services/api';
+import { Checkbox } from '../components/ui/checkbox';
+import { Button } from '../components/ui/button';
+import { Alert, AlertDescription } from '../components/ui/alert';
 
-const Categories = () => {
-  const navigate = useNavigate();
+const Categories = ({ onCategorySelect }) => {
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,20 +45,28 @@ const Categories = () => {
     });
   }, []);
 
-  // Navigate to parameters page with selected categories
-  const handleContinue = useCallback(() => {
-    if (selectedCategories.length > 0) {
-      // Get the full category objects for the selected IDs
-      const selectedCategoryObjects = categories.filter(cat => 
-        selectedCategories.includes(cat.id)
-      );
-      
-      // Navigate with the selected category objects in state
-      navigate('/parameters', { 
-        state: { selectedCategories: selectedCategoryObjects }
-      });
+  // Send selected category to parent component when it changes
+  useEffect(() => {
+    // Get the full category objects for the selected IDs
+    const selectedCategoryObjects = categories.filter(cat => 
+      selectedCategories.includes(cat.id)
+    );
+    
+    // Update global state directly
+    if (window.appState) {
+      window.appState.categories = selectedCategories;
+    } else {
+      window.appState = { categories: selectedCategories };
     }
-  }, [navigate, selectedCategories, categories]);
+    
+    // Also send to parent component via props
+    if (onCategorySelect && typeof onCategorySelect === 'function') {
+      onCategorySelect(selectedCategoryObjects);
+    }
+    
+    console.log("Updated categories:", selectedCategories);
+    
+  }, [selectedCategories, categories, onCategorySelect]);
 
   // Helper function to get category descriptions
   const getCategoryDescription = (categoryId) => {
@@ -86,124 +81,89 @@ const Categories = () => {
     // Fallback descriptions for common genres if not in the API
     switch (categoryId) {
       case 'science-fiction':
-        return 'Explore futuristic technology, space travel, and scientific advancements';
+        return 'Explore futuristic technology';
       case 'fantasy':
-        return 'Delve into worlds of magic, mythical creatures, and epic adventures';
+        return 'Magic, mythical creatures';
       case 'horror':
-        return 'Experience tension, fear, and the supernatural or psychological unknown';
+        return 'Tension, fear, supernatural';
       default:
-        return 'Create unique stories in this genre';
+        return 'Create stories in this genre';
     }
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center space-y-2 py-4">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Alert severity="error">{error}</Alert>
-      </Container>
+      <Alert variant="destructive">
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 
   if (categories.length === 0) {
     return (
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Alert severity="info">No categories available. Please check back later.</Alert>
-      </Container>
+      <Alert>
+        <AlertDescription>No categories available.</AlertDescription>
+      </Alert>
     );
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom align="center">
-        Choose Your Genres
-      </Typography>
-      <Typography variant="subtitle1" color="text.secondary" paragraph align="center" sx={{ mb: 4 }}>
-        Select one or more genres to begin crafting your story
-      </Typography>
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold tracking-tight">Select Genres</h2>
       
       {selectedCategories.length > 0 && (
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" gutterBottom>
-            Selected Genres:
-          </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap">
+        <div className="mb-4">
+          <h3 className="text-sm font-medium mb-2">Selected</h3>
+          <div className="flex flex-wrap gap-1.5">
             {selectedCategories.map(id => {
               const category = categories.find(c => c.id === id);
               return (
-                <Chip
+                <Button
                   key={id}
-                  label={category?.name || id}
-                  color="primary"
-                  onDelete={() => handleCategorySelect(id)}
-                  sx={{ m: 0.5 }}
-                />
+                  variant="secondary"
+                  size="sm"
+                  className="h-7 gap-1 text-xs rounded-full"
+                  onClick={() => handleCategorySelect(id)}
+                >
+                  {category?.name || id}
+                  <span className="ml-1">×</span>
+                </Button>
               );
             })}
-          </Stack>
-        </Box>
+          </div>
+        </div>
       )}
 
-      <Grid container spacing={3}>
+      <div className="space-y-1 max-h-[calc(100vh-200px)] overflow-auto py-1">
         {categories.map((category) => (
-          <Grid item xs={12} sm={6} md={4} key={category.id}>
-            <Card 
-              sx={{ 
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                cursor: 'pointer',
-                border: selectedCategories.includes(category.id) ? 2 : 0,
-                borderColor: 'primary.main',
-                transition: 'all 0.2s ease'
-              }}
-              onClick={() => handleCategorySelect(category.id)}
-            >
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h5" component="h2" gutterBottom>
-                  {category.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {getCategoryDescription(category.id)}
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button 
-                  size="small" 
-                  color={selectedCategories.includes(category.id) ? "primary" : "inherit"}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCategorySelect(category.id);
-                  }}
-                >
-                  {selectedCategories.includes(category.id) ? "Selected" : "Select"}
-                </Button>
-              </CardActions>
-            </Card>
-          </Grid>
+          <div 
+            key={category.id} 
+            className={`flex items-center space-x-2 rounded-lg px-2 py-2 hover:bg-accent cursor-pointer ${selectedCategories.includes(category.id) ? 'bg-accent/50' : ''}`}
+            onClick={() => handleCategorySelect(category.id)}
+          >
+            <input 
+              type="checkbox"
+              checked={selectedCategories.includes(category.id)}
+              onChange={() => handleCategorySelect(category.id)}
+              className="h-4 w-4 rounded-sm border border-primary checked:bg-primary"
+            />
+            <div className="grid gap-0.5">
+              <div className="text-sm font-medium">{category.name}</div>
+              <div className="text-xs text-muted-foreground">{getCategoryDescription(category.id)}</div>
+            </div>
+          </div>
         ))}
-      </Grid>
-      
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <Button 
-          variant="contained" 
-          size="large"
-          disabled={selectedCategories.length === 0}
-          onClick={handleContinue}
-          sx={{ py: 1.5, px: 4 }}
-        >
-          Continue to Parameters
-        </Button>
-      </Box>
-    </Container>
+      </div>
+    </div>
   );
 };
 
-export default Categories; 
+export default Categories;

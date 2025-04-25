@@ -4,7 +4,6 @@ import {
   Slider,
   Typography,
   FormHelperText,
-  Paper,
   Grid
 } from '@mui/material';
 
@@ -35,55 +34,50 @@ const SliderParameter = ({ parameter, value, onChange, error }) => {
   };
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Typography variant="subtitle1" gutterBottom>
+    <Box sx={{ mb: 1 }}>
+      <Typography variant="subtitle2" sx={{ fontSize: '0.85rem' }}>
         {parameter.name || 'Slider Parameter'}
       </Typography>
       
-      <Paper variant="outlined" sx={{ p: 2, mb: 1 }}>
-        <Box sx={{ px: 2 }}>
-          <Typography variant="body2" gutterBottom>
-            {parameter.label || 'Select a value'}
-          </Typography>
-          
-          <Slider
-            value={safeValue}
-            onChange={handleChange}
-            min={min}
-            max={max}
-            step={step}
-            valueLabelDisplay="auto"
-            aria-labelledby={`${parameter.id}-slider`}
-            marks={[
-              { value: min, label: min.toString() },
-              { value: max, label: max.toString() }
-            ]}
-            sx={{ mt: 1 }}
-          />
-          
-          <Grid container justifyContent="space-between" sx={{ mt: 1 }}>
-            <Grid item>
-              <Typography variant="caption" color="text.secondary">
-                Min: {min}
-              </Typography>
-            </Grid>
-            <Grid item>
-              <Typography variant="caption" color="text.secondary">
-                Max: {max}
-              </Typography>
-            </Grid>
+      <Box sx={{ px: 0.5 }}>
+        <Slider
+          value={safeValue}
+          onChange={handleChange}
+          min={min}
+          max={max}
+          step={step}
+          valueLabelDisplay="auto"
+          aria-labelledby={`${parameter.id}-slider`}
+          marks={[
+            { value: min, label: min.toString() },
+            { value: max, label: max.toString() }
+          ]}
+          size="small"
+          sx={{ mt: 1 }}
+        />
+        
+        <Grid container justifyContent="space-between">
+          <Grid item>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+              Min: {min}
+            </Typography>
           </Grid>
-          
-          {error && (
-            <FormHelperText error sx={{ mt: 1 }}>
-              {error}
-            </FormHelperText>
-          )}
-        </Box>
-      </Paper>
+          <Grid item>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+              Max: {max}
+            </Typography>
+          </Grid>
+        </Grid>
+        
+        {error && (
+          <FormHelperText error sx={{ mt: 0.5, fontSize: '0.7rem' }}>
+            {error}
+          </FormHelperText>
+        )}
+      </Box>
       
       {parameter.description && (
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', display: 'block', mt: 0.5 }}>
           {parameter.description}
         </Typography>
       )}
@@ -91,4 +85,4 @@ const SliderParameter = ({ parameter, value, onChange, error }) => {
   );
 };
 
-export default SliderParameter; 
+export default SliderParameter;

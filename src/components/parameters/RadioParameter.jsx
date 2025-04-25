@@ -16,28 +16,28 @@ const RadioParameter = ({ parameter, value, onChange, error }) => {
   // Ensure we have valid options
   const options = Array.isArray(parameter.values) ? parameter.values : [];
   
-  // Get a safe value - either the current value if it's in options, or the default value, or the first option
+  // Get a safe value - either the current value if it's in options, or the default value, or the first option id
   const safeValue = (() => {
-    if (value !== undefined && value !== null && options.some(opt => opt.value === value)) {
+    if (value !== undefined && value !== null) {
       return value;
     }
     
-    if (parameter.defaultValue !== undefined && options.some(opt => opt.value === parameter.defaultValue)) {
+    if (parameter.defaultValue !== undefined) {
       return parameter.defaultValue;
     }
     
-    return options.length > 0 ? options[0].value : '';
+    return options.length > 0 ? options[0].id : '';
   })();
 
   const handleChange = (event) => {
     // Safely handle change events
     if (onChange && typeof onChange === 'function') {
+      // We're already using labels as values, so just pass the value along
       onChange(event.target.value);
     }
   };
  
-  // Get the currently selected option's label for display
-  const selectedLabel = options.find(opt => opt.value === safeValue)?.label || '';
+  // The safeValue is already the label, so no need to lookup
 
   return (
     <Box sx={{ mb: 3 }}>
@@ -58,9 +58,9 @@ const RadioParameter = ({ parameter, value, onChange, error }) => {
           >
             <Grid container spacing={2}>
               {options.map((option) => (
-                <Grid item xs={12} sm={6} md={4} key={option.value}>
+                <Grid item xs={12} sm={6} md={4} key={option.id || option.label}>
                   <FormControlLabel
-                    value={option.value}
+                    value={option.id}
                     control={<Radio color="primary" />}
                     label={
                       <Typography variant="body2">
