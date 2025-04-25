@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import DraggableParameter from '../components/DraggableParameter';
+import ParameterCard from '../components/cards/ParameterCard';
 import { fetchParameters } from '../services/api';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Tooltip } from '../components/ui/tooltip';
@@ -14,6 +15,22 @@ import { Select, SelectOption } from '../components/ui/select';
 import { Slider } from '../components/ui/slider';
 import { Switch } from '../components/ui/switch';
 import { Checkbox } from '../components/ui/checkbox';
+import { Badge } from '../components/ui/badge';
+import { Search, Filter, Settings, SlidersHorizontal, List, X, HelpCircle, BookOpen } from 'lucide-react';
+import { stringToColor } from '../utils/colorUtils';
+import HelpTooltip from '../components/ui/helpTooltip';
+import TipBanner from '../components/TipBanner';
+import { useScreenSize } from '../utils/responsiveUtils';
+import { debounce } from '../utils/performanceUtils';
+
+// Memoized parameter component for performance
+const MemoizedParameter = memo(({ parameter, renderParameter }) => {
+  return (
+    <div className="pt-2 first:pt-0 hover:bg-gray-100 p-1 rounded-md transition-colors">
+      {renderParameter(parameter)}
+    </div>
+  );
+});
 
 const Parameters = ({ selectedCategory }) => {
   const [loading, setLoading] = useState(true);
@@ -22,6 +39,33 @@ const Parameters = ({ selectedCategory }) => {
   const [parameterValues, setParameterValues] = useState({});
   const [validationErrors, setValidationErrors] = useState({});
   const [contentType, setContentType] = useState('fiction');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [parameterView, setParameterView] = useState('category'); // 'category' or 'list'
+  const [showGuides, setShowGuides] = useState(false);
+  const [activeParameterId, setActiveParameterId] = useState(null);
+  const [showGuidanceTip, setShowGuidanceTip] = useState(false);
+  
+  // Get screen size information for responsive design
+  const { isMobile, isTablet } = useScreenSize();
+  
+  // Debounce search query changes
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+  
+  // Show guidance tip when guidance is first enabled
+  useEffect(() => {
+    if (showGuides) {
+      setShowGuidanceTip(true);
+    }
+  }, [showGuides]);
   
   // Fetch parameters for selected categories
   useEffect(() => {
@@ -167,6 +211,10 @@ const Parameters = ({ selectedCategory }) => {
     const value = parameterValues[categoryId]?.[parameter.id];
     const error = validationErrors[parameter.id];
     
+    // Find the category name
+    const category = selectedCategory.find(cat => cat.id === categoryId);
+    const categoryName = category ? category.name : null;
+    
     // Create data object for dragging
     const paramData = {
       id: parameter.id,
@@ -174,6 +222,7 @@ const Parameters = ({ selectedCategory }) => {
       description: parameter.description,
       type: parameter.type,
       categoryId: parameter.categoryId,
+      categoryName,
       value: value
     };
     
@@ -181,26 +230,15 @@ const Parameters = ({ selectedCategory }) => {
       switch (parameter.type) {
       case 'Dropdown':
         return (
-          <div className="space-y-1">
-            <div>
-              <label className="text-sm font-medium">{parameter.name}</label>
-              {parameter.description && (
-                <Tooltip content={parameter.description}>
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{parameter.description}</p>
-                </Tooltip>
-              )}
-            </div>
-            <Select
-              value={value || ''}
-              onChange={(e) => handleParameterChange(categoryId, parameter.id, e.target.value)}
-              className="w-full"
-            >
-              {parameter.values.map(option => (
-                <SelectOption key={option.id} value={option.id}>{option.label}</SelectOption>
-              ))}
-            </Select>
-            {error && <p className="text-xs text-destructive mt-1">{error}</p>}
-          </div>
+          <Select
+            value={value || ''}
+            onChange={(e) => handleParameterChange(categoryId, parameter.id, e.target.value)}
+            className="w-full"
+          >
+            {parameter.values.map(option => (
+              <SelectOption key={option.id} value={option.id}>{option.label}</SelectOption>
+            ))}
+          </Select>
         );
       case 'Slider':
         const config = parameter.config || {};
@@ -209,15 +247,7 @@ const Parameters = ({ selectedCategory }) => {
         const step = config.step !== undefined ? config.step : 1;
         
         return (
-          <div className="space-y-1">
-            <div>
-              <label className="text-sm font-medium">{parameter.name}</label>
-              {parameter.description && (
-                <Tooltip content={parameter.description}>
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{parameter.description}</p>
-                </Tooltip>
-              )}
-            </div>
+          <div className="space-y-2">
             <div className="pt-1 pb-0.5">
               <Slider 
                 min={min}
@@ -228,24 +258,19 @@ const Parameters = ({ selectedCategory }) => {
               />
             </div>
             <div className="flex justify-between">
-              <span className="text-xs text-muted-foreground">{min}</span>
-              <span className="text-xs font-medium">{value !== null ? value : (config?.default || min)}</span>
-              <span className="text-xs text-muted-foreground">{max}</span>
+              <span className="text-xs text-muted-foreground bg-gray-100 px-1.5 py-0.5 rounded">{min}</span>
+              <span className="text-xs font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded">{value !== null ? value : (config?.default || min)}</span>
+              <span className="text-xs text-muted-foreground bg-gray-100 px-1.5 py-0.5 rounded">{max}</span>
             </div>
-            {error && <p className="text-xs text-destructive mt-1">{error}</p>}
           </div>
         );
       case 'Toggle Switch':
         return (
           <div className="flex items-center justify-between space-x-2">
             <div className="flex-1">
-              <label className="text-sm font-medium">{parameter.name}</label>
-              {parameter.description && (
-                <Tooltip content={parameter.description}>
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{parameter.description}</p>
-                </Tooltip>
-              )}
-              {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+              <span className="text-xs text-muted-foreground inline-block bg-gray-100 px-1.5 py-0.5 rounded-md">
+                {value === true ? 'Enabled' : 'Disabled'}
+              </span>
             </div>
             <input
               type="checkbox"
@@ -261,34 +286,23 @@ const Parameters = ({ selectedCategory }) => {
       case 'Radio':
       case 'Radio Buttons':
         return (
-          <div className="space-y-1">
-            <div>
-              <label className="text-sm font-medium">{parameter.name}</label>
-              {parameter.description && (
-                <Tooltip content={parameter.description}>
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{parameter.description}</p>
-                </Tooltip>
-              )}
-            </div>
-            <div className="flex flex-col gap-1">
-              {parameter.values.map(option => (
-                <div key={option.id} className="flex items-center space-x-2">
-                  <input
-                    type="radio"
-                    id={`${parameter.id}-${option.id}`}
-                    name={parameter.id}
-                    value={option.id}
-                    checked={value === option.id}
-                    onChange={() => handleParameterChange(categoryId, parameter.id, option.id)}
-                    className="h-4 w-4 rounded-full border border-primary text-primary"
-                  />
-                  <label className="text-sm" htmlFor={`${parameter.id}-${option.id}`}>
-                    {option.label}
-                  </label>
-                </div>
-              ))}
-            </div>
-            {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+          <div className="flex flex-col gap-1.5">
+            {parameter.values.map(option => (
+              <div key={option.id} className={`flex items-center space-x-2 p-1.5 rounded ${value === option.id ? 'bg-primary/5 border border-primary/20' : 'bg-gray-50 border border-transparent'}`}>
+                <input
+                  type="radio"
+                  id={`${parameter.id}-${option.id}`}
+                  name={parameter.id}
+                  value={option.id}
+                  checked={value === option.id}
+                  onChange={() => handleParameterChange(categoryId, parameter.id, option.id)}
+                  className="h-4 w-4 rounded-full border border-primary text-primary"
+                />
+                <label className="text-sm" htmlFor={`${parameter.id}-${option.id}`}>
+                  {option.label}
+                </label>
+              </div>
+            ))}
           </div>
         );
       case 'Checkbox':
@@ -296,17 +310,24 @@ const Parameters = ({ selectedCategory }) => {
         
         return (
           <div className="space-y-1">
-            <div>
-              <label className="text-sm font-medium">{parameter.name}</label>
-              {parameter.description && (
-                <Tooltip content={parameter.description}>
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{parameter.description}</p>
-                </Tooltip>
-              )}
-            </div>
-            <div className="space-y-1 grid grid-cols-2">
+            {checkboxValues.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-2">
+                {checkboxValues.map(selectedId => {
+                  const option = parameter.values.find(o => o.id === selectedId);
+                  return option ? (
+                    <Badge key={option.id} className="bg-primary/10 text-primary border-primary/20 text-xs">
+                      {option.label}
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
+            )}
+            <div className="space-y-1.5 grid grid-cols-2 gap-1">
               {parameter.values.map(option => (
-                <div key={option.id} className="flex items-center space-x-2">
+                <div 
+                  key={option.id} 
+                  className={`flex items-center space-x-2 p-1 rounded-sm ${checkboxValues.includes(option.id) ? 'bg-primary/5 border border-primary/20' : 'bg-gray-50 border border-transparent'}`}
+                >
                   <input
                     type="checkbox"
                     id={`${parameter.id}-${option.id}`}
@@ -325,34 +346,77 @@ const Parameters = ({ selectedCategory }) => {
                 </div>
               ))}
             </div>
-            {error && <p className="text-xs text-destructive mt-1">{error}</p>}
           </div>
         );
       default:
         return (
-          <div className="text-sm text-destructive">
+          <div className="text-sm bg-red-50 p-2 border border-red-100 rounded-md text-red-600">
             Unknown parameter type: {parameter.type}
           </div>
         );
       }
     };
     
-    // Wrap parameter content in draggable component
+    // Wrap parameter content in draggable component with the unified card design
     return (
       <DraggableParameter id={parameter.id} data={paramData}>
-        {renderParameterContent()}
+        <ParameterCard
+          name={parameter.name}
+          type={parameter.type}
+          description={parameter.description}
+          categoryName={categoryName}
+          error={error}
+          showGuides={showGuides}
+          allParameters={parameters}
+          parameter={parameter}
+        >
+          {renderParameterContent()}
+        </ParameterCard>
       </DraggableParameter>
     );
   };
   
-  // Group parameters by category
-  const parametersByCategory = {};
-  if (selectedCategory) {
-    selectedCategory.forEach(category => {
-      parametersByCategory[category.id] = parameters.filter(param => param.categoryId === category.id);
+  // Memoize the filtered parameters to avoid unnecessary re-filtering
+  const filteredParameters = useMemo(() => {
+    return parameters.filter(param => {
+      // Apply search filter
+      if (debouncedSearchQuery) {
+        const query = debouncedSearchQuery.toLowerCase();
+        const nameMatch = param.name?.toLowerCase().includes(query);
+        const descMatch = param.description?.toLowerCase().includes(query);
+        const typeMatch = param.type?.toLowerCase().includes(query);
+        
+        if (!nameMatch && !descMatch && !typeMatch) {
+          return false;
+        }
+      }
+      
+      return true;
     });
-  }
+  }, [parameters, debouncedSearchQuery]);
   
+  // Memoize parameters by category for better performance
+  const parametersByCategory = useMemo(() => {
+    const result = {};
+    
+    if (selectedCategory) {
+      selectedCategory.forEach(category => {
+        result[category.id] = filteredParameters.filter(param => param.categoryId === category.id);
+      });
+    }
+    
+    return result;
+  }, [filteredParameters, selectedCategory]);
+
+  // Get category badge color - memoized for performance
+  const getCategoryBadgeColor = useCallback((categoryName) => {
+    if (!categoryName) return 'bg-gray-100 text-gray-700 border-gray-200';
+    
+    // Generate colors based on the category name
+    const { bgColor, textColor, borderColor } = stringToColor(categoryName);
+    return `${bgColor} ${textColor} ${borderColor}`;
+  }, []);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center space-y-2 py-4">
@@ -377,60 +441,145 @@ const Parameters = ({ selectedCategory }) => {
       </Alert>
     );
   }
+
   
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="mb-2">
         <h2 className="text-lg font-bold">Set Parameters</h2>
       </div>
       
-      {/* Content Type Selection - Compact */}
-      <div className="mb-3 p-2 border border-border rounded-md bg-gray-50">
-        <div className="flex items-center gap-4">
-          <label className="text-sm font-medium">Type:</label>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center">
-              <input
-                type="radio"
-                id="fiction"
-                name="contentType"
-                value="fiction"
-                checked={contentType === "fiction"}
-                onChange={() => handleContentTypeChange("fiction")}
-                className="h-3 w-3 mr-1 text-gray-800 border-gray-300"
-              />
-              <label htmlFor="fiction" className="text-xs">Fiction</label>
+      {/* Parameter Guidance Tip Banner */}
+      {showGuidanceTip && (
+        <TipBanner 
+          message={
+            <>Parameter guidance is now enabled. Look for <BookOpen className="h-3 w-3 inline mx-1" /> icons and additional information to help you understand how each parameter affects your story.</>
+          } 
+          onClose={() => setShowGuidanceTip(false)} 
+        />
+      )}
+
+      {/* Content Type Selection - Enhanced */}
+      <div className="mb-3 p-2.5 border border-border/70 rounded-md bg-white shadow-sm">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center justify-between">
+            <label className="text-sm flex items-center gap-1.5">
+              <Settings className="w-3.5 h-3.5 text-primary/80" />
+              <span>Content Type</span>
+              {showGuides && (
+                <HelpTooltip 
+                  content="Choose the type of content you want to generate. Fiction creates text stories, Image creates visuals, and Combined creates both."
+                  title="Content Type Selection"
+                />
+              )}
+            </label>
+            <div className="px-1.5 py-0.5 bg-gray-50 rounded-full text-xs text-muted-foreground border border-border/40">
+              {selectedCategory.length} categories
             </div>
-            
-            <div className="flex items-center">
-              <input
-                type="radio"
-                id="image"
-                name="contentType"
-                value="image"
-                checked={contentType === "image"}
-                onChange={() => handleContentTypeChange("image")}
-                className="h-3 w-3 mr-1 text-gray-800 border-gray-300"
-              />
-              <label htmlFor="image" className="text-xs">Image</label>
-            </div>
-            
-            <div className="flex items-center">
-              <input
-                type="radio"
-                id="combined"
-                name="contentType"
-                value="combined"
-                checked={contentType === "combined"}
-                onChange={() => handleContentTypeChange("combined")}
-                className="h-3 w-3 mr-1 text-gray-800 border-gray-300"
-              />
-              <label htmlFor="combined" className="text-xs">Combined</label>
+          </div>
+          
+          <div className="flex items-center justify-between bg-gray-50 p-1 rounded-md border border-border/40">
+            <div className="flex flex-1 divide-x divide-border/50">
+              <div 
+                className={`flex items-center px-2.5 py-0.5 rounded-l-sm cursor-pointer transition-colors ${contentType === "fiction" ? 'bg-primary text-white' : 'hover:bg-gray-100'}`}
+                onClick={() => handleContentTypeChange("fiction")}
+              >
+                <input
+                  type="radio"
+                  id="fiction"
+                  name="contentType"
+                  value="fiction"
+                  checked={contentType === "fiction"}
+                  onChange={() => handleContentTypeChange("fiction")}
+                  className="h-3 w-3 mr-1"
+                />
+                <label htmlFor="fiction" className="text-xs cursor-pointer">Fiction</label>
+              </div>
+              
+              <div 
+                className={`flex items-center px-2.5 py-0.5 cursor-pointer transition-colors ${contentType === "image" ? 'bg-primary text-white' : 'hover:bg-gray-100'}`}
+                onClick={() => handleContentTypeChange("image")}
+              >
+                <input
+                  type="radio"
+                  id="image"
+                  name="contentType"
+                  value="image"
+                  checked={contentType === "image"}
+                  onChange={() => handleContentTypeChange("image")}
+                  className="h-3 w-3 mr-1"
+                />
+                <label htmlFor="image" className="text-xs cursor-pointer">Image</label>
+              </div>
+              
+              <div 
+                className={`flex items-center px-2.5 py-0.5 rounded-r-sm cursor-pointer transition-colors ${contentType === "combined" ? 'bg-primary text-white' : 'hover:bg-gray-100'}`}
+                onClick={() => handleContentTypeChange("combined")}
+              >
+                <input
+                  type="radio"
+                  id="combined"
+                  name="contentType"
+                  value="combined"
+                  checked={contentType === "combined"}
+                  onChange={() => handleContentTypeChange("combined")}
+                  className="h-3 w-3 mr-1"
+                />
+                <label htmlFor="combined" className="text-xs cursor-pointer">Combined</label>
+              </div>
             </div>
           </div>
         </div>
       </div>
       
+      {/* Search and Filter Bar */}
+      <div className="mb-3 flex gap-2 items-center">
+        <div className="relative flex-1">
+          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+            <Search className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search parameters..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-8 h-8 w-full rounded-md border border-input/60 bg-white px-2.5 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+        
+        <div className="flex gap-1.5">
+          <button 
+            onClick={() => setParameterView('category')}
+            className={`px-2 py-1 text-xs rounded-md border ${parameterView === 'category' ? 'bg-primary text-white border-primary/80' : 'bg-white border-border/70 hover:bg-gray-50'}`}
+            title="Group by category"
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+          </button>
+          <button 
+            onClick={() => setParameterView('list')}
+            className={`px-2 py-1 text-xs rounded-md border ${parameterView === 'list' ? 'bg-primary text-white border-primary/80' : 'bg-white border-border/70 hover:bg-gray-50'}`}
+            title="View as list"
+          >
+            <List className="h-3.5 w-3.5" />
+          </button>
+          <button 
+            onClick={() => setShowGuides(!showGuides)}
+            className={`px-2 py-1 text-xs rounded-md border ${showGuides ? 'bg-primary text-white border-primary/80' : 'bg-white border-border/70 hover:bg-gray-50'}`}
+            title="Toggle parameter guidance"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
       {Object.keys(validationErrors).length > 0 && (
         <Alert variant="destructive">
           <AlertDescription>
@@ -439,43 +588,123 @@ const Parameters = ({ selectedCategory }) => {
         </Alert>
       )}
       
+      {/* Instruction to drag parameters */}
       <div className="mb-2">
-        <p className="text-xs text-foreground/70 italic">Drag any parameter to "Selected Parameters" to build your specification</p>
+        <div className="flex justify-between items-center">
+          <p className="text-xs text-foreground/70 italic">
+            Drag any parameter to "Selected Parameters" to build your specification
+          </p>
+          {showGuides && (
+            <div className="text-xs text-primary italic">
+              <HelpCircle className="h-3 w-3 inline mr-1" />
+              Parameter guidance enabled
+            </div>
+          )}
+        </div>
       </div>
       
+      {searchQuery && filteredParameters.length === 0 && (
+        <div className="py-6 flex flex-col items-center justify-center text-center bg-gray-50 rounded-lg border border-border">
+          <p className="text-foreground/70">
+            No parameters found matching "{searchQuery}"
+          </p>
+          <button
+            onClick={() => setSearchQuery('')}
+            className="mt-2 text-xs text-primary underline"
+          >
+            Clear search
+          </button>
+        </div>
+      )}
+      
       <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-auto pr-1">
-        <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Parameters by Category</h3>
-        {selectedCategory.map(category => (
-          <Accordion key={category.id} type="single" defaultValue={category.id} className="border-0 rounded-lg shadow-sm overflow-hidden bg-white" collapsible="true">
-            <AccordionItem value={category.id} className="border-0">
-              <AccordionTrigger className="py-2 px-3 text-sm font-medium hover:bg-gray-100 group transition-colors">
-                <div className="flex justify-between items-center w-full pr-1">
-                  <span>{category.name}</span>
-                  <span className="flex items-center text-xs font-medium bg-gray-100 text-foreground px-1.5 py-0.5 rounded-md border border-border">
-                    {parametersByCategory[category.id]?.length || 0}
-                  </span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="bg-white/50 transition-colors">
-                <div className="p-2 space-y-3 divide-y divide-border/40">
-                  {parametersByCategory[category.id]?.length > 0 ? (
-                    parametersByCategory[category.id].map(parameter => (
-                      <div key={parameter.id} className="pt-2 first:pt-0 hover:bg-gray-100 p-1 rounded-md transition-colors">
-                        {renderParameter(parameter)}
+        {parameterView === 'category' ? (
+          /* Category View */
+          <>
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Parameters by Category</h3>
+            {selectedCategory.map(category => {
+              // Get parameters for this category
+              const categoryParameters = filteredParameters.filter(param => param.categoryId === category.id);
+              
+              // Skip rendering empty categories when there's a search query
+              if (searchQuery && categoryParameters.length === 0) {
+                return null;
+              }
+              
+              return (
+                <Accordion 
+                  key={category.id} 
+                  type="single" 
+                  defaultValue={category.id} 
+                  className="border-0 rounded-lg shadow-sm overflow-hidden bg-white" 
+                  collapsible="true"
+                >
+                  <AccordionItem value={category.id} className="border-0">
+                    <AccordionTrigger className="py-2 px-3 text-sm font-medium hover:bg-gray-100 group transition-colors">
+                      <div className="flex justify-between items-center w-full pr-1">
+                        <div className="flex items-center gap-2">
+                          <Badge className={getCategoryBadgeColor(category.name)}>
+                            {category.name}
+                          </Badge>
+                        </div>
+                        <span className="flex items-center text-xs bg-gray-50 text-foreground/80 px-1.5 py-0.5 rounded-md border border-border/60">
+                          {categoryParameters.length || 0}
+                        </span>
                       </div>
-                    ))
-                  ) : (
-                    <div className="py-6 flex flex-col items-center justify-center text-center">
-                      <p className="text-foreground/70">
-                        No parameters available for this category.
-                      </p>
-                    </div>
-                  )}
+                    </AccordionTrigger>
+                    <AccordionContent className="bg-white/50 transition-colors">
+                      <div className="p-2 space-y-3 divide-y divide-border/40">
+                        {categoryParameters.length > 0 ? (
+                          categoryParameters.map(parameter => (
+                            <MemoizedParameter
+                              key={parameter.id}
+                              parameter={parameter}
+                              renderParameter={renderParameter}
+                            />
+                          ))
+                        ) : (
+                          <div className="py-6 flex flex-col items-center justify-center text-center">
+                            <p className="text-foreground/70">
+                              No parameters available for this category.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              );
+            })}
+          </>
+        ) : (
+          /* List View */
+          <>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">All Parameters</h3>
+              <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-0.5 rounded-full">
+                {filteredParameters.length} parameters
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-1 gap-3 bg-white p-4 rounded-lg border border-border">
+              {filteredParameters.map(parameter => (
+                <MemoizedParameter
+                  key={parameter.id}
+                  parameter={parameter}
+                  renderParameter={renderParameter}
+                />
+              ))}
+              
+              {filteredParameters.length === 0 && !searchQuery && (
+                <div className="py-8 flex flex-col items-center justify-center text-center">
+                  <p className="text-foreground/70">
+                    No parameters available.
+                  </p>
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        ))}
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

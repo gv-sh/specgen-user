@@ -1,5 +1,6 @@
 import axios from 'axios';
 import config from '../config';
+import { apiCache, debounce } from '../utils/performanceUtils';
 
 // Use environment variable for API URL with fallback to config
 const API_BASE_URL = process.env.REACT_APP_API_URL || `${config.API_URL}/api`;
@@ -17,7 +18,21 @@ const api = axios.create({
  */
 export const fetchCategories = async () => {
   try {
+    // Check if we have a cached version first
+    const cacheKey = 'categories';
+    const cachedData = apiCache.get(cacheKey);
+    
+    if (cachedData) {
+      console.log('Using cached categories data');
+      return cachedData;
+    }
+    
+    // If not in cache, make the API call
     const response = await api.get('/categories');
+    
+    // Cache the response (valid for 5 minutes)
+    apiCache.set(cacheKey, response.data, 5 * 60 * 1000);
+    
     return response.data;
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -32,7 +47,21 @@ export const fetchCategories = async () => {
  */
 export const fetchParameters = async (categoryId) => {
   try {
+    // Check if we have a cached version first
+    const cacheKey = `parameters_${categoryId}`;
+    const cachedData = apiCache.get(cacheKey);
+    
+    if (cachedData) {
+      console.log(`Using cached parameters data for category ${categoryId}`);
+      return cachedData;
+    }
+    
+    // If not in cache, make the API call
     const response = await api.get(`/parameters?categoryId=${categoryId}`);
+    
+    // Cache the response (valid for 5 minutes)
+    apiCache.set(cacheKey, response.data, 5 * 60 * 1000);
+    
     return response.data;
   } catch (error) {
     console.error(`Error fetching parameters for category ${categoryId}:`, error);

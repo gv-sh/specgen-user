@@ -30,11 +30,12 @@ const MainLayout = ({ children }) => {
           </div>
         </div>
       </header>
-      <main className="flex-1 py-8 pb-12">
+      <main className="flex-1">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
+          className="h-[calc(100vh-4rem)]"
         >
           {children}
         </motion.div>

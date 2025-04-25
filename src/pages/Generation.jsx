@@ -250,14 +250,21 @@ const Generation = ({ setGeneratedContent, generatedContent }) => {
               )}
             </h3>
             {generatedContent ? (
-              <div className="unsplash-card p-3 text-sm leading-relaxed whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none">
+              <div className="unsplash-card p-4 text-sm leading-relaxed whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none border border-border/30 rounded-lg shadow-sm bg-white">
                 {generatedContent}
               </div>
             ) : (
-              <div className="rounded-lg p-4 border border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20">
+              <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[180px] flex flex-col items-center justify-center">
+                <div className="w-14 h-14 rounded-full bg-accent/30 flex items-center justify-center mb-3">
+                  <span className="text-2xl">📝</span>
+                </div>
+                <h4 className="text-base font-medium mb-2">Story Output</h4>
                 <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                  Story will appear here after generation.
+                  Your generated story will appear here after generation.
                 </p>
+                <div className="mt-4 bg-gray-100 p-2 rounded text-xs text-muted-foreground border border-border/30">
+                  <p><strong>Example output:</strong> "In the bustling city of New Metro, where technology and tradition clashed in unexpected ways..."</p>
+                </div>
               </div>
             )}
           </div>
