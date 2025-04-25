@@ -1,5 +1,4 @@
 import * as React from "react"
-
 import { cn } from "../../lib/utils"
 
 const Slider = React.forwardRef(({ className, min = 0, max = 100, step = 1, ...props }, ref) => {
@@ -15,6 +14,7 @@ const Slider = React.forwardRef(({ className, min = 0, max = 100, step = 1, ...p
     const newValue = parseFloat(e.target.value);
     setValue(newValue);
     if (props.onChange) {
+      // Call onChange with the numeric value, not the event
       props.onChange(newValue);
     }
   };

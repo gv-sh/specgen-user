@@ -3,7 +3,6 @@ import DraggableParameter from '../components/DraggableParameter';
 import ParameterCard from '../components/cards/ParameterCard';
 import { fetchParameters } from '../services/api';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { Tooltip } from '../components/ui/tooltip';
 import {
   Accordion,
   AccordionItem,
@@ -16,10 +15,8 @@ import { Slider } from '../components/ui/slider';
 import { Switch } from '../components/ui/switch';
 import { Checkbox } from '../components/ui/checkbox';
 import { Badge } from '../components/ui/badge';
-import { Search, Filter, Settings, SlidersHorizontal, List, X, HelpCircle, BookOpen } from 'lucide-react';
+import { Search, Filter, Settings, SlidersHorizontal, List, X } from 'lucide-react';
 import { stringToColor } from '../utils/colorUtils';
-import HelpTooltip from '../components/ui/helpTooltip';
-import TipBanner from '../components/TipBanner';
 import { useScreenSize } from '../utils/responsiveUtils';
 import { debounce } from '../utils/performanceUtils';
 
@@ -42,9 +39,7 @@ const Parameters = ({ selectedCategory }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [parameterView, setParameterView] = useState('category'); // 'category' or 'list'
-  const [showGuides, setShowGuides] = useState(false);
   const [activeParameterId, setActiveParameterId] = useState(null);
-  const [showGuidanceTip, setShowGuidanceTip] = useState(false);
 
   // Get screen size information for responsive design
   const { isMobile, isTablet } = useScreenSize();
@@ -59,13 +54,6 @@ const Parameters = ({ selectedCategory }) => {
       clearTimeout(handler);
     };
   }, [searchQuery]);
-
-  // Show guidance tip when guidance is first enabled
-  useEffect(() => {
-    if (showGuides) {
-      setShowGuidanceTip(true);
-    }
-  }, [showGuides]);
 
   // Fetch parameters for selected categories
   useEffect(() => {
@@ -280,6 +268,7 @@ const Parameters = ({ selectedCategory }) => {
           const min = config.min !== undefined ? config.min : 0;
           const max = config.max !== undefined ? config.max : 100;
           const step = config.step !== undefined ? config.step : 1;
+          const currentValue = value !== null && value !== undefined ? value : (config?.default || min);
 
           return (
             <div className="space-y-1">
@@ -288,13 +277,21 @@ const Parameters = ({ selectedCategory }) => {
                   min={min}
                   max={max}
                   step={step}
-                  value={value !== null ? value : (config?.default || min)}
-                  onChange={(val) => handleParameterChange(categoryId, parameter.id, val)}
+                  value={currentValue}
+                  onChange={(newValue) => {
+                    // Make sure we're passing a number, not an event
+                    if (typeof newValue === 'number') {
+                      handleParameterChange(categoryId, parameter.id, newValue);
+                    } else if (newValue?.target?.value) {
+                      // Fallback in case we get an event
+                      handleParameterChange(categoryId, parameter.id, parseFloat(newValue.target.value));
+                    }
+                  }}
                 />
               </div>
               <div className="flex justify-between text-[10px]">
                 <span className="text-muted-foreground bg-gray-100 px-1 py-0.5 rounded">{min}</span>
-                <span className="font-medium bg-primary/10 text-primary px-1 py-0.5 rounded">{value !== null ? value : (config?.default || min)}</span>
+                <span className="font-medium bg-primary/10 text-primary px-1 py-0.5 rounded">{currentValue}</span>
                 <span className="text-muted-foreground bg-gray-100 px-1 py-0.5 rounded">{max}</span>
               </div>
             </div>
@@ -446,7 +443,7 @@ const Parameters = ({ selectedCategory }) => {
   // Get category badge color - memoized for performance
   const getCategoryBadgeColor = useCallback((categoryName) => {
     if (!categoryName) return 'bg-gray-100 text-gray-700 border-gray-200';
-
+    
     // Generate colors based on the category name
     const { bgColor, textColor, borderColor } = stringToColor(categoryName);
     return `${bgColor} ${textColor} ${borderColor}`;
@@ -484,16 +481,6 @@ const Parameters = ({ selectedCategory }) => {
         <h2 className="text-lg font-bold">Set Parameters</h2>
       </div>
 
-      {/* Parameter Guidance Tip Banner */}
-      {showGuidanceTip && (
-        <TipBanner
-          message={
-            <>Parameter guidance is now enabled. Look for <BookOpen className="h-3 w-3 inline mx-1" /> icons and additional information to help you understand how each parameter affects your story.</>
-          }
-          onClose={() => setShowGuidanceTip(false)}
-        />
-      )}
-
       {/* Content Type Selection - Enhanced */}
       <div className="mb-3 p-2.5 border border-border/70 rounded-md bg-white shadow-sm">
         <div className="flex flex-col gap-1.5">
@@ -501,12 +488,6 @@ const Parameters = ({ selectedCategory }) => {
             <label className="text-sm flex items-center gap-1.5">
               <Settings className="w-3.5 h-3.5 text-primary/80" />
               <span>Content Type</span>
-              {showGuides && (
-                <HelpTooltip
-                  content="Choose the type of content you want to generate. Fiction creates text stories, Image creates visuals, and Combined creates both."
-                  title="Content Type Selection"
-                />
-              )}
             </label>
             <div className="px-1.5 py-0.5 bg-gray-50 rounded-full text-xs text-muted-foreground border border-border/40">
               {selectedCategory.length} categories
@@ -615,17 +596,6 @@ const Parameters = ({ selectedCategory }) => {
               <span>List</span>
             </button>
           </div>
-          <button
-            onClick={() => setShowGuides(!showGuides)}
-            className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded ${showGuides
-                ? 'bg-primary text-white'
-                : 'bg-white border border-gray-200 hover:bg-gray-50'
-              }`}
-            title="Toggle parameter guidance"
-          >
-            <BookOpen className="h-3.5 w-3.5" />
-            <span>Guide</span>
-          </button>
         </div>
       </div>
 
@@ -642,20 +612,8 @@ const Parameters = ({ selectedCategory }) => {
         <div className="flex justify-between items-center bg-blue-50 p-2 rounded-md border border-blue-100">
           <p className="text-xs text-blue-700 flex items-center">
             <Filter className="h-3.5 w-3.5 mr-1.5 text-blue-500" />
-            Drag parameters using the
-            <span className="mx-1 inline-flex flex-col items-center h-3">
-              <span className="block w-1 h-1 rounded-full bg-gray-500 mb-0.5"></span>
-              <span className="block w-1 h-1 rounded-full bg-gray-500 mb-0.5"></span>
-              <span className="block w-1 h-1 rounded-full bg-gray-500"></span>
-            </span>
-            handle to "Selected Parameters"
+            Drag parameters to "Selected Parameters"
           </p>
-          {showGuides && (
-            <div className="text-xs text-primary italic">
-              <HelpCircle className="h-3 w-3 inline mr-1" />
-              Parameter guidance enabled
-            </div>
-          )}
         </div>
       </div>
 
