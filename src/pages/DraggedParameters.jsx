@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { stringToColor, getTypeColor } from '../utils/colorUtils';
 
 // Memoized parameter card component
-const ParameterCard = memo(({ param, onRemove }) => {
+const ParameterCard = memo(({ param, onRemove, getCategoryColor }) => {
   // Skip rendering parameters with missing essential data
   if (!param || !param.id || !param.name) {
     console.error('Invalid parameter detected:', param);
@@ -131,26 +131,28 @@ const DraggedParameters = ({ parameters, onRemove }) => {
           className={`
             p-4 border-2 border-dashed rounded-lg 
             flex flex-col items-center justify-center 
-            min-h-[200px] transition-all
+            min-h-[200px] transition-all duration-300
             ${isOver 
-              ? 'border-primary bg-primary/5 shadow-inner scale-[1.01]' 
-              : 'border-border/50 bg-gray-50 hover:border-primary/30 hover:bg-gray-100/80'}
+              ? 'border-primary bg-primary/10 shadow-lg scale-[1.02] ring-2 ring-primary/30 ring-offset-2' 
+              : 'border-primary/30 bg-gray-50 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md'}
           `}
         >
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {isOver ? (
               <motion.div 
                 key="drop-indicator"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
+                initial={{ scale: 0.8, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.8, opacity: 0, y: -10 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
                 className="text-center p-4"
               >
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                  <Move className="text-primary w-8 h-8" />
+                <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4 shadow-lg border-2 border-primary/30">
+                  <Move className="text-primary w-10 h-10 animate-pulse" />
                 </div>
-                <h3 className="font-semibold text-primary text-lg mb-1">Drop Parameter Here</h3>
-                <p className="text-xs text-foreground/70 max-w-[220px]">
-                  Release to add this parameter to your selection
+                <h3 className="font-semibold text-primary text-xl mb-2">Drop Here!</h3>
+                <p className="text-sm text-primary/80 max-w-[220px] bg-white/80 p-2 rounded-lg shadow-sm border border-primary/10">
+                  Release to add this parameter to your specification
                 </p>
               </motion.div>
             ) : (
@@ -159,19 +161,32 @@ const DraggedParameters = ({ parameters, onRemove }) => {
                 variants={containerVariants}
                 initial="hidden"
                 animate="show"
+                exit={{ opacity: 0, scale: 0.9 }}
                 className="text-center p-4 max-w-xs"
               >
-                <motion.div variants={itemVariants} className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-3">
-                  <Settings className="text-gray-500 w-8 h-8" />
+                <motion.div 
+                  variants={itemVariants} 
+                  className="w-16 h-16 rounded-full bg-white flex items-center justify-center mx-auto mb-3 border-2 border-primary/20 shadow-md"
+                >
+                  <Settings className="text-primary/70 w-8 h-8" />
                 </motion.div>
-                <motion.h3 variants={itemVariants} className="font-semibold text-foreground text-lg mb-1">No Parameters Selected</motion.h3>
-                <motion.p variants={itemVariants} className="text-xs text-foreground/70 mb-5">
-                  Drag parameters from the left panel to add them to your specification
-                </motion.p>
-                <motion.div variants={itemVariants} className="flex items-center justify-center text-sm text-primary">
+                <motion.h3 variants={itemVariants} className="font-semibold text-foreground text-lg mb-1">
+                  No Parameters Selected
+                </motion.h3>
+                <motion.div 
+                  variants={itemVariants} 
+                  className="text-xs text-foreground/70 mb-5 bg-white p-2 rounded-lg shadow-sm border border-gray-100"
+                >
+                  <p>
+                    Drag parameters from the left panel to add them to your specification
+                  </p>
+                  <div className="w-48 h-1 bg-primary/10 rounded-full mx-auto my-2"></div>
+                  <p className="text-primary/80">Drop Zone Active</p>
+                </motion.div>
+                <motion.div variants={itemVariants} className="flex items-center justify-center text-sm text-primary bg-primary/5 p-2 rounded-lg border border-primary/20">
                   <PanelLeft className="w-4 h-4 mr-1" /> 
                   <span>Select parameters</span>
-                  <ArrowDown className="w-4 h-4 mx-1" />
+                  <ArrowDown className="w-4 h-4 mx-1 animate-bounce" />
                   <span>Drag them here</span>
                 </motion.div>
               </motion.div>
@@ -195,39 +210,55 @@ const DraggedParameters = ({ parameters, onRemove }) => {
         ref={setNodeRef}
         className={`
           border-2 border-dashed rounded-lg p-3 
-          min-h-[120px] transition-all duration-200
+          min-h-[120px] transition-all duration-300
           ${isOver 
-            ? 'border-primary bg-primary/5 shadow-inner scale-[1.01]' 
-            : 'border-border/70 hover:border-primary/30 hover:bg-accent/5'}
+            ? 'border-primary bg-primary/10 shadow-lg scale-[1.02] ring-2 ring-primary/30 ring-offset-2' 
+            : 'border-primary/30 hover:border-primary/50 hover:bg-primary/5 hover:shadow-md'}
           relative
         `}
       >
-        {isOver && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-lg z-10"
-          >
-            <div className="bg-primary/10 border border-primary/30 rounded-lg px-4 py-2 text-primary text-sm font-medium shadow-sm">
-              <div className="flex items-center">
-                <Move className="w-4 h-4 mr-2" />
-                Drop parameter here
+        <AnimatePresence>
+          {isOver && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-lg z-10"
+            >
+              <div className="bg-primary/20 border-2 border-primary/30 rounded-lg px-5 py-3 text-primary text-md font-medium shadow-md">
+                <div className="flex items-center">
+                  <div className="mr-3 bg-primary/30 p-2 rounded-full">
+                    <Move className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <span>Drop parameter here</span>
+                </div>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
         <motion.div 
           className="space-y-2 relative"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.2 }}
         >
-          {parameters.map((param) => (
-            <ParameterCard
+          {parameters.map((param, index) => (
+            <motion.div
               key={param.id}
-              param={param}
-              onRemove={onRemove}
-            />
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              layout
+            >
+              <ParameterCard
+                param={param}
+                onRemove={onRemove}
+                getCategoryColor={getCategoryColor}
+              />
+            </motion.div>
           ))}
         </motion.div>
       </div>

@@ -84,14 +84,14 @@ const ParameterCard = ({
           </div>
           
           {showBadges && (
-            <div className="flex gap-1 flex-wrap justify-end">
+            <div className="flex gap-1.5 flex-wrap justify-end">
               {categoryName && (
-                <Badge className={`text-[10px] px-1.5 py-0 h-4 ${categoryColor}`}>
+                <Badge className={`text-[10px] px-1.5 py-0.5 h-5 flex items-center justify-center ${categoryColor}`}>
                   {categoryName}
                 </Badge>
               )}
               {type && (
-                <Badge className={`text-[10px] px-1.5 py-0 h-4 ${typeColor}`}>
+                <Badge className={`text-[10px] px-1.5 py-0.5 h-5 flex items-center justify-center ${typeColor}`}>
                   {type}
                 </Badge>
               )}

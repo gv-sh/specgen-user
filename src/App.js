@@ -1,6 +1,7 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { DndContext, DragOverlay } from '@dnd-kit/core';
+import { Move } from 'lucide-react';
 import { logDragEvent } from './utils/debug';
 import { ThemeProvider } from './components/ThemeProvider';
 import MainLayout from './components/layout/MainLayout';
@@ -156,11 +157,35 @@ function App() {
             </div>
           </Suspense>
 
-          <DragOverlay>
+          <DragOverlay dropAnimation={{
+            duration: 400,
+            easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+          }}>
             {activeDrag ? (
-              <div className="p-3 rounded-md bg-white shadow-lg border border-primary">
-                <p className="font-medium">{activeDrag.name}</p>
-                <p className="text-sm text-muted-foreground">{activeDrag.description}</p>
+              <div className="p-4 rounded-lg bg-white shadow-xl border-2 border-primary/50 animate-pulse-slow pointer-events-none max-w-xs">
+                <div className="flex gap-2 items-start">
+                  <div className="p-1.5 bg-primary/10 rounded-md border border-primary/20">
+                    <Move className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-primary">{activeDrag.name}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-2">{activeDrag.description}</p>
+                    
+                    <div className="mt-2 flex gap-1.5 flex-wrap">
+                      {activeDrag.categoryName && (
+                        <span className="text-[10px] px-1.5 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-sm">
+                          {activeDrag.categoryName}
+                        </span>
+                      )}
+                      <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-foreground/80 rounded-sm border border-border">
+                        {activeDrag.type}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-center bg-primary/5 p-1 rounded border border-primary/10">
+                  Drop in the "Selected Parameters" panel
+                </div>
               </div>
             ) : null}
           </DragOverlay>

@@ -89,6 +89,7 @@ const Parameters = ({ selectedCategory }) => {
       try {
         const newParameterValues = {...parameterValues}; // Clone existing values
         const allParameters = [];
+        const parameterNameTracker = new Set(); // Track parameters by name to detect duplicates
         
         // Update global state with selected category IDs
         const categoryIds = selectedCategory.map(cat => cat.id);
@@ -106,11 +107,31 @@ const Parameters = ({ selectedCategory }) => {
           const categoryParameters = result.data || [];
           
           if (categoryParameters.length > 0) {
-            // Add categoryId to each parameter for reference
-            const parametersWithCategoryId = categoryParameters.map(param => ({
-              ...param,
-              categoryId: category.id
-            }));
+            // Process parameters to handle duplicates
+            const parametersWithCategoryId = categoryParameters.map(param => {
+              const paramName = param.name.trim();
+              const uniqueIdentifier = `${paramName}_${param.type}`;
+              
+              // Check if we've already seen this parameter name
+              if (parameterNameTracker.has(uniqueIdentifier)) {
+                // This is a duplicate, modify the name for clarity
+                return {
+                  ...param,
+                  categoryId: category.id,
+                  originalName: paramName,
+                  name: `${paramName} (${category.name})`, // Add category name for disambiguation
+                  isDuplicate: true
+                };
+              }
+              
+              // First time seeing this parameter
+              parameterNameTracker.add(uniqueIdentifier);
+              return {
+                ...param,
+                categoryId: category.id,
+                originalName: paramName
+              };
+            });
             
             allParameters.push(...parametersWithCategoryId);
             
@@ -151,7 +172,12 @@ const Parameters = ({ selectedCategory }) => {
           }
         }
         
-        setParameters(allParameters);
+        // Sort parameters alphabetically by name
+        const sortedParameters = [...allParameters].sort((a, b) => 
+          a.name.localeCompare(b.name)
+        );
+        
+        setParameters(sortedParameters);
         setParameterValues(newParameterValues);
       } catch (err) {
         console.error('Error fetching parameters:', err);
@@ -230,15 +256,27 @@ const Parameters = ({ selectedCategory }) => {
       switch (parameter.type) {
       case 'Dropdown':
         return (
-          <Select
-            value={value || ''}
-            onChange={(e) => handleParameterChange(categoryId, parameter.id, e.target.value)}
-            className="w-full"
-          >
-            {parameter.values.map(option => (
-              <SelectOption key={option.id} value={option.id}>{option.label}</SelectOption>
-            ))}
-          </Select>
+          <div className="space-y-2">
+            <Select
+              value={value || ''}
+              onChange={(e) => handleParameterChange(categoryId, parameter.id, e.target.value)}
+              className="w-full"
+            >
+              {parameter.values.map(option => (
+                <SelectOption key={option.id} value={option.id}>{option.label}</SelectOption>
+              ))}
+            </Select>
+            
+            {/* Add this section to show the selected value */}
+            {value && (
+              <div className="flex items-center mt-1.5 bg-gray-50 px-2 py-1 rounded text-xs">
+                <span className="font-medium text-gray-500 mr-1.5">Selected:</span>
+                <span className="text-primary font-medium">
+                  {parameter.values.find(opt => opt.id === value)?.label || 'None'}
+                </span>
+              </div>
+            )}
+          </div>
         );
       case 'Slider':
         const config = parameter.config || {};
@@ -360,18 +398,26 @@ const Parameters = ({ selectedCategory }) => {
     // Wrap parameter content in draggable component with the unified card design
     return (
       <DraggableParameter id={parameter.id} data={paramData}>
-        <ParameterCard
-          name={parameter.name}
-          type={parameter.type}
-          description={parameter.description}
-          categoryName={categoryName}
-          error={error}
-          showGuides={showGuides}
-          allParameters={parameters}
-          parameter={parameter}
-        >
-          {renderParameterContent()}
-        </ParameterCard>
+        <div className="relative group pl-3 cursor-grab">
+          {/* Add this drag handle indicator */}
+          <div className="absolute -left-1 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center opacity-50 group-hover:opacity-100 transition-opacity">
+            <span className="block w-1 h-1 rounded-full bg-gray-500 mb-0.5"></span>
+            <span className="block w-1 h-1 rounded-full bg-gray-500 mb-0.5"></span>
+            <span className="block w-1 h-1 rounded-full bg-gray-500"></span>
+          </div>
+          <ParameterCard
+            name={parameter.name}
+            type={parameter.type}
+            description={parameter.description}
+            categoryName={categoryName}
+            error={error}
+            showGuides={showGuides}
+            allParameters={parameters}
+            parameter={parameter}
+          >
+            {renderParameterContent()}
+          </ParameterCard>
+        </div>
       </DraggableParameter>
     );
   };
@@ -555,27 +601,44 @@ const Parameters = ({ selectedCategory }) => {
           )}
         </div>
         
-        <div className="flex gap-1.5">
-          <button 
-            onClick={() => setParameterView('category')}
-            className={`px-2 py-1 text-xs rounded-md border ${parameterView === 'category' ? 'bg-primary text-white border-primary/80' : 'bg-white border-border/70 hover:bg-gray-50'}`}
-            title="Group by category"
-          >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
-          </button>
-          <button 
-            onClick={() => setParameterView('list')}
-            className={`px-2 py-1 text-xs rounded-md border ${parameterView === 'list' ? 'bg-primary text-white border-primary/80' : 'bg-white border-border/70 hover:bg-gray-50'}`}
-            title="View as list"
-          >
-            <List className="h-3.5 w-3.5" />
-          </button>
+        <div className="flex gap-2">
+          <div className="bg-gray-100 rounded-md p-0.5 flex">
+            <button 
+              onClick={() => setParameterView('category')}
+              className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded ${
+                parameterView === 'category' 
+                  ? 'bg-white shadow-sm border border-gray-200' 
+                  : 'text-gray-600 hover:text-gray-700'
+              }`}
+              title="Group by category"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+              <span>Categories</span>
+            </button>
+            <button 
+              onClick={() => setParameterView('list')}
+              className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded ${
+                parameterView === 'list' 
+                  ? 'bg-white shadow-sm border border-gray-200' 
+                  : 'text-gray-600 hover:text-gray-700'
+              }`}
+              title="View as list"
+            >
+              <List className="h-3.5 w-3.5" />
+              <span>List</span>
+            </button>
+          </div>
           <button 
             onClick={() => setShowGuides(!showGuides)}
-            className={`px-2 py-1 text-xs rounded-md border ${showGuides ? 'bg-primary text-white border-primary/80' : 'bg-white border-border/70 hover:bg-gray-50'}`}
+            className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded ${
+              showGuides 
+                ? 'bg-primary text-white' 
+                : 'bg-white border border-gray-200 hover:bg-gray-50'
+            }`}
             title="Toggle parameter guidance"
           >
             <BookOpen className="h-3.5 w-3.5" />
+            <span>Guide</span>
           </button>
         </div>
       </div>
@@ -590,9 +653,16 @@ const Parameters = ({ selectedCategory }) => {
       
       {/* Instruction to drag parameters */}
       <div className="mb-2">
-        <div className="flex justify-between items-center">
-          <p className="text-xs text-foreground/70 italic">
-            Drag any parameter to "Selected Parameters" to build your specification
+        <div className="flex justify-between items-center bg-blue-50 p-2 rounded-md border border-blue-100">
+          <p className="text-xs text-blue-700 flex items-center">
+            <Filter className="h-3.5 w-3.5 mr-1.5 text-blue-500" />
+            Drag parameters using the 
+            <span className="mx-1 inline-flex flex-col items-center h-3">
+              <span className="block w-1 h-1 rounded-full bg-gray-500 mb-0.5"></span>
+              <span className="block w-1 h-1 rounded-full bg-gray-500 mb-0.5"></span>
+              <span className="block w-1 h-1 rounded-full bg-gray-500"></span>
+            </span> 
+            handle to "Selected Parameters"
           </p>
           {showGuides && (
             <div className="text-xs text-primary italic">

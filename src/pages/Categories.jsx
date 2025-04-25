@@ -116,14 +116,14 @@ const Categories = ({ onCategorySelect }) => {
   }
 
   return (
-    <div className="space-y-3">
-      <div className="mb-2">
-        <h2 className="text-lg font-bold">Explore Genres</h2>
+    <div className="space-y-4">
+      <div className="mb-3">
+        <h2 className="text-lg font-bold mb-1">Explore Genres</h2>
       </div>
       
       {selectedCategories.length > 0 && (
-        <div className="mb-1">
-          <h3 className="text-xs font-medium mb-1 text-muted-foreground uppercase tracking-wider">Selected</h3>
+        <div className="mb-3">
+          <h3 className="text-xs font-medium mb-2 text-muted-foreground uppercase tracking-wider">Selected</h3>
           <div className="flex flex-wrap gap-2">
             {selectedCategories.map(id => {
               const category = categories.find(c => c.id === id);
@@ -132,11 +132,11 @@ const Categories = ({ onCategorySelect }) => {
                   key={id}
                   variant="secondary"
                   size="sm"
-                  className="h-6 gap-1 text-xs rounded-md bg-gray-100 hover:bg-gray-200 text-foreground border border-border px-2 py-0.5"
+                  className="h-7 gap-1.5 text-xs rounded-md bg-gray-100 hover:bg-gray-200 text-foreground border border-border px-2.5 py-1 flex items-center"
                   onClick={() => handleCategorySelect(id)}
                 >
                   {category?.name || id}
-                  <span className="ml-1 inline-flex items-center justify-center h-3 w-3 rounded-full bg-gray-200 text-xs">
+                  <span className="ml-1 inline-flex items-center justify-center h-4 w-4 rounded-full bg-gray-200 text-xs">
                     ×
                   </span>
                 </Button>
@@ -146,16 +146,19 @@ const Categories = ({ onCategorySelect }) => {
         </div>
       )}
 
-      <div className="space-y-1 max-h-[calc(100vh-220px)] overflow-auto pr-1 pt-1">
-        <h3 className="text-xs font-medium mb-1 text-muted-foreground uppercase tracking-wider">Available</h3>
+      <div className="space-y-2 max-h-[calc(100vh-220px)] overflow-auto pr-1">
+        <h3 className="text-xs font-medium mb-2 text-muted-foreground uppercase tracking-wider">Available</h3>
         
         {categories.map((category) => (
           <div 
             key={category.id} 
             className={`
-              flex items-center space-x-2 rounded-lg px-2 py-1.5 h-16
+              flex items-center space-x-3 rounded-lg px-3 py-2 h-[4.5rem]
               hover:bg-gray-100 cursor-pointer transition-colors
-              ${selectedCategories.includes(category.id) ? 'bg-gray-100 border border-border' : ''}
+              ${selectedCategories.includes(category.id) 
+                ? 'bg-gray-100 border border-border shadow-sm' 
+                : 'border border-transparent'
+              }
             `}
             onClick={() => handleCategorySelect(category.id)}
           >
@@ -163,14 +166,14 @@ const Categories = ({ onCategorySelect }) => {
               type="checkbox"
               checked={selectedCategories.includes(category.id)}
               onChange={() => handleCategorySelect(category.id)}
-              className="h-3 w-3 rounded-sm border-primary shadow focus:ring-primary text-primary"
+              className="h-4 w-4 rounded-sm border-primary shadow focus:ring-primary text-primary flex-shrink-0"
             />
-              <div className="grid gap-0.5">
-                <div className="text-sm font-medium">{category.name}</div>
-                <Tooltip content={getCategoryDescription(category.id)}>
-                  <div className="text-xs text-muted-foreground leading-snug line-clamp-2">{getCategoryDescription(category.id)}</div>
-                </Tooltip>
-              </div>
+            <div className="grid gap-1">
+              <div className="text-sm font-medium">{category.name}</div>
+              <Tooltip content={getCategoryDescription(category.id)}>
+                <div className="text-xs text-muted-foreground leading-snug line-clamp-2">{getCategoryDescription(category.id)}</div>
+              </Tooltip>
+            </div>
           </div>
         ))}
       </div>
