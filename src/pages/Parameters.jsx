@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import DraggableParameter from '../components/DraggableParameter';
 import { fetchParameters } from '../services/api';
 import { Alert, AlertDescription } from '../components/ui/alert';
+import { Tooltip } from '../components/ui/tooltip';
 import { 
   Accordion, 
   AccordionItem, 
@@ -165,14 +167,27 @@ const Parameters = ({ selectedCategory }) => {
     const value = parameterValues[categoryId]?.[parameter.id];
     const error = validationErrors[parameter.id];
     
-    switch (parameter.type) {
+    // Create data object for dragging
+    const paramData = {
+      id: parameter.id,
+      name: parameter.name,
+      description: parameter.description,
+      type: parameter.type,
+      categoryId: parameter.categoryId,
+      value: value
+    };
+    
+    const renderParameterContent = () => {
+      switch (parameter.type) {
       case 'Dropdown':
         return (
           <div className="space-y-1">
             <div>
               <label className="text-sm font-medium">{parameter.name}</label>
               {parameter.description && (
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 hover:line-clamp-none">{parameter.description}</p>
+                <Tooltip content={parameter.description}>
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{parameter.description}</p>
+                </Tooltip>
               )}
             </div>
             <Select
@@ -198,7 +213,9 @@ const Parameters = ({ selectedCategory }) => {
             <div>
               <label className="text-sm font-medium">{parameter.name}</label>
               {parameter.description && (
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 hover:line-clamp-none">{parameter.description}</p>
+                <Tooltip content={parameter.description}>
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{parameter.description}</p>
+                </Tooltip>
               )}
             </div>
             <div className="pt-1 pb-0.5">
@@ -224,7 +241,9 @@ const Parameters = ({ selectedCategory }) => {
             <div className="flex-1">
               <label className="text-sm font-medium">{parameter.name}</label>
               {parameter.description && (
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 hover:line-clamp-none">{parameter.description}</p>
+                <Tooltip content={parameter.description}>
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{parameter.description}</p>
+                </Tooltip>
               )}
               {error && <p className="text-xs text-destructive mt-1">{error}</p>}
             </div>
@@ -246,7 +265,9 @@ const Parameters = ({ selectedCategory }) => {
             <div>
               <label className="text-sm font-medium">{parameter.name}</label>
               {parameter.description && (
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 hover:line-clamp-none">{parameter.description}</p>
+                <Tooltip content={parameter.description}>
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{parameter.description}</p>
+                </Tooltip>
               )}
             </div>
             <div className="flex flex-col gap-1">
@@ -278,7 +299,9 @@ const Parameters = ({ selectedCategory }) => {
             <div>
               <label className="text-sm font-medium">{parameter.name}</label>
               {parameter.description && (
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 hover:line-clamp-none">{parameter.description}</p>
+                <Tooltip content={parameter.description}>
+                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{parameter.description}</p>
+                </Tooltip>
               )}
             </div>
             <div className="space-y-1 grid grid-cols-2">
@@ -311,7 +334,15 @@ const Parameters = ({ selectedCategory }) => {
             Unknown parameter type: {parameter.type}
           </div>
         );
-    }
+      }
+    };
+    
+    // Wrap parameter content in draggable component
+    return (
+      <DraggableParameter id={parameter.id} data={paramData}>
+        {renderParameterContent()}
+      </DraggableParameter>
+    );
   };
   
   // Group parameters by category
@@ -348,51 +379,54 @@ const Parameters = ({ selectedCategory }) => {
   }
   
   return (
-    <div className="space-y-4">
-      <div>
-        <h2 className="text-lg font-semibold tracking-tight">Set Parameters</h2>
-        <p className="text-sm text-muted-foreground">Configure settings for your selected categories</p>
+    <div className="space-y-3">
+      <div className="mb-2">
+        <h2 className="text-lg font-bold">Set Parameters</h2>
       </div>
       
-      {/* Content Type Selection */}
-      <div className="mb-4 p-3 bg-muted/40 rounded-lg">
-        <label className="text-sm font-medium block mb-2">What would you like to generate?</label>
-        <div className="flex flex-wrap gap-4" role="radiogroup">
-          <div className="flex items-center space-x-2">
-            <input
-              type="radio"
-              id="fiction"
-              name="contentType"
-              value="fiction"
-              checked={contentType === "fiction"}
-              onChange={() => handleContentTypeChange("fiction")}
-              className="aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-            <label className="text-sm" htmlFor="fiction">Fiction</label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <input
-              type="radio"
-              id="image"
-              name="contentType"
-              value="image"
-              checked={contentType === "image"}
-              onChange={() => handleContentTypeChange("image")}
-              className="aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-            <label className="text-sm" htmlFor="image">Image</label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <input
-              type="radio"
-              id="combined"
-              name="contentType"
-              value="combined"
-              checked={contentType === "combined"}
-              onChange={() => handleContentTypeChange("combined")}
-              className="aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-            <label className="text-sm" htmlFor="combined">Both</label>
+      {/* Content Type Selection - Compact */}
+      <div className="mb-3 p-2 border border-border rounded-md bg-gray-50">
+        <div className="flex items-center gap-4">
+          <label className="text-sm font-medium">Type:</label>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center">
+              <input
+                type="radio"
+                id="fiction"
+                name="contentType"
+                value="fiction"
+                checked={contentType === "fiction"}
+                onChange={() => handleContentTypeChange("fiction")}
+                className="h-3 w-3 mr-1 text-gray-800 border-gray-300"
+              />
+              <label htmlFor="fiction" className="text-xs">Fiction</label>
+            </div>
+            
+            <div className="flex items-center">
+              <input
+                type="radio"
+                id="image"
+                name="contentType"
+                value="image"
+                checked={contentType === "image"}
+                onChange={() => handleContentTypeChange("image")}
+                className="h-3 w-3 mr-1 text-gray-800 border-gray-300"
+              />
+              <label htmlFor="image" className="text-xs">Image</label>
+            </div>
+            
+            <div className="flex items-center">
+              <input
+                type="radio"
+                id="combined"
+                name="contentType"
+                value="combined"
+                checked={contentType === "combined"}
+                onChange={() => handleContentTypeChange("combined")}
+                className="h-3 w-3 mr-1 text-gray-800 border-gray-300"
+              />
+              <label htmlFor="combined" className="text-xs">Combined</label>
+            </div>
           </div>
         </div>
       </div>
@@ -405,32 +439,37 @@ const Parameters = ({ selectedCategory }) => {
         </Alert>
       )}
       
-      <div className="space-y-2 max-h-[calc(100vh-240px)] overflow-auto pr-1">
+      <div className="mb-2">
+        <p className="text-xs text-foreground/70 italic">Drag any parameter to "Selected Parameters" to build your specification</p>
+      </div>
+      
+      <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-auto pr-1">
+        <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Parameters by Category</h3>
         {selectedCategory.map(category => (
-          <Accordion key={category.id} type="single" defaultValue={category.id} className="border rounded-lg" collapsible="true">
-            <AccordionItem value={category.id} className="border-none">
-              <AccordionTrigger className="py-2 px-3 text-sm font-medium">
-                <div className="flex justify-between items-center w-full pr-2">
+          <Accordion key={category.id} type="single" defaultValue={category.id} className="border-0 rounded-lg shadow-sm overflow-hidden bg-white" collapsible="true">
+            <AccordionItem value={category.id} className="border-0">
+              <AccordionTrigger className="py-2 px-3 text-sm font-medium hover:bg-gray-100 group transition-colors">
+                <div className="flex justify-between items-center w-full pr-1">
                   <span>{category.name}</span>
-                  <span className="flex items-center text-xs text-muted-foreground px-2 py-0.5 bg-muted/50 rounded-full">
-                    {parametersByCategory[category.id]?.length || 0} parameters
+                  <span className="flex items-center text-xs font-medium bg-gray-100 text-foreground px-1.5 py-0.5 rounded-md border border-border">
+                    {parametersByCategory[category.id]?.length || 0}
                   </span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="px-3 pb-3 pt-0">
-                <div className="space-y-2">
+              <AccordionContent className="bg-white/50 transition-colors">
+                <div className="p-2 space-y-3 divide-y divide-border/40">
                   {parametersByCategory[category.id]?.length > 0 ? (
-                    <div className="divide-y">
-                      {parametersByCategory[category.id].map(parameter => (
-                        <div key={parameter.id} className="py-2">
-                          {renderParameter(parameter)}
-                        </div>
-                      ))}
-                    </div>
+                    parametersByCategory[category.id].map(parameter => (
+                      <div key={parameter.id} className="pt-2 first:pt-0 hover:bg-gray-100 p-1 rounded-md transition-colors">
+                        {renderParameter(parameter)}
+                      </div>
+                    ))
                   ) : (
-                    <p className="text-sm text-muted-foreground">
-                      No parameters available for this category.
-                    </p>
+                    <div className="py-6 flex flex-col items-center justify-center text-center">
+                      <p className="text-foreground/70">
+                        No parameters available for this category.
+                      </p>
+                    </div>
                   )}
                 </div>
               </AccordionContent>

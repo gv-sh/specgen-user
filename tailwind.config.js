@@ -22,6 +22,10 @@ module.exports = {
       },
     },
     extend: {
+      gridTemplateColumns: {
+        // 16-column grid for our app layout
+        '16': 'repeat(16, minmax(0, 1fr))',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
