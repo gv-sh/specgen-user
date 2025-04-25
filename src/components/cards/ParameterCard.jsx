@@ -1,31 +1,29 @@
 import React, { useState } from 'react';
 import { Tooltip } from '../ui/tooltip';
 import { Badge } from '../ui/badge';
-import { Info } from 'lucide-react';
-import { stringToColor, getTypeColor } from '../../utils/colorUtils';
+import { ChevronDown, Info } from 'lucide-react';
+import { stringToColor } from '../../utils/colorUtils';
 
 /**
- * A minimal parameter card with no guidance handles
+ * A clean parameter card without type indicators and extra handles
  */
 const ParameterCard = ({ 
   name, 
-  type, 
   description, 
   children, 
   categoryName, 
   error,
-  showBadges = true,
-  parameter,
   disabled = false
 }) => {
-  // Color utilities
+  const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Color utility for category only
   const getCategoryColor = (category) => {
     if (!category) return 'bg-gray-100 text-gray-700 border-gray-200';
     const { bgColor, textColor, borderColor } = stringToColor(category);
     return `${bgColor} ${textColor} ${borderColor}`;
   };
   
-  const typeColor = getTypeColor(type);
   const categoryColor = getCategoryColor(categoryName);
   
   return (
@@ -35,40 +33,50 @@ const ParameterCard = ({
       ${disabled ? 'opacity-60 pointer-events-none' : ''}
     `}>
       <div className="p-2">
-        {/* Header Row - combines name, description and badges in a single row */}
-        <div className="flex items-center justify-between gap-2 mb-1.5">
-          <div className="min-w-0 flex-1">
+        {/* Header Row - only name and category */}
+        <div className="flex flex-col gap-0.5 mb-1">
+          <div className="flex items-center justify-between">
             <Tooltip content={name} side="top">
-              <h3 className="font-medium text-xs truncate">{name}</h3>
+              <h3 className="font-medium text-sm truncate">{name}</h3>
             </Tooltip>
-            {description && (
-              <Tooltip content={description}>
-                <p className="text-[10px] text-muted-foreground truncate">
-                  {description}
-                </p>
-              </Tooltip>
+            
+            {/* Only show category badge, no type badge */}
+            {categoryName && (
+              <Badge className={`text-[10px] px-1.5 py-px ${categoryColor}`}>
+                {categoryName}
+              </Badge>
             )}
           </div>
           
-          {/* Type and Category Badges */}
-          {showBadges && (
-            <div className="flex gap-1 flex-nowrap">
-              {categoryName && (
-                <Badge className={`text-[9px] px-1.5 py-px h-4 ${categoryColor}`}>
-                  {categoryName}
-                </Badge>
-              )}
-              {type && (
-                <Badge className={`text-[9px] px-1.5 py-px h-4 ${typeColor}`}>
-                  {type}
-                </Badge>
+          {/* Description - expandable when it's too long */}
+          {description && (
+            <div className="relative">
+              <div 
+                className={`text-xs text-muted-foreground ${
+                  !isExpanded && description.length > 80 
+                    ? 'line-clamp-1' 
+                    : ''
+                }`}
+              >
+                {description}
+              </div>
+              {description.length > 80 && (
+                <button 
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="text-xs text-primary inline-flex items-center mt-0.5"
+                >
+                  {isExpanded ? 'Read less' : 'Read more'}
+                  <ChevronDown 
+                    className={`h-3 w-3 ml-0.5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
+                  />
+                </button>
               )}
             </div>
           )}
         </div>
         
-        {/* Parameter Control - the actual input component */}
-        <div>
+        {/* Parameter Control */}
+        <div className="mt-2">
           {children}
         </div>
         

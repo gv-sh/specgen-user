@@ -14,51 +14,37 @@ const ParameterCard = memo(({ param, onRemove, getCategoryColor }) => {
   }
   
   return (
-    <div 
-      className="flex items-center justify-between bg-white p-3 rounded-md border border-border shadow-sm gap-3 hover:shadow-md hover:border-primary/30 transition-all"
-    >
-      <div>
+    <div className="flex items-start justify-between bg-white p-2 rounded-md border border-border shadow-sm gap-2 hover:shadow-md hover:border-primary/30 transition-all">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1 flex-wrap">
           <Tooltip content={param.name}>
-            <p className="font-medium text-sm truncate max-w-[120px]">{param.name}</p>
+            <p className="font-medium text-xs truncate max-w-[120px]">{param.name}</p>
           </Tooltip>
-          <div className="flex gap-1.5 flex-wrap">
+          <div className="flex gap-1 flex-wrap">
             {param.categoryName && (
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-sm border ${getCategoryColor(param.categoryName)}`}>
+              <span className={`text-[9px] px-1 py-0.5 rounded-sm border ${getCategoryColor(param.categoryName)}`}>
                 {param.categoryName}
               </span>
             )}
-            <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-foreground/80 rounded-sm border border-border">
-              {param.type}
-            </span>
           </div>
         </div>
-        <Tooltip content={param.description}>
-          <p className="text-xs text-foreground/70 mt-1 line-clamp-2 max-w-[200px]">{param.description}</p>
-        </Tooltip>
+        
+        {/* More compact description with truncation */}
+        {param.description && (
+          <Tooltip content={param.description}>
+            <p className="text-[9px] text-foreground/70 mt-0.5 line-clamp-1">{param.description}</p>
+          </Tooltip>
+        )}
+        
+        {/* More compact value display */}
         {(param.value !== undefined && param.value !== null && param.value !== '') && (
-          <div className="mt-2">
-            <div className="text-xs font-medium text-muted-foreground mb-1">Value:</div>
-            <div className="flex flex-wrap gap-1.5">
-              {typeof param.value === 'object' ? (
-                Array.isArray(param.value) ? (
-                  param.value.length > 0 ? (
-                    param.value.map((val, index) => (
-                      <span key={index} className="text-xs bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded-sm inline-block max-w-[100px] truncate">
-                        {val.toString()}
-                      </span>
-                    ))
-                  ) : <span className="text-xs bg-gray-100 text-foreground/70 px-1.5 py-0.5 rounded-sm">Empty array</span>
-                ) : (
-                  <span className="text-xs bg-gray-100 text-foreground px-1.5 py-0.5 rounded-sm">
-                    {JSON.stringify(param.value).slice(0, 30)}{JSON.stringify(param.value).length > 30 ? '...' : ''}
-                  </span>
-                )
-              ) : (
-                <span className="text-xs bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded-sm font-medium">
-                  {param.value.toString()}
-                </span>
-              )}
+          <div className="mt-1 bg-gray-50 p-1 rounded-sm border border-gray-100">
+            <div className="text-[9px] font-medium text-primary truncate">
+              {typeof param.value === 'object' 
+                ? (Array.isArray(param.value) 
+                  ? param.value.join(', ') 
+                  : JSON.stringify(param.value).slice(0, 20))
+                : param.value.toString()}
             </div>
           </div>
         )}
@@ -69,10 +55,10 @@ const ParameterCard = memo(({ param, onRemove, getCategoryColor }) => {
           console.log('Removing parameter with ID:', param.id);
           onRemove(param.id);
         }}
-        className="p-1.5 rounded-md bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 border border-border transition-colors group"
+        className="p-1 rounded-md bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 hover:border-red-200 border border-border transition-colors group flex-shrink-0 self-start"
         title="Remove parameter"
       >
-        <X size={14} className="group-hover:stroke-[2.5px]" />
+        <X size={12} className="group-hover:stroke-[2.5px]" />
       </button>
     </div>
   );

@@ -4,10 +4,10 @@ import ParameterCard from '../components/cards/ParameterCard';
 import { fetchParameters } from '../services/api';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Tooltip } from '../components/ui/tooltip';
-import { 
-  Accordion, 
-  AccordionItem, 
-  AccordionTrigger, 
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
   AccordionContent
 } from '../components/ui/accordion';
 import { RadioGroup, RadioGroupItem } from '../components/ui/radio-group';
@@ -26,7 +26,7 @@ import { debounce } from '../utils/performanceUtils';
 // Memoized parameter component for performance
 const MemoizedParameter = memo(({ parameter, renderParameter }) => {
   return (
-    <div className="pt-2 first:pt-0 hover:bg-gray-100 p-1 rounded-md transition-colors">
+    <div className="mb-2 last:mb-0 hover:bg-gray-50 p-0.5 rounded-md transition-colors">
       {renderParameter(parameter)}
     </div>
   );
@@ -45,35 +45,35 @@ const Parameters = ({ selectedCategory }) => {
   const [showGuides, setShowGuides] = useState(false);
   const [activeParameterId, setActiveParameterId] = useState(null);
   const [showGuidanceTip, setShowGuidanceTip] = useState(false);
-  
+
   // Get screen size information for responsive design
   const { isMobile, isTablet } = useScreenSize();
-  
+
   // Debounce search query changes
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
     }, 300);
-    
+
     return () => {
       clearTimeout(handler);
     };
   }, [searchQuery]);
-  
+
   // Show guidance tip when guidance is first enabled
   useEffect(() => {
     if (showGuides) {
       setShowGuidanceTip(true);
     }
   }, [showGuides]);
-  
+
   // Fetch parameters for selected categories
   useEffect(() => {
     const fetchParametersForCategories = async () => {
       if (!selectedCategory || selectedCategory.length === 0) {
         setParameters([]);
         setLoading(false);
-        
+
         // Clear window.appState categories when no category is selected
         if (window.appState) {
           window.appState.categories = [];
@@ -82,15 +82,15 @@ const Parameters = ({ selectedCategory }) => {
         }
         return;
       }
-      
+
       setLoading(true);
       setError(null);
-      
+
       try {
-        const newParameterValues = {...parameterValues}; // Clone existing values
+        const newParameterValues = { ...parameterValues }; // Clone existing values
         const allParameters = [];
         const parameterNameTracker = new Set(); // Track parameters by name to detect duplicates
-        
+
         // Update global state with selected category IDs
         const categoryIds = selectedCategory.map(cat => cat.id);
         if (window.appState) {
@@ -98,20 +98,20 @@ const Parameters = ({ selectedCategory }) => {
         } else {
           window.appState = { categories: categoryIds };
         }
-        
+
         // Fetch parameters for each selected category
         for (const category of selectedCategory) {
           const result = await fetchParameters(category.id);
-          
+
           // Extract parameters from the data property in the API response
           const categoryParameters = result.data || [];
-          
+
           if (categoryParameters.length > 0) {
             // Process parameters to handle duplicates
             const parametersWithCategoryId = categoryParameters.map(param => {
               const paramName = param.name.trim();
               const uniqueIdentifier = `${paramName}_${param.type}`;
-              
+
               // Check if we've already seen this parameter name
               if (parameterNameTracker.has(uniqueIdentifier)) {
                 // This is a duplicate, modify the name for clarity
@@ -123,7 +123,7 @@ const Parameters = ({ selectedCategory }) => {
                   isDuplicate: true
                 };
               }
-              
+
               // First time seeing this parameter
               parameterNameTracker.add(uniqueIdentifier);
               return {
@@ -132,14 +132,14 @@ const Parameters = ({ selectedCategory }) => {
                 originalName: paramName
               };
             });
-            
+
             allParameters.push(...parametersWithCategoryId);
-            
+
             // Initialize parameter values only if they don't already exist
             if (!newParameterValues[category.id]) {
               newParameterValues[category.id] = {};
             }
-            
+
             categoryParameters.forEach(param => {
               // Only set value if it doesn't already exist
               if (newParameterValues[category.id][param.id] === undefined) {
@@ -171,12 +171,12 @@ const Parameters = ({ selectedCategory }) => {
             });
           }
         }
-        
+
         // Sort parameters alphabetically by name
-        const sortedParameters = [...allParameters].sort((a, b) => 
+        const sortedParameters = [...allParameters].sort((a, b) =>
           a.name.localeCompare(b.name)
         );
-        
+
         setParameters(sortedParameters);
         setParameterValues(newParameterValues);
       } catch (err) {
@@ -186,10 +186,10 @@ const Parameters = ({ selectedCategory }) => {
         setLoading(false);
       }
     };
-    
+
     fetchParametersForCategories();
   }, [selectedCategory]);
-  
+
   // Handle parameter value changes
   const handleParameterChange = (categoryId, parameterId, newValue) => {
     const updatedValues = {
@@ -199,30 +199,30 @@ const Parameters = ({ selectedCategory }) => {
         [parameterId]: newValue
       }
     };
-    
+
     setParameterValues(updatedValues);
-    
+
     // Update global state
     if (window.appState) {
       window.appState.parameters = updatedValues;
     } else {
       window.appState = { parameters: updatedValues };
     }
-    
+
     // Clear validation error when value is updated
     if (validationErrors[parameterId]) {
       setValidationErrors(prev => {
-        const newErrors = {...prev};
+        const newErrors = { ...prev };
         delete newErrors[parameterId];
         return newErrors;
       });
     }
   };
-  
+
   // Handle content type change
   const handleContentTypeChange = (value) => {
     setContentType(value);
-    
+
     // Store in global state so Generation component can access it
     if (window.appState) {
       window.appState.contentType = value;
@@ -230,198 +230,187 @@ const Parameters = ({ selectedCategory }) => {
       window.appState = { contentType: value };
     }
   };
-  
+
   // Render parameter component based on type
   const renderParameter = (parameter) => {
     const categoryId = parameter.categoryId;
     const value = parameterValues[categoryId]?.[parameter.id];
     const error = validationErrors[parameter.id];
-    
+
     // Find the category name
     const category = selectedCategory.find(cat => cat.id === categoryId);
     const categoryName = category ? category.name : null;
-    
+
     // Create data object for dragging
     const paramData = {
       id: parameter.id,
       name: parameter.name,
       description: parameter.description,
-      type: parameter.type,
       categoryId: parameter.categoryId,
       categoryName,
       value: value
     };
-    
     const renderParameterContent = () => {
       switch (parameter.type) {
-      case 'Dropdown':
-        return (
-          <div className="space-y-2">
-            <Select
-              value={value || ''}
-              onChange={(e) => handleParameterChange(categoryId, parameter.id, e.target.value)}
-              className="w-full"
-            >
-              {parameter.values.map(option => (
-                <SelectOption key={option.id} value={option.id}>{option.label}</SelectOption>
-              ))}
-            </Select>
-            
-            {/* Add this section to show the selected value */}
-            {value && (
-              <div className="flex items-center mt-1.5 bg-gray-50 px-2 py-1 rounded text-xs">
-                <span className="font-medium text-gray-500 mr-1.5">Selected:</span>
-                <span className="text-primary font-medium">
-                  {parameter.values.find(opt => opt.id === value)?.label || 'None'}
+        case 'Dropdown':
+          return (
+            <div className="space-y-1">
+              <Select
+                value={value || ''}
+                onChange={(e) => handleParameterChange(categoryId, parameter.id, e.target.value)}
+                className="w-full h-8 text-xs"
+              >
+                {parameter.values.map(option => (
+                  <SelectOption key={option.id} value={option.id}>{option.label}</SelectOption>
+                ))}
+              </Select>
+
+              {value && (
+                <div className="flex items-center bg-gray-50 px-2 py-0.5 rounded text-xs">
+                  <span className="text-[10px] text-gray-500 mr-1">Selected:</span>
+                  <span className="text-[10px] text-primary font-medium">
+                    {parameter.values.find(opt => opt.id === value)?.label || 'None'}
+                  </span>
+                </div>
+              )}
+            </div>
+          );
+        case 'Slider':
+          const config = parameter.config || {};
+          const min = config.min !== undefined ? config.min : 0;
+          const max = config.max !== undefined ? config.max : 100;
+          const step = config.step !== undefined ? config.step : 1;
+
+          return (
+            <div className="space-y-1">
+              <div className="py-0.5">
+                <Slider
+                  min={min}
+                  max={max}
+                  step={step}
+                  value={value !== null ? value : (config?.default || min)}
+                  onChange={(val) => handleParameterChange(categoryId, parameter.id, val)}
+                />
+              </div>
+              <div className="flex justify-between text-[10px]">
+                <span className="text-muted-foreground bg-gray-100 px-1 py-0.5 rounded">{min}</span>
+                <span className="font-medium bg-primary/10 text-primary px-1 py-0.5 rounded">{value !== null ? value : (config?.default || min)}</span>
+                <span className="text-muted-foreground bg-gray-100 px-1 py-0.5 rounded">{max}</span>
+              </div>
+            </div>
+          );
+        case 'Toggle Switch':
+          return (
+            <div className="flex items-center justify-between space-x-2">
+              <div className="flex-1">
+                <span className="text-xs text-muted-foreground inline-block bg-gray-100 px-1.5 py-0.5 rounded-md">
+                  {value === true ? 'Enabled' : 'Disabled'}
                 </span>
               </div>
-            )}
-          </div>
-        );
-      case 'Slider':
-        const config = parameter.config || {};
-        const min = config.min !== undefined ? config.min : 0;
-        const max = config.max !== undefined ? config.max : 100;
-        const step = config.step !== undefined ? config.step : 1;
-        
-        return (
-          <div className="space-y-2">
-            <div className="pt-1 pb-0.5">
-              <Slider 
-                min={min}
-                max={max}
-                step={step}
-                value={value !== null ? value : (config?.default || min)}
-                onChange={(val) => handleParameterChange(categoryId, parameter.id, val)}
+              <input
+                type="checkbox"
+                checked={value === true}
+                onChange={(e) => handleParameterChange(categoryId, parameter.id, e.target.checked)}
+                className="h-5 w-9 appearance-none rounded-full bg-muted transition-colors relative
+                          after:content-[''] after:absolute after:top-0.5 after:left-0.5 
+                          after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all
+                          checked:bg-primary checked:after:translate-x-4"
               />
             </div>
-            <div className="flex justify-between">
-              <span className="text-xs text-muted-foreground bg-gray-100 px-1.5 py-0.5 rounded">{min}</span>
-              <span className="text-xs font-medium bg-primary/10 text-primary px-1.5 py-0.5 rounded">{value !== null ? value : (config?.default || min)}</span>
-              <span className="text-xs text-muted-foreground bg-gray-100 px-1.5 py-0.5 rounded">{max}</span>
-            </div>
-          </div>
-        );
-      case 'Toggle Switch':
-        return (
-          <div className="flex items-center justify-between space-x-2">
-            <div className="flex-1">
-              <span className="text-xs text-muted-foreground inline-block bg-gray-100 px-1.5 py-0.5 rounded-md">
-                {value === true ? 'Enabled' : 'Disabled'}
-              </span>
-            </div>
-            <input
-              type="checkbox"
-              checked={value === true}
-              onChange={(e) => handleParameterChange(categoryId, parameter.id, e.target.checked)}
-              className="h-5 w-9 appearance-none rounded-full bg-muted transition-colors relative
-                        after:content-[''] after:absolute after:top-0.5 after:left-0.5 
-                        after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all
-                        checked:bg-primary checked:after:translate-x-4"
-            />
-          </div>
-        );
-      case 'Radio':
-      case 'Radio Buttons':
-        return (
-          <div className="flex flex-col gap-1.5">
-            {parameter.values.map(option => (
-              <div key={option.id} className={`flex items-center space-x-2 p-1.5 rounded ${value === option.id ? 'bg-primary/5 border border-primary/20' : 'bg-gray-50 border border-transparent'}`}>
-                <input
-                  type="radio"
-                  id={`${parameter.id}-${option.id}`}
-                  name={parameter.id}
-                  value={option.id}
-                  checked={value === option.id}
-                  onChange={() => handleParameterChange(categoryId, parameter.id, option.id)}
-                  className="h-4 w-4 rounded-full border border-primary text-primary"
-                />
-                <label className="text-sm" htmlFor={`${parameter.id}-${option.id}`}>
-                  {option.label}
-                </label>
-              </div>
-            ))}
-          </div>
-        );
-      case 'Checkbox':
-        const checkboxValues = Array.isArray(value) ? value : [];
-        
-        return (
-          <div className="space-y-1">
-            {checkboxValues.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-2">
-                {checkboxValues.map(selectedId => {
-                  const option = parameter.values.find(o => o.id === selectedId);
-                  return option ? (
-                    <Badge key={option.id} className="bg-primary/10 text-primary border-primary/20 text-xs">
-                      {option.label}
-                    </Badge>
-                  ) : null;
-                })}
-              </div>
-            )}
-            <div className="space-y-1.5 grid grid-cols-2 gap-1">
+          );
+        case 'Radio':
+        case 'Radio Buttons':
+          return (
+            <div className="grid grid-cols-2 gap-1 text-xs">
               {parameter.values.map(option => (
-                <div 
-                  key={option.id} 
-                  className={`flex items-center space-x-2 p-1 rounded-sm ${checkboxValues.includes(option.id) ? 'bg-primary/5 border border-primary/20' : 'bg-gray-50 border border-transparent'}`}
+                <div
+                  key={option.id}
+                  className={`flex items-center p-1 rounded ${value === option.id ? 'bg-primary/5 border border-primary/20' : 'bg-gray-50 border border-transparent'}`}
                 >
                   <input
-                    type="checkbox"
+                    type="radio"
                     id={`${parameter.id}-${option.id}`}
-                    checked={checkboxValues.includes(option.id)}
-                    onChange={(e) => {
-                      const newValues = e.target.checked 
-                        ? [...checkboxValues, option.id] 
-                        : checkboxValues.filter(val => val !== option.id);
-                      handleParameterChange(categoryId, parameter.id, newValues);
-                    }}
-                    className="h-4 w-4 rounded-sm border border-primary shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    name={parameter.id}
+                    value={option.id}
+                    checked={value === option.id}
+                    onChange={() => handleParameterChange(categoryId, parameter.id, option.id)}
+                    className="h-3 w-3 mr-1"
                   />
-                  <label className="text-sm" htmlFor={`${parameter.id}-${option.id}`}>
+                  <label className="text-[10px] truncate" htmlFor={`${parameter.id}-${option.id}`}>
                     {option.label}
                   </label>
                 </div>
               ))}
             </div>
-          </div>
-        );
-      default:
-        return (
-          <div className="text-sm bg-red-50 p-2 border border-red-100 rounded-md text-red-600">
-            Unknown parameter type: {parameter.type}
-          </div>
-        );
+          );
+        case 'Checkbox':
+          const checkboxValues = Array.isArray(value) ? value : [];
+
+          return (
+            <div className="space-y-1">
+              {checkboxValues.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-1">
+                  {checkboxValues.map(selectedId => {
+                    const option = parameter.values.find(o => o.id === selectedId);
+                    return option ? (
+                      <Badge key={option.id} className="bg-primary/10 text-primary border-primary/20 text-[9px] px-1 py-0">
+                        {option.label}
+                      </Badge>
+                    ) : null;
+                  })}
+                </div>
+              )}
+              <div className="grid grid-cols-2 gap-1 text-xs">
+                {parameter.values.map(option => (
+                  <div
+                    key={option.id}
+                    className={`flex items-center p-1 rounded ${checkboxValues.includes(option.id) ? 'bg-primary/5 border border-primary/20' : 'bg-gray-50 border border-transparent'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      id={`${parameter.id}-${option.id}`}
+                      checked={checkboxValues.includes(option.id)}
+                      onChange={(e) => {
+                        const newValues = e.target.checked
+                          ? [...checkboxValues, option.id]
+                          : checkboxValues.filter(val => val !== option.id);
+                        handleParameterChange(categoryId, parameter.id, newValues);
+                      }}
+                      className="h-3 w-3 mr-1"
+                    />
+                    <label className="text-[10px] truncate" htmlFor={`${parameter.id}-${option.id}`}>
+                      {option.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        default:
+          return (
+            <div className="text-sm bg-red-50 p-2 border border-red-100 rounded-md text-red-600">
+              Unknown parameter type: {parameter.type}
+            </div>
+          );
       }
     };
-    
+
     // Wrap parameter content in draggable component with the unified card design
     return (
       <DraggableParameter id={parameter.id} data={paramData}>
-        <div className="relative group pl-3 cursor-grab">
-          {/* Add this drag handle indicator */}
-          <div className="absolute -left-1 top-1/2 -translate-y-1/2 flex flex-col items-center justify-center opacity-50 group-hover:opacity-100 transition-opacity">
-            <span className="block w-1 h-1 rounded-full bg-gray-500 mb-0.5"></span>
-            <span className="block w-1 h-1 rounded-full bg-gray-500 mb-0.5"></span>
-            <span className="block w-1 h-1 rounded-full bg-gray-500"></span>
-          </div>
-          <ParameterCard
-            name={parameter.name}
-            type={parameter.type}
-            description={parameter.description}
-            categoryName={categoryName}
-            error={error}
-            showGuides={showGuides}
-            allParameters={parameters}
-            parameter={parameter}
-          >
-            {renderParameterContent()}
-          </ParameterCard>
-        </div>
+        <ParameterCard
+          name={parameter.name}
+          description={parameter.description}
+          categoryName={categoryName}
+          error={error}
+          parameter={parameter}
+        >
+          {renderParameterContent()}
+        </ParameterCard>
       </DraggableParameter>
     );
   };
-  
+
   // Memoize the filtered parameters to avoid unnecessary re-filtering
   const filteredParameters = useMemo(() => {
     return parameters.filter(param => {
@@ -431,33 +420,33 @@ const Parameters = ({ selectedCategory }) => {
         const nameMatch = param.name?.toLowerCase().includes(query);
         const descMatch = param.description?.toLowerCase().includes(query);
         const typeMatch = param.type?.toLowerCase().includes(query);
-        
+
         if (!nameMatch && !descMatch && !typeMatch) {
           return false;
         }
       }
-      
+
       return true;
     });
   }, [parameters, debouncedSearchQuery]);
-  
+
   // Memoize parameters by category for better performance
   const parametersByCategory = useMemo(() => {
     const result = {};
-    
+
     if (selectedCategory) {
       selectedCategory.forEach(category => {
         result[category.id] = filteredParameters.filter(param => param.categoryId === category.id);
       });
     }
-    
+
     return result;
   }, [filteredParameters, selectedCategory]);
 
   // Get category badge color - memoized for performance
   const getCategoryBadgeColor = useCallback((categoryName) => {
     if (!categoryName) return 'bg-gray-100 text-gray-700 border-gray-200';
-    
+
     // Generate colors based on the category name
     const { bgColor, textColor, borderColor } = stringToColor(categoryName);
     return `${bgColor} ${textColor} ${borderColor}`;
@@ -471,7 +460,7 @@ const Parameters = ({ selectedCategory }) => {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <Alert variant="destructive">
@@ -479,7 +468,7 @@ const Parameters = ({ selectedCategory }) => {
       </Alert>
     );
   }
-  
+
   if (!selectedCategory || selectedCategory.length === 0) {
     return (
       <Alert>
@@ -488,20 +477,20 @@ const Parameters = ({ selectedCategory }) => {
     );
   }
 
-  
+
   return (
     <div className="space-y-4">
       <div className="mb-2">
         <h2 className="text-lg font-bold">Set Parameters</h2>
       </div>
-      
+
       {/* Parameter Guidance Tip Banner */}
       {showGuidanceTip && (
-        <TipBanner 
+        <TipBanner
           message={
             <>Parameter guidance is now enabled. Look for <BookOpen className="h-3 w-3 inline mx-1" /> icons and additional information to help you understand how each parameter affects your story.</>
-          } 
-          onClose={() => setShowGuidanceTip(false)} 
+          }
+          onClose={() => setShowGuidanceTip(false)}
         />
       )}
 
@@ -513,7 +502,7 @@ const Parameters = ({ selectedCategory }) => {
               <Settings className="w-3.5 h-3.5 text-primary/80" />
               <span>Content Type</span>
               {showGuides && (
-                <HelpTooltip 
+                <HelpTooltip
                   content="Choose the type of content you want to generate. Fiction creates text stories, Image creates visuals, and Combined creates both."
                   title="Content Type Selection"
                 />
@@ -523,10 +512,10 @@ const Parameters = ({ selectedCategory }) => {
               {selectedCategory.length} categories
             </div>
           </div>
-          
+
           <div className="flex items-center justify-between bg-gray-50 p-1 rounded-md border border-border/40">
             <div className="flex flex-1 divide-x divide-border/50">
-              <div 
+              <div
                 className={`flex items-center px-2.5 py-0.5 rounded-l-sm cursor-pointer transition-colors ${contentType === "fiction" ? 'bg-primary text-white' : 'hover:bg-gray-100'}`}
                 onClick={() => handleContentTypeChange("fiction")}
               >
@@ -541,8 +530,8 @@ const Parameters = ({ selectedCategory }) => {
                 />
                 <label htmlFor="fiction" className="text-xs cursor-pointer">Fiction</label>
               </div>
-              
-              <div 
+
+              <div
                 className={`flex items-center px-2.5 py-0.5 cursor-pointer transition-colors ${contentType === "image" ? 'bg-primary text-white' : 'hover:bg-gray-100'}`}
                 onClick={() => handleContentTypeChange("image")}
               >
@@ -557,8 +546,8 @@ const Parameters = ({ selectedCategory }) => {
                 />
                 <label htmlFor="image" className="text-xs cursor-pointer">Image</label>
               </div>
-              
-              <div 
+
+              <div
                 className={`flex items-center px-2.5 py-0.5 rounded-r-sm cursor-pointer transition-colors ${contentType === "combined" ? 'bg-primary text-white' : 'hover:bg-gray-100'}`}
                 onClick={() => handleContentTypeChange("combined")}
               >
@@ -577,7 +566,7 @@ const Parameters = ({ selectedCategory }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Search and Filter Bar */}
       <div className="mb-3 flex gap-2 items-center">
         <div className="relative flex-1">
@@ -600,41 +589,38 @@ const Parameters = ({ selectedCategory }) => {
             </button>
           )}
         </div>
-        
+
         <div className="flex gap-2">
           <div className="bg-gray-100 rounded-md p-0.5 flex">
-            <button 
+            <button
               onClick={() => setParameterView('category')}
-              className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded ${
-                parameterView === 'category' 
-                  ? 'bg-white shadow-sm border border-gray-200' 
+              className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded ${parameterView === 'category'
+                  ? 'bg-white shadow-sm border border-gray-200'
                   : 'text-gray-600 hover:text-gray-700'
-              }`}
+                }`}
               title="Group by category"
             >
               <SlidersHorizontal className="h-3.5 w-3.5" />
               <span>Categories</span>
             </button>
-            <button 
+            <button
               onClick={() => setParameterView('list')}
-              className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded ${
-                parameterView === 'list' 
-                  ? 'bg-white shadow-sm border border-gray-200' 
+              className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded ${parameterView === 'list'
+                  ? 'bg-white shadow-sm border border-gray-200'
                   : 'text-gray-600 hover:text-gray-700'
-              }`}
+                }`}
               title="View as list"
             >
               <List className="h-3.5 w-3.5" />
               <span>List</span>
             </button>
           </div>
-          <button 
+          <button
             onClick={() => setShowGuides(!showGuides)}
-            className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded ${
-              showGuides 
-                ? 'bg-primary text-white' 
+            className={`flex items-center gap-1 px-2 py-1.5 text-xs rounded ${showGuides
+                ? 'bg-primary text-white'
                 : 'bg-white border border-gray-200 hover:bg-gray-50'
-            }`}
+              }`}
             title="Toggle parameter guidance"
           >
             <BookOpen className="h-3.5 w-3.5" />
@@ -650,18 +636,18 @@ const Parameters = ({ selectedCategory }) => {
           </AlertDescription>
         </Alert>
       )}
-      
+
       {/* Instruction to drag parameters */}
       <div className="mb-2">
         <div className="flex justify-between items-center bg-blue-50 p-2 rounded-md border border-blue-100">
           <p className="text-xs text-blue-700 flex items-center">
             <Filter className="h-3.5 w-3.5 mr-1.5 text-blue-500" />
-            Drag parameters using the 
+            Drag parameters using the
             <span className="mx-1 inline-flex flex-col items-center h-3">
               <span className="block w-1 h-1 rounded-full bg-gray-500 mb-0.5"></span>
               <span className="block w-1 h-1 rounded-full bg-gray-500 mb-0.5"></span>
               <span className="block w-1 h-1 rounded-full bg-gray-500"></span>
-            </span> 
+            </span>
             handle to "Selected Parameters"
           </p>
           {showGuides && (
@@ -672,7 +658,7 @@ const Parameters = ({ selectedCategory }) => {
           )}
         </div>
       </div>
-      
+
       {searchQuery && filteredParameters.length === 0 && (
         <div className="py-6 flex flex-col items-center justify-center text-center bg-gray-50 rounded-lg border border-border">
           <p className="text-foreground/70">
@@ -686,7 +672,7 @@ const Parameters = ({ selectedCategory }) => {
           </button>
         </div>
       )}
-      
+
       <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-auto pr-1">
         {parameterView === 'category' ? (
           /* Category View */
@@ -695,35 +681,35 @@ const Parameters = ({ selectedCategory }) => {
             {selectedCategory.map(category => {
               // Get parameters for this category
               const categoryParameters = filteredParameters.filter(param => param.categoryId === category.id);
-              
+
               // Skip rendering empty categories when there's a search query
               if (searchQuery && categoryParameters.length === 0) {
                 return null;
               }
-              
+
               return (
-                <Accordion 
-                  key={category.id} 
-                  type="single" 
-                  defaultValue={category.id} 
-                  className="border-0 rounded-lg shadow-sm overflow-hidden bg-white" 
+                <Accordion
+                  key={category.id}
+                  type="single"
+                  defaultValue={category.id}
+                  className="border-0 rounded-lg shadow-sm overflow-hidden bg-white"
                   collapsible="true"
                 >
                   <AccordionItem value={category.id} className="border-0">
-                    <AccordionTrigger className="py-2 px-3 text-sm font-medium hover:bg-gray-100 group transition-colors">
-                      <div className="flex justify-between items-center w-full pr-1">
-                        <div className="flex items-center gap-2">
-                          <Badge className={getCategoryBadgeColor(category.name)}>
+                    <AccordionTrigger className="py-1.5 px-2 text-xs font-medium hover:bg-gray-100 group transition-colors">
+                      <div className="flex justify-between items-center w-full">
+                        <div className="flex items-center gap-1">
+                          <Badge className={`text-[9px] px-1.5 py-px h-4 ${getCategoryBadgeColor(category.name)}`}>
                             {category.name}
                           </Badge>
                         </div>
-                        <span className="flex items-center text-xs bg-gray-50 text-foreground/80 px-1.5 py-0.5 rounded-md border border-border/60">
+                        <span className="flex items-center text-[9px] bg-gray-50 text-foreground/80 px-1.5 py-0.5 rounded-md border border-border/60">
                           {categoryParameters.length || 0}
                         </span>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="bg-white/50 transition-colors">
-                      <div className="p-2 space-y-3 divide-y divide-border/40">
+                      <div className="p-1.5 space-y-1.5">
                         {categoryParameters.length > 0 ? (
                           categoryParameters.map(parameter => (
                             <MemoizedParameter
@@ -733,8 +719,8 @@ const Parameters = ({ selectedCategory }) => {
                             />
                           ))
                         ) : (
-                          <div className="py-6 flex flex-col items-center justify-center text-center">
-                            <p className="text-foreground/70">
+                          <div className="py-2 flex flex-col items-center justify-center text-center">
+                            <p className="text-xs text-foreground/70">
                               No parameters available for this category.
                             </p>
                           </div>
@@ -755,7 +741,7 @@ const Parameters = ({ selectedCategory }) => {
                 {filteredParameters.length} parameters
               </span>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-3 bg-white p-4 rounded-lg border border-border">
               {filteredParameters.map(parameter => (
                 <MemoizedParameter
@@ -764,7 +750,7 @@ const Parameters = ({ selectedCategory }) => {
                   renderParameter={renderParameter}
                 />
               ))}
-              
+
               {filteredParameters.length === 0 && !searchQuery && (
                 <div className="py-8 flex flex-col items-center justify-center text-center">
                   <p className="text-foreground/70">
