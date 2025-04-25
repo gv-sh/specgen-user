@@ -120,7 +120,7 @@ const AccordionContent = React.forwardRef(({ className, children, isOpen, ...pro
     )}
     {...props}
   >
-    {isOpen && <div className="pb-4 pt-0 px-4">{children}</div>}
+    {isOpen && <div className="pb-2 pt-0 px-0">{children}</div>}
   </div>
 ));
 
