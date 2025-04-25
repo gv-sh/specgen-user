@@ -42,7 +42,7 @@ const SliderParameter = ({ parameter, value, onChange, error }) => {
     ];
     
     // Add a zero mark if zero is within the slider range and not already included
-    if (min < 0 && max > 0) {
+    if (min < 0 && max > 0 && min !== 0 && max !== 0) {
       marks.push({ value: 0, label: '0' });
     }
     
@@ -68,7 +68,12 @@ const SliderParameter = ({ parameter, value, onChange, error }) => {
   
   return (
     <Box sx={{ mb: 1 }}>
-      <Typography variant="subtitle2" sx={{ fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Typography variant="subtitle2" sx={{ 
+        fontSize: '0.85rem', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center' 
+      }}>
         <span>{parameter.name || 'Slider Parameter'}</span>
         <span style={{ 
           fontSize: '0.75rem', 
@@ -173,28 +178,30 @@ const SliderParameter = ({ parameter, value, onChange, error }) => {
               lineHeight: 1.4,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
-              display: '-webkit-box',
               WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical'
+              WebkitBoxOrient: 'vertical',
+              display: parameter.description.length > 80 ? '-webkit-box' : 'block'
             }}
           >
             {parameter.description}
           </Typography>
-          <Tooltip title={parameter.description}>
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                position: 'absolute',
-                right: 0,
-                bottom: 0,
-                fontSize: '0.7rem',
-                color: 'primary.main',
-                cursor: 'pointer',
-              }}
-            >
-              {parameter.description.length > 80 ? 'More info' : ''}
-            </Typography>
-          </Tooltip>
+          {parameter.description.length > 80 && (
+            <Tooltip title={parameter.description}>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  position: 'absolute',
+                  right: 0,
+                  bottom: 0,
+                  fontSize: '0.7rem',
+                  color: 'primary.main',
+                  cursor: 'pointer',
+                }}
+              >
+                More info
+              </Typography>
+            </Tooltip>
+          )}
         </div>
       )}
     </Box>

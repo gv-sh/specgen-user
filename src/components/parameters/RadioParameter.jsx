@@ -32,22 +32,40 @@ const RadioParameter = ({ parameter, value, onChange, error }) => {
   const handleChange = (event) => {
     // Safely handle change events
     if (onChange && typeof onChange === 'function') {
-      // We're already using labels as values, so just pass the value along
       onChange(event.target.value);
     }
   };
- 
-  // The safeValue is already the label, so no need to lookup
+  
+  // Handle empty options case
+  if (options.length === 0) {
+    return (
+      <Box sx={{ mb: 1 }}>
+        <Typography variant="subtitle2" sx={{ fontSize: '0.85rem' }}>
+          {parameter.name || 'Radio Parameter'}
+        </Typography>
+        <Paper variant="outlined" sx={{ p: 2, mb: 0.5 }}>
+          <Typography variant="body2" color="error">
+            No options available
+          </Typography>
+        </Paper>
+        {parameter.description && (
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', display: 'block' }}>
+            {parameter.description}
+          </Typography>
+        )}
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Typography variant="subtitle1" gutterBottom>
+    <Box sx={{ mb: 1 }}>
+      <Typography variant="subtitle2" sx={{ fontSize: '0.85rem' }}>
         {parameter.name || 'Radio Parameter'}
       </Typography>
       
-      <Paper variant="outlined" sx={{ p: 2, mb: 1 }}>
+      <Paper variant="outlined" sx={{ p: 2, mb: 0.5 }}>
         <FormControl component="fieldset" error={!!error} fullWidth>
-          <FormLabel component="legend" sx={{ mb: 1 }}>
+          <FormLabel component="legend" sx={{ mb: 1, fontSize: '0.8rem' }}>
             {parameter.label || 'Select an option'}
           </FormLabel>
           
@@ -56,14 +74,14 @@ const RadioParameter = ({ parameter, value, onChange, error }) => {
             value={safeValue}
             onChange={handleChange}
           >
-            <Grid container spacing={2}>
+            <Grid container spacing={1}>
               {options.map((option) => (
                 <Grid item xs={12} sm={6} md={4} key={option.id || option.label}>
                   <FormControlLabel
                     value={option.id}
-                    control={<Radio color="primary" />}
+                    control={<Radio color="primary" size="small" />}
                     label={
-                      <Typography variant="body2">
+                      <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
                         {option.label}
                       </Typography>
                     }
@@ -73,19 +91,19 @@ const RadioParameter = ({ parameter, value, onChange, error }) => {
             </Grid>
           </RadioGroup>
           
-          {options.length === 0 && (
-            <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-              No options available
-            </Typography>
-          )}
-          
           {error && (
-            <FormHelperText error sx={{ mt: 1 }}>
+            <FormHelperText error sx={{ mt: 1, fontSize: '0.7rem' }}>
               {error}
             </FormHelperText>
           )}
         </FormControl>
       </Paper>
+      
+      {parameter.description && (
+        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', display: 'block' }}>
+          {parameter.description}
+        </Typography>
+      )}
     </Box>
   );
 };

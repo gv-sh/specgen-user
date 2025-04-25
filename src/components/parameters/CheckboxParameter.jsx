@@ -8,8 +8,7 @@ import {
   Checkbox,
   Typography,
   FormHelperText,
-  Paper,
-  Chip
+  Paper
 } from '@mui/material';
 
 const CheckboxParameter = ({ parameter, value, onChange, error }) => {
@@ -17,7 +16,8 @@ const CheckboxParameter = ({ parameter, value, onChange, error }) => {
   const options = Array.isArray(parameter.values) ? parameter.values : [];
   
   // Make sure value is an array
-  const safeValue = Array.isArray(value) ? value : [];
+  const safeValue = Array.isArray(value) ? value : 
+    (parameter.defaultValue ? parameter.defaultValue : []);
 
   // Handle checkbox change
   const handleChange = (optionId) => {
@@ -33,49 +33,63 @@ const CheckboxParameter = ({ parameter, value, onChange, error }) => {
     }
   };
   
-  // safeValue already contains labels, so we can use it directly
+  // Handle empty options case
+  if (options.length === 0) {
+    return (
+      <Box sx={{ mb: 1 }}>
+        <Typography variant="subtitle2" sx={{ fontSize: '0.85rem' }}>
+          {parameter.name || 'Checkbox Parameter'}
+        </Typography>
+        <Paper variant="outlined" sx={{ p: 2, mb: 0.5 }}>
+          <Typography variant="body2" color="error">
+            No options available
+          </Typography>
+        </Paper>
+        {parameter.description && (
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', display: 'block' }}>
+            {parameter.description}
+          </Typography>
+        )}
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Typography variant="subtitle1" gutterBottom>
+    <Box sx={{ mb: 1 }}>
+      <Typography variant="subtitle2" sx={{ fontSize: '0.85rem' }}>
         {parameter.name || 'Checkbox Parameter'}
       </Typography>
       
-      <Paper variant="outlined" sx={{ p: 2, mb: 1 }}>
+      <Paper variant="outlined" sx={{ p: 2, mb: 0.5 }}>
         <FormControl component="fieldset" error={!!error} fullWidth>
-          <FormLabel component="legend" sx={{ mb: 1 }}>
+          <FormLabel component="legend" sx={{ mb: 1, fontSize: '0.8rem' }}>
             {parameter.label || 'Select options'}
           </FormLabel>
           
           <FormGroup>
-            {options.length > 0 ? (
-              options.map((option) => (
-                <FormControlLabel
-                  key={option.id || option.label}
-                  control={
-                    <Checkbox
-                      checked={safeValue.includes(option.id)}
-                      onChange={() => handleChange(option.id)}
-                      name={option.id || option.label}
-                      color="primary"
-                    />
-                  }
-                  label={
-                    <Typography variant="body2">
-                      {option.label}
-                    </Typography>
-                  }
-                />
-              ))
-            ) : (
-              <Typography variant="body2" color="error">
-                No options available
-              </Typography>
-            )}
+            {options.map((option) => (
+              <FormControlLabel
+                key={option.id || option.label}
+                control={
+                  <Checkbox
+                    checked={safeValue.includes(option.id)}
+                    onChange={() => handleChange(option.id)}
+                    name={option.id || option.label}
+                    color="primary"
+                    size="small"
+                  />
+                }
+                label={
+                  <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
+                    {option.label}
+                  </Typography>
+                }
+              />
+            ))}
           </FormGroup>
           
           {error && (
-            <FormHelperText error sx={{ mt: 1 }}>
+            <FormHelperText error sx={{ mt: 1, fontSize: '0.7rem' }}>
               {error}
             </FormHelperText>
           )}
@@ -83,7 +97,7 @@ const CheckboxParameter = ({ parameter, value, onChange, error }) => {
       </Paper>
       
       {parameter.description && (
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', display: 'block' }}>
           {parameter.description}
         </Typography>
       )}
@@ -91,4 +105,4 @@ const CheckboxParameter = ({ parameter, value, onChange, error }) => {
   );
 };
 
-export default CheckboxParameter; 
+export default CheckboxParameter;

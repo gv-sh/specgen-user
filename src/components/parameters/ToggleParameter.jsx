@@ -11,7 +11,8 @@ import {
 
 const ToggleParameter = ({ parameter, value, onChange, error }) => {
   // Make sure value is a boolean
-  const safeValue = typeof value === 'boolean' ? value : false;
+  const safeValue = typeof value === 'boolean' ? value : 
+    (parameter.defaultValue !== undefined ? parameter.defaultValue : false);
 
   const handleChange = (event) => {
     // Safely handle change events
@@ -21,12 +22,12 @@ const ToggleParameter = ({ parameter, value, onChange, error }) => {
   };
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Typography variant="subtitle1" gutterBottom>
+    <Box sx={{ mb: 1 }}>
+      <Typography variant="subtitle2" sx={{ fontSize: '0.85rem' }}>
         {parameter.name || 'Toggle Parameter'}
       </Typography>
       
-      <Paper variant="outlined" sx={{ p: 2, mb: 1 }}>
+      <Paper variant="outlined" sx={{ p: 2, mb: 0.5 }}>
         <FormControl component="fieldset" error={!!error} fullWidth>
           <FormControlLabel
             control={
@@ -35,17 +36,19 @@ const ToggleParameter = ({ parameter, value, onChange, error }) => {
                 onChange={handleChange}
                 name={parameter.id}
                 color="primary"
+                size="small"
               />
             }
             label={
-              <Typography variant="body2">
+              <Typography variant="body2" sx={{ fontSize: '0.8rem' }}>
                 {parameter.label || (safeValue ? 'Enabled' : 'Disabled')}
               </Typography>
             }
+            sx={{ mb: 0.5 }}
           />
           
           {error && (
-            <FormHelperText error sx={{ mt: 1 }}>
+            <FormHelperText error sx={{ mt: 0.5, fontSize: '0.7rem' }}>
               {error}
             </FormHelperText>
           )}
@@ -53,7 +56,7 @@ const ToggleParameter = ({ parameter, value, onChange, error }) => {
       </Paper>
       
       {parameter.description && (
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem', display: 'block' }}>
           {parameter.description}
         </Typography>
       )}
@@ -61,4 +64,4 @@ const ToggleParameter = ({ parameter, value, onChange, error }) => {
   );
 };
 
-export default ToggleParameter; 
+export default ToggleParameter;

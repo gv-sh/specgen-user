@@ -13,14 +13,14 @@ const DropdownParameter = ({ parameter, value, onChange, error }) => {
   // Ensure we have valid options
   const options = Array.isArray(parameter.values) ? parameter.values : [];
   
-  // Get a safe value - either the current value if it's valid, the default value, or the first option's id
+  // Get a safe value - either the current value if it's valid, or the default value, or the first option's id
   const safeValue = (() => {
     if (value !== undefined && value !== null) {
       // If we have a value, use it
       return value;
     }
     
-    if (parameter.defaultValue) {
+    if (parameter.defaultValue !== undefined) {
       return parameter.defaultValue;
     }
     
