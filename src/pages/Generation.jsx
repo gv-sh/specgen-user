@@ -3,7 +3,7 @@ import { generateContent } from '../services/api';
 import { Button } from '../components/ui/button';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Card, CardContent } from '../components/ui/card';
-import { Copy, Download, Check } from 'lucide-react';
+import { Copy, Download, Check, Image as ImageIcon, FileText } from 'lucide-react';
 import { copyToClipboard, downloadTextFile, downloadImage } from '../utils/exportUtils';
 
 const Generation = ({ 
@@ -78,7 +78,7 @@ const Generation = ({
       const response = await generateContent(
         parameterValues, 
         Object.keys(parameterValues), 
-        'fiction' // Default to fiction for now
+        'combined' // Default to combined for both fiction and image
       );
 
       // Handle successful generation
@@ -86,6 +86,11 @@ const Generation = ({
         // Set generated content
         if (response.content) {
           setGeneratedContent(response.content);
+        }
+
+        // Set generated image
+        if (response.imageData) {
+          setGeneratedImage(`data:image/png;base64,${response.imageData}`);
         }
 
         // Set metadata
@@ -124,12 +129,21 @@ const Generation = ({
     downloadTextFile(generatedContent, filename);
   };
 
+  // Handle downloading image
+  const handleDownloadImage = () => {
+    if (!generatedImage) return;
+    
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `image-${timestamp}.png`;
+    downloadImage(generatedImage, filename);
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex flex-col space-y-2 mb-3">
         <div>
           <h2 className="text-lg font-bold mb-1">
-            Story Generator
+            Content Generator
           </h2>
         </div>
         
@@ -140,7 +154,7 @@ const Generation = ({
           disabled={loading}
           className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium border border-gray-900 shadow-sm transition-colors py-1 text-sm"
         >
-          {loading ? 'Generating...' : 'Generate Story'}
+          {loading ? 'Generating...' : 'Generate Story & Image'}
         </Button>
       </div>
       
@@ -155,7 +169,7 @@ const Generation = ({
         <div className="space-y-3">
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center justify-between">
             <div className="flex items-center">
-              <span className="mr-1">📝</span>
+              <FileText className="h-4 w-4 mr-1" />
               STORY OUTPUT
             </div>
             {generatedContent && (
@@ -182,20 +196,86 @@ const Generation = ({
               {generatedContent}
             </div>
           ) : (
-            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[180px] flex flex-col items-center justify-center">
-              <div className="w-14 h-14 rounded-full bg-accent/30 flex items-center justify-center mb-3">
-                <span className="text-2xl">📝</span>
+            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[120px] flex flex-col items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center mb-3">
+                <FileText className="h-6 w-6 text-primary" />
               </div>
-              <h4 className="text-base font-medium mb-2">Story Output</h4>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
-                Your generated story will appear here after generation.
+                Your generated story will appear here.
               </p>
-              <div className="mt-4 bg-gray-100 p-2 rounded text-xs text-muted-foreground border border-border/30">
-                <p><strong>Example output:</strong> "In the bustling city of New Metro, where technology and tradition clashed in unexpected ways..."</p>
-              </div>
             </div>
           )}
         </div>
+
+        {/* Image content */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+            <div className="flex items-center">
+              <ImageIcon className="h-4 w-4 mr-1" />
+              IMAGE OUTPUT
+            </div>
+            {generatedImage && (
+              <div className="flex space-x-2">
+                <button
+                  onClick={handleDownloadImage}
+                  className="p-1 rounded-md bg-gray-100 hover:bg-gray-200 text-foreground border border-border transition-colors"
+                  title="Download image"
+                >
+                  <Download size={14} />
+                </button>
+              </div>
+            )}
+          </h3>
+          {generatedImage ? (
+            <div className="unsplash-card overflow-hidden border border-border/30 rounded-lg shadow-sm bg-white">
+              <div className="relative pt-[56.25%]">
+                <img 
+                  src={generatedImage} 
+                  alt="Generated visualization" 
+                  className="absolute top-0 left-0 w-full h-full object-contain bg-gray-50"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[120px] flex flex-col items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center mb-3">
+                <ImageIcon className="h-6 w-6 text-primary" />
+              </div>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Your generated image will appear here.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Generation metadata (optional) */}
+        {metadata && (
+          <div className="border border-border/30 rounded-lg p-3 bg-white/50">
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+              GENERATION INFO
+            </h3>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {metadata.fiction && (
+                <div>
+                  <p className="text-muted-foreground">Text Model:</p>
+                  <p className="font-medium">{metadata.fiction.model}</p>
+                </div>
+              )}
+              {metadata.image && (
+                <div>
+                  <p className="text-muted-foreground">Image Model:</p>
+                  <p className="font-medium">{metadata.image.model}</p>
+                </div>
+              )}
+              {metadata.fiction?.tokens && (
+                <div>
+                  <p className="text-muted-foreground">Tokens Used:</p>
+                  <p className="font-medium">{metadata.fiction.tokens}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -73,10 +73,10 @@ export const fetchParameters = async (categoryId) => {
  * Generate content based on selected parameters
  * @param {Object} parameterValues - Object with category IDs and their parameter values
  * @param {Array} categoryIds - Array of selected category IDs
- * @param {string} contentType - Type of content to generate
+ * @param {string} contentType - Type of content to generate ('fiction', 'image', or 'combined')
  * @returns {Promise<Object>} Generated content response
  */
-export const generateContent = async (parameterValues, categoryIds, contentType = 'fiction') => {
+export const generateContent = async (parameterValues, categoryIds, contentType = 'combined') => {
   try {
     // Validate inputs
     if (!parameterValues || Object.keys(parameterValues).length === 0) {
@@ -100,13 +100,26 @@ export const generateContent = async (parameterValues, categoryIds, contentType 
   } catch (error) {
     console.error('Content generation error:', error);
     
-    // Provide a meaningful error response
-    return {
-      success: false,
-      error: error.response?.data?.error || 
-             error.message || 
-             'Failed to generate content. Please try again.'
-    };
+    // Handle different error types
+    if (error.response) {
+      // The request was made and the server responded with an error status
+      return {
+        success: false,
+        error: error.response.data?.error || `Server error: ${error.response.status}`
+      };
+    } else if (error.request) {
+      // The request was made but no response was received
+      return {
+        success: false,
+        error: 'No response from server. Please check your connection.'
+      };
+    } else {
+      // Something else caused the error
+      return {
+        success: false,
+        error: error.message || 'Failed to generate content. Please try again.'
+      };
+    }
   }
 };
 
