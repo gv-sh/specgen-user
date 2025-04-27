@@ -17,25 +17,22 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
   switch (parameter.type) {
     case 'Dropdown':
       return (
-        <Select 
-          value={value || parameter.values[0]?.id || ''}
-          onValueChange={(newValue) => {
-            onChange(newValue);
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select value">
-              {parameter.values.find(v => v.id === value)?.label || 'Select...'}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
+        <div className="relative w-full">
+          <Select
+            value={value || parameter.values[0]?.id || ''}
+            onChange={(e) => {
+              onChange(e.target.value);
+            }}
+            className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+          >
+            <option value="" disabled>Select...</option>
             {parameter.values.map((option) => (
-              <SelectItem key={option.id} value={option.id}>
+              <option key={option.id} value={option.id}>
                 {option.label}
-              </SelectItem>
+              </option>
             ))}
-          </SelectContent>
-        </Select>
+          </Select>
+        </div>
       );
     
     case 'Slider':
