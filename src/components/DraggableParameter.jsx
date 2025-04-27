@@ -1,49 +1,71 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { createPortal } from 'react-dom';
 
 const DraggableParameter = ({ id, data, children }) => {
-  // Ensure we have proper default values for the parameter
-  const paramData = {
-    ...data,
-    value: data.value !== undefined ? data.value : data.defaultValue || null
-  };
-  
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef(null);
+
+  const { 
+    attributes, 
+    listeners, 
+    setNodeRef 
+  } = useDraggable({
     id,
-    data: { current: paramData }
+    data: { current: data }
   });
 
-  // Make the entire card draggable directly, no separate handle
+  // Custom drag start handler to prevent interference
+  const handleMouseDown = (e) => {
+    // Ignore if clicked on interactive elements
+    const interactiveElements = ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON', 'A'];
+    if (interactiveElements.includes(e.target.tagName) || 
+        e.target.closest('input, select, textarea, button, a')) {
+      return;
+    }
+
+    // Track initial mouse down position
+    dragStartRef.current = { 
+      x: e.clientX, 
+      y: e.clientY 
+    };
+  };
+
+  // Custom drag move handler
+  const handleMouseMove = (e) => {
+    if (!dragStartRef.current) return;
+
+    // Only start dragging if mouse has moved a small threshold
+    const threshold = 5; // pixels
+    const dx = Math.abs(e.clientX - dragStartRef.current.x);
+    const dy = Math.abs(e.clientY - dragStartRef.current.y);
+
+    if (dx > threshold || dy > threshold) {
+      setIsDragging(true);
+      listeners.onMouseDown?.(e);
+    }
+  };
+
+  // Reset drag state
+  const handleMouseUp = () => {
+    dragStartRef.current = null;
+    setIsDragging(false);
+  };
+
   return (
     <div 
-      ref={setNodeRef} 
+      ref={setNodeRef}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
       {...attributes}
-      {...listeners}
       className={`
-        relative cursor-grab
-        ${isDragging ? 'opacity-70' : ''} 
-        transition-colors
+        relative 
+        ${isDragging ? 'opacity-70 cursor-move' : 'cursor-default'}
+        transition-opacity
       `}
     >
       {children}
-      
-      {/* Only show portal when dragging */}
-      {isDragging && createPortal(
-        <div
-          className="fixed pointer-events-none bg-white border border-primary shadow-md rounded p-1.5 opacity-90 z-50 w-48 max-w-xs"
-          style={{
-            left: 0,
-            top: 0,
-            transform: 'translate(10px, 10px)',
-          }}
-        >
-          <div className="flex items-center">
-            <span className="text-xs font-medium truncate">{data.name}</span>
-          </div>
-        </div>,
-        document.body
-      )}
     </div>
   );
 };
