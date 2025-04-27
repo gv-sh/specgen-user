@@ -1,3 +1,4 @@
+// src/components/ui/slider.jsx - Completely revised implementation
 import * as React from "react"
 import { cn } from "../../lib/utils"
 
@@ -10,10 +11,17 @@ const Slider = React.forwardRef(({
   onValueChange, 
   ...props 
 }, ref) => {
-  // Ensure value is always an array for compatibility
+  // Ensure value is always a number for internal use
   const currentValue = Array.isArray(value) 
     ? value[0] 
     : (value !== undefined ? value : min);
+
+  const handleChange = (e) => {
+    const newValue = parseFloat(e.target.value);
+    if (onValueChange) {
+      onValueChange(newValue);
+    }
+  };
 
   return (
     <div className={cn("relative flex w-full touch-none select-none items-center", className)}>
@@ -24,13 +32,7 @@ const Slider = React.forwardRef(({
         max={max}
         step={step}
         value={currentValue}
-        onChange={(e) => {
-          const newValue = parseFloat(e.target.value);
-          // Call onValueChange with an array to match dnd-kit expectations
-          if (onValueChange) {
-            onValueChange([newValue]);
-          }
-        }}
+        onChange={handleChange}
         className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-primary/20 
         [&::-webkit-slider-runnable-track]:h-1.5 
         [&::-webkit-slider-runnable-track]:rounded-full 

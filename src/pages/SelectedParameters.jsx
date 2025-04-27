@@ -13,7 +13,6 @@ import { Slider } from '../components/ui/slider';
 import { Switch } from '../components/ui/switch';
 import { Checkbox } from '../components/ui/checkbox';
 
-// Helper component to render parameter value input based on type
 const ParameterValueInput = ({ parameter, value, onChange }) => {
   switch (parameter.type) {
     case 'Dropdown':
@@ -21,7 +20,6 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
         <Select 
           value={value || parameter.values[0]?.id || ''}
           onValueChange={(newValue) => {
-            console.log('Dropdown value changed:', newValue);
             onChange(newValue);
           }}
         >
@@ -64,9 +62,7 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
             step={step}
             value={currentValue}
             onValueChange={(newValue) => {
-              const actualValue = Array.isArray(newValue) ? newValue[0] : newValue;
-              console.log('Slider value changed:', actualValue);
-              onChange(actualValue);
+              onChange(newValue);
             }}
           />
           <div className="flex justify-between text-xs mt-1">
@@ -79,13 +75,15 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
     
     case 'Toggle Switch':
       return (
-        <Switch
-          checked={!!value}
-          onCheckedChange={(checked) => {
-            console.log('Switch value changed:', checked);
-            onChange(checked);
-          }}
-        />
+        <div className="flex items-center justify-between">
+          <span className="text-sm">{value ? 'Enabled' : 'Disabled'}</span>
+          <Switch
+            checked={!!value}
+            onCheckedChange={(checked) => {
+              onChange(checked);
+            }}
+          />
+        </div>
       );
     
     case 'Checkbox':
@@ -94,6 +92,7 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
           {parameter.values.map((option) => (
             <div key={option.id} className="flex items-center space-x-2">
               <Checkbox
+                id={`checkbox-${parameter.id}-${option.id}`}
                 checked={(value || []).includes(option.id)}
                 onCheckedChange={(checked) => {
                   const currentValue = value || [];
@@ -101,11 +100,12 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
                     ? [...currentValue, option.id]
                     : currentValue.filter(v => v !== option.id);
                   
-                  console.log('Checkbox value changed:', newValue);
                   onChange(newValue);
                 }}
               />
-              <label>{option.label}</label>
+              <label htmlFor={`checkbox-${parameter.id}-${option.id}`} className="text-sm">
+                {option.label}
+              </label>
             </div>
           ))}
         </div>
@@ -124,12 +124,13 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
                 value={option.id}
                 checked={value === option.id}
                 onChange={() => {
-                  console.log('Radio value changed:', option.id);
                   onChange(option.id);
                 }}
                 className="h-4 w-4"
               />
-              <label htmlFor={`${parameter.id}-${option.id}`}>{option.label}</label>
+              <label htmlFor={`${parameter.id}-${option.id}`} className="text-sm">
+                {option.label}
+              </label>
             </div>
           ))}
         </div>
