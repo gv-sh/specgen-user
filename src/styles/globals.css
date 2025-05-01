@@ -1,0 +1,58 @@
+/* src/styles/globals.css */
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    @apply font-medium tracking-tight text-foreground;
+  }
+  
+  h1 {
+    @apply text-4xl lg:text-5xl;
+  }
+  
+  h2 {
+    @apply text-3xl lg:text-4xl;
+  }
+  
+  h3 {
+    @apply text-2xl lg:text-3xl;
+  }
+  
+  h4 {
+    @apply text-xl lg:text-2xl;
+  }
+  
+  h5 {
+    @apply text-lg lg:text-xl;
+  }
+  
+  p {
+    @apply leading-7 [&:not(:first-child)]:mt-6;
+  }
+  
+  blockquote {
+    @apply mt-6 border-l-2 pl-6 italic;
+  }
+  
+  /* Focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2;
+  }
+  
+  /* Animation defaults */
+  .animate-in {
+    animation-duration: 0.3s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+  
+  .fade-in {
+    opacity: 0;
+  }
+  
+  .slide-in-from-top {
+    transform: translateY(-10px);
+  }
+  
+  .slide-in-from-bottom {
+    transform: translateY(10px);
+  }

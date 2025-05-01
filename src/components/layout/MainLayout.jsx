@@ -1,57 +1,53 @@
-// src/components/layout/MainLayout.jsx - Updated with back button
+// src/components/layout/MainLayout.jsx
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Button } from '../ui/button';
-import { Zap, HelpCircle, ArrowLeft } from 'lucide-react';
+import { HelpCircle, ArrowLeft, Zap } from 'lucide-react';
+import { cn } from '../../lib/utils';
+import { ThemeToggle } from '../theme/theme-toggle';
 
-const MainLayout = ({ children, onShowTour, showBackButton, onBackClick }) => {
+const MainLayout = ({ children, onShowTour, showBackButton, onBackClick, className }) => {
   return (
-    <div className="flex min-h-screen flex-col bg-white dark:bg-background">
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-background/80 backdrop-blur-sm">
-        <div className="container flex h-16 max-w-[1400px] items-center px-4 sm:px-6 lg:px-8">
+    <div className={cn("min-h-screen bg-background text-foreground flex flex-col", className)}>
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 max-w-screen-2xl items-center">
           <div className="mr-4 flex">
             {showBackButton ? (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onBackClick}
-                className="mr-2 rounded-full h-9 px-3 text-foreground/80 hover:text-foreground flex items-center"
+                className="mr-2 gap-1.5"
               >
-                <ArrowLeft className="h-4 w-4 mr-1.5" />
-                <span className="text-sm">Back</span>
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Back</span>
               </Button>
             ) : (
-              <a href="/" className="flex items-center space-x-2">
-                <Zap className="h-7 w-7 text-primary" />
-                <span className="text-xl font-bold tracking-tight">SpecGen</span>
+              <a href="/" className="flex items-center gap-2 mr-6">
+                <Zap className="h-5 w-5 text-primary" />
+                <span className="font-semibold">SpecGen</span>
               </a>
             )}
           </div>
           <div className="flex flex-1 items-center justify-end space-x-2">
-            {/* Tour button */}
             {onShowTour && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onShowTour}
-                className="rounded-full h-9 px-3 text-foreground/80 hover:text-foreground flex items-center"
+                className="gap-1.5"
               >
-                <HelpCircle className="h-4 w-4 mr-1.5" />
-                <span className="text-sm">Tour</span>
+                <HelpCircle className="h-3.5 w-3.5" />
+                <span>Tour</span>
               </Button>
             )}
+            <ThemeToggle />
           </div>
         </div>
       </header>
-      <main className="flex-1">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="h-[calc(100vh-4rem)]"
-        >
+      <main className="flex-1 container py-6">
+        <div className="h-[calc(100vh-theme(spacing.14)-theme(spacing.12))]">
           {children}
-        </motion.div>
+        </div>
       </main>
     </div>
   );

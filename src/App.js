@@ -1,6 +1,7 @@
+// src/App.js
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { ThemeProvider } from './components/theme/theme-provider';
 import MainLayout from './components/layout/MainLayout';
 import ResponsiveLayout, { Column } from './components/layout/ResponsiveLayout';
 import GuidedTour from './components/GuidedTour';
@@ -14,12 +15,14 @@ const Generation = lazy(() => import('./pages/Generation'));
 // Main App Component
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/generate" element={<GenerationPage />} />
-      </Routes>
-    </Router>
+    <ThemeProvider defaultTheme="dark">
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/generate" element={<GenerationPage />} />
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 
@@ -84,74 +87,48 @@ function HomePage() {
     <MainLayout onShowTour={handleShowTour}>
       {showTour && <GuidedTour onClose={() => setShowTour(false)} />}
       
-      <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 h-full">
-        <ResponsiveLayout className="gap-0 divide-x divide-border/60">
-          <Column 
-            span={4}  // 1 part of the 1:1:2 ratio
-            mobileOrder={1} 
-            tabletSpan={2}
-            className="bg-white rounded-lg shadow-sm p-4"
-          >
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="h-full w-full"
-            >
-              <Categories 
-                onCategorySelect={setSelectedCategory} 
-                selectedCategory={selectedCategory}
-              />
-            </motion.div>
-          </Column>
-          
-          <Column 
-            span={4}  // 1 part of the 1:1:2 ratio
-            mobileOrder={3} 
-            tabletSpan={2}
-            className="bg-white rounded-lg shadow-sm p-4"
-          >
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-              className="h-full overflow-auto"
-            >
-              <Suspense fallback={<div>Loading...</div>}>
-                <Parameters 
-                  selectedCategory={selectedCategory}
-                  selectedParameters={selectedParameters}
-                  onParameterSelect={handleParameterSelect}
-                  onParameterRemove={handleParameterRemove}
-                />
-              </Suspense>
-            </motion.div>
-          </Column>
-          
-          <Column 
-            span={8}  // 2 parts of the 1:1:2 ratio
-            mobileOrder={2} 
-            tabletSpan={4}  // Adjust tablet span to maintain ratio
-            className="bg-white rounded-lg shadow-sm p-4"
-          >
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.15 }}
-              className="h-full overflow-auto"
-            >
-              <Suspense fallback={<div>Loading...</div>}>
-                <SelectedParameters 
-                  parameters={selectedParameters}
-                  onRemoveParameter={handleParameterRemove}
-                  onUpdateParameterValue={handleParameterValueUpdate}
-                  onNavigateToGenerate={handleNavigateToGenerate}
-                />
-              </Suspense>
-            </motion.div>
-          </Column>
-        </ResponsiveLayout>
-      </div>
+      <ResponsiveLayout>
+        <Column 
+          span={4}
+          mobileOrder={1} 
+          tabletSpan={2}
+        >
+          <Categories 
+            onCategorySelect={setSelectedCategory} 
+            selectedCategory={selectedCategory}
+          />
+        </Column>
+        
+        <Column 
+          span={4}
+          mobileOrder={3} 
+          tabletSpan={2}
+        >
+          <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/50 border-t-primary"></div></div>}>
+            <Parameters 
+              selectedCategory={selectedCategory}
+              selectedParameters={selectedParameters}
+              onParameterSelect={handleParameterSelect}
+              onParameterRemove={handleParameterRemove}
+            />
+          </Suspense>
+        </Column>
+        
+        <Column 
+          span={8}
+          mobileOrder={2} 
+          tabletSpan={4}
+        >
+          <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/50 border-t-primary"></div></div>}>
+            <SelectedParameters 
+              parameters={selectedParameters}
+              onRemoveParameter={handleParameterRemove}
+              onUpdateParameterValue={handleParameterValueUpdate}
+              onNavigateToGenerate={handleNavigateToGenerate}
+            />
+          </Suspense>
+        </Column>
+      </ResponsiveLayout>
     </MainLayout>
   );
 }
@@ -177,17 +154,15 @@ function GenerationPage() {
 
   return (
     <MainLayout showBackButton={true} onBackClick={handleBackToHome}>
-      <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 h-full">
-        <div className="bg-white rounded-lg shadow-sm p-4 h-full">
-          <Suspense fallback={<div>Loading...</div>}>
-            <Generation 
-              setGeneratedContent={setGeneratedContent} 
-              generatedContent={generatedContent}
-              selectedParameters={selectedParameters}
-              onBackToHome={handleBackToHome}
-            />
-          </Suspense>
-        </div>
+      <div className="bg-card rounded-md border shadow-sm p-4 h-full">
+        <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/50 border-t-primary"></div></div>}>
+          <Generation 
+            setGeneratedContent={setGeneratedContent} 
+            generatedContent={generatedContent}
+            selectedParameters={selectedParameters}
+            onBackToHome={handleBackToHome}
+          />
+        </Suspense>
       </div>
     </MainLayout>
   );

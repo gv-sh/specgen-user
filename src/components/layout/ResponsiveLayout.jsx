@@ -1,28 +1,18 @@
+// src/components/layout/ResponsiveLayout.jsx
 import React from 'react';
 import { useScreenSize } from '../../utils/responsiveUtils';
+import { cn } from '../../lib/utils';
 
-const ResponsiveLayout = ({ children, style = {}, className = '' }) => {
+const ResponsiveLayout = ({ children, className = '' }) => {
   const { isMobile, isTablet } = useScreenSize();
-  
-  // Use inline styles for precise control over grid
-  let gridStyles = {
-    ...style,
-    display: 'grid',
-    gap: isMobile ? '0.5rem' : isTablet ? '0.75rem' : '1rem',
-    width: '100%',
-    height: '100%',
-    gridAutoRows: 'minmax(0, 1fr)',
-    gridTemplateColumns: isMobile 
-      ? '1fr' 
-      : isTablet 
-        ? 'repeat(2, 1fr)' 
-        : 'repeat(16, minmax(0, 1fr))'
-  };
   
   return (
     <div 
-      className={`w-full h-full ${className}`}
-      style={gridStyles}
+      className={cn(
+        "grid h-full w-full gap-4", 
+        isMobile ? "grid-cols-1" : isTablet ? "grid-cols-2" : "grid-cols-[16rem_16rem_1fr]", // Set fixed column widths
+        className
+      )}
     >
       {children}
     </div>
@@ -31,27 +21,20 @@ const ResponsiveLayout = ({ children, style = {}, className = '' }) => {
 
 export const Column = ({ 
   children, 
-  span = 3,
   className = '',
   mobileOrder,
-  tabletSpan,
-  desktopSpan
 }) => {
-  const { isMobile, isTablet } = useScreenSize();
-  
-  // Use inline styles for precise control
-  let columnStyles = {
-    gridColumn: isMobile 
-      ? 'span 1' 
-      : isTablet 
-        ? `span ${tabletSpan || 1}` 
-        : `span ${desktopSpan || span}`,
-    order: isMobile && mobileOrder !== undefined ? mobileOrder : 'initial'
-  };
+  const { isMobile } = useScreenSize();
   
   return (
-    <div style={columnStyles} className={`p-3 ${className}`}>
-      <div className="h-full">
+    <div 
+      className={cn(
+        "rounded-md border bg-card text-card-foreground shadow-sm h-full",
+        isMobile && mobileOrder !== undefined ? `order-${mobileOrder}` : "",
+        className
+      )}
+    >
+      <div className="h-full p-4">
         {children}
       </div>
     </div>

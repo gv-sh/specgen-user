@@ -1,6 +1,6 @@
 import axios from 'axios';
 import config from '../config';
-import { apiCache, debounce } from '../utils/performanceUtils';
+import { apiCache } from '../utils/performanceUtils';
 
 // Use environment variable for API URL with fallback to config
 const API_BASE_URL = process.env.REACT_APP_API_URL || `${config.API_URL}/api`;

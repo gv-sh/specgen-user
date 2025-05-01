@@ -1,5 +1,5 @@
+// src/components/ui/alert.jsx
 import * as React from "react"
-
 import { cn } from "../../lib/utils"
 
 const Alert = React.forwardRef(({ className, variant = "default", ...props }, ref) => (
@@ -19,12 +19,14 @@ const Alert = React.forwardRef(({ className, variant = "default", ...props }, re
 ))
 Alert.displayName = "Alert"
 
-const AlertTitle = React.forwardRef(({ className, ...props }, ref) => (
+const AlertTitle = React.forwardRef(({ className, children, ...props }, ref) => (
   <h5
     ref={ref}
     className={cn("mb-1 font-medium leading-none tracking-tight", className)}
     {...props}
-  />
+  >
+    {children}
+  </h5>
 ))
 AlertTitle.displayName = "AlertTitle"
 

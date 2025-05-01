@@ -1,52 +1,56 @@
-/** @type {import('tailwindcss').Config} */
-const defaultTheme = require('tailwindcss/defaultTheme');
 module.exports = {
   darkMode: ["class"],
   content: [
     './src/**/*.{js,jsx,ts,tsx}',
-    './public/index.html',
   ],
   theme: {
     container: {
       center: true,
-      padding: {
-        DEFAULT: "1rem",
-        sm: "1.5rem",
-        lg: "2rem",
-      },
+      padding: "2rem",
       screens: {
-        sm: "640px",
-        md: "768px",
-        lg: "1024px",
-        xl: "1280px",
         "2xl": "1400px",
       },
     },
     extend: {
-      gridTemplateColumns: {
-        // 16-column grid for our app layout
-        '16': 'repeat(16, minmax(0, 1fr))',
-      },
       colors: {
-        background: "#ffffff",
-        "background-muted": "#f6f7f8",
-        primary: "#111111",
-        secondary: "#555555",
-        accent: "#0062ff",
-        border: "#e1e2e6",
-      },
-      fontFamily: {
-        sans: ["Inter", ...defaultTheme.fontFamily.sans],
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
       },
       borderRadius: {
-        DEFAULT: "0.375rem", // 6px
-        lg: "0.5rem",       // 8px
-        md: "0.375rem",     // 6px
-        sm: "0.25rem",      // 4px
-      },
-      boxShadow: {
-        DEFAULT: "0 1px 2px rgba(0,0,0,0.1)",
-        md: "0 4px 8px rgba(0,0,0,0.1)",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
         "accordion-down": {
@@ -61,9 +65,8 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 }

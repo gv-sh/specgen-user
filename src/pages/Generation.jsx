@@ -1,10 +1,11 @@
-// src/pages/Generation.jsx - Updated for standalone page
+// src/pages/Generation.jsx - Complete fixed version
 import React, { useState, useEffect, useCallback } from 'react';
 import { generateContent } from '../services/api';
 import { Button } from '../components/ui/button';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Copy, Download, Check, Image as ImageIcon, FileText, ArrowLeft, RefreshCw } from 'lucide-react';
 import { copyToClipboard, downloadTextFile, downloadImage } from '../utils/exportUtils';
+import { cn } from '../lib/utils';
 
 const Generation = ({ 
   setGeneratedContent, 
@@ -38,23 +39,7 @@ const Generation = ({
     }
 
     return true;
-  }, [selectedParameters, setError]);
-
-  // Organize parameters for API
-  const prepareParameterValues = () => {
-    const parameterValues = {};
-    
-    // Group parameters by category
-    selectedParameters.forEach(param => {
-      if (!parameterValues[param.categoryId]) {
-        parameterValues[param.categoryId] = {};
-      }
-      
-      parameterValues[param.categoryId][param.id] = param.value;
-    });
-
-    return parameterValues;
-  };
+  }, [selectedParameters]);
 
   // Handle generation
   const handleGeneration = useCallback(async () => {
@@ -73,7 +58,16 @@ const Generation = ({
       setLoading(true);
 
       // Prepare parameters for API
-      const parameterValues = prepareParameterValues();
+      const parameterValues = {};
+      
+      // Group parameters by category
+      selectedParameters.forEach(param => {
+        if (!parameterValues[param.categoryId]) {
+          parameterValues[param.categoryId] = {};
+        }
+        
+        parameterValues[param.categoryId][param.id] = param.value;
+      });
 
       // Call generation API
       const response = await generateContent(
@@ -108,7 +102,7 @@ const Generation = ({
     } finally {
       setLoading(false);
     }
-  }, [setGeneratedContent, validateParameters, prepareParameterValues]);
+  }, [selectedParameters, setGeneratedContent, validateParameters]);
 
   // Handle copying text
   const handleCopyText = async () => {
@@ -147,19 +141,19 @@ const Generation = ({
   }, [generatedContent, handleGeneration, loading, selectedParameters]);
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto h-full">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Content Generator</h1>
+        <h1 className="text-lg font-medium">Content Generator</h1>
         
         <div className="flex space-x-3">
           <Button 
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={handleGeneration}
             disabled={loading}
             className="flex items-center"
           >
-            <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={cn("h-3.5 w-3.5 mr-2", loading && "animate-spin")} />
             {loading ? 'Generating...' : 'Regenerate'}
           </Button>
           
@@ -169,64 +163,64 @@ const Generation = ({
             onClick={onBackToHome}
             className="flex items-center"
           >
-            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            <ArrowLeft className="h-3.5 w-3.5 mr-2" />
             Back to Parameters
           </Button>
         </div>
       </div>
       
       {error && (
-        <Alert variant="destructive" className="mt-1 mb-4 rounded-lg border-0 shadow-sm bg-destructive/10">
-          <AlertDescription className="text-destructive font-medium">{error}</AlertDescription>
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100%-4rem)] overflow-auto">
         {/* Story content */}
         <div className="space-y-3">
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center justify-between">
             <div className="flex items-center">
-              <FileText className="h-4 w-4 mr-1" />
-              STORY OUTPUT
+              <FileText className="h-3.5 w-3.5 mr-1.5" />
+              Story Output
             </div>
             {generatedContent && (
               <div className="flex space-x-2">
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleCopyText}
-                  className="p-1 rounded-md bg-gray-100 hover:bg-gray-200 text-foreground border border-border transition-colors"
+                  className="h-6 w-6"
                   title="Copy to clipboard"
                 >
                   {copied ? <Check size={14} /> : <Copy size={14} />}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleDownloadText}
-                  className="p-1 rounded-md bg-gray-100 hover:bg-gray-200 text-foreground border border-border transition-colors"
+                  className="h-6 w-6"
                   title="Download as text file"
                 >
                   <Download size={14} />
-                </button>
+                </Button>
               </div>
             )}
           </h3>
           {loading ? (
-            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[300px] flex flex-col items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center mb-3">
-                <RefreshCw className="h-6 w-6 text-primary animate-spin" />
-              </div>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            <div className="rounded-md border h-full min-h-[300px] flex flex-col items-center justify-center p-6">
+              <RefreshCw className="h-6 w-6 text-primary animate-spin mb-3" />
+              <p className="text-sm text-muted-foreground">
                 Generating your story...
               </p>
             </div>
           ) : generatedContent ? (
-            <div className="unsplash-card p-4 text-sm leading-relaxed whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none border border-border/30 rounded-lg shadow-sm bg-white min-h-[300px]">
+            <div className="p-4 text-sm leading-relaxed whitespace-pre-wrap border rounded-md shadow-sm bg-card min-h-[300px] overflow-auto">
               {generatedContent}
             </div>
           ) : (
-            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[300px] flex flex-col items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center mb-3">
-                <FileText className="h-6 w-6 text-primary" />
-              </div>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            <div className="rounded-md border border-dashed h-full min-h-[300px] flex flex-col items-center justify-center p-6">
+              <FileText className="h-6 w-6 text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground max-w-md mx-auto text-center">
                 Your generated story will appear here.
               </p>
             </div>
@@ -237,46 +231,44 @@ const Generation = ({
         <div className="space-y-3">
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center justify-between">
             <div className="flex items-center">
-              <ImageIcon className="h-4 w-4 mr-1" />
-              IMAGE OUTPUT
+              <ImageIcon className="h-3.5 w-3.5 mr-1.5" />
+              Image Output
             </div>
             {generatedImage && (
               <div className="flex space-x-2">
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleDownloadImage}
-                  className="p-1 rounded-md bg-gray-100 hover:bg-gray-200 text-foreground border border-border transition-colors"
+                  className="h-6 w-6"
                   title="Download image"
                 >
                   <Download size={14} />
-                </button>
+                </Button>
               </div>
             )}
           </h3>
           {loading ? (
-            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[300px] flex flex-col items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center mb-3">
-                <RefreshCw className="h-6 w-6 text-primary animate-spin" />
-              </div>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            <div className="rounded-md border h-full min-h-[300px] flex flex-col items-center justify-center p-6">
+              <RefreshCw className="h-6 w-6 text-primary animate-spin mb-3" />
+              <p className="text-sm text-muted-foreground">
                 Generating your image...
               </p>
             </div>
           ) : generatedImage ? (
-            <div className="unsplash-card overflow-hidden border border-border/30 rounded-lg shadow-sm bg-white">
+            <div className="border rounded-md shadow-sm overflow-hidden bg-card">
               <div className="relative pt-[56.25%] min-h-[300px]">
                 <img 
                   src={generatedImage} 
                   alt="Generated visualization" 
-                  className="absolute top-0 left-0 w-full h-full object-contain bg-gray-50"
+                  className="absolute top-0 left-0 w-full h-full object-contain bg-muted/30"
                 />
               </div>
             </div>
           ) : (
-            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[300px] flex flex-col items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center mb-3">
-                <ImageIcon className="h-6 w-6 text-primary" />
-              </div>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            <div className="rounded-md border border-dashed h-full min-h-[300px] flex flex-col items-center justify-center p-6">
+              <ImageIcon className="h-6 w-6 text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground max-w-md mx-auto text-center">
                 Your generated image will appear here.
               </p>
             </div>
@@ -285,9 +277,9 @@ const Generation = ({
 
         {/* Generation metadata (optional) */}
         {metadata && (
-          <div className="border border-border/30 rounded-lg p-3 bg-white/50 lg:col-span-2">
+          <div className="border rounded-md p-3 bg-muted/20 lg:col-span-2">
             <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-              GENERATION INFO
+              Generation Info
             </h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
               {metadata.fiction && (

@@ -3,8 +3,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Minus, Folder, Zap, Dices, RefreshCw } from 'lucide-react';
-import {
-  Select} from '../components/ui/select';
+import { Select } from '../components/ui/select';
 import { Slider } from '../components/ui/slider';
 import { Switch } from '../components/ui/switch';
 import { Checkbox } from '../components/ui/checkbox';
@@ -14,6 +13,7 @@ import {
   AccordionTrigger,
   AccordionContent
 } from '../components/ui/accordion';
+import { cn } from '../lib/utils';
 
 // Parameter Value Input Component
 const ParameterValueInput = ({ parameter, value, onChange }) => {
@@ -24,7 +24,7 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
           <Select
             value={value || parameter.values[0]?.id || ''}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+            className="w-full h-9 rounded-md border bg-transparent px-3 py-1 text-sm"
           >
             <option value="" disabled>
               Select...
@@ -50,16 +50,16 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
 
       return (
         <div className="space-y-2">
-          <div className="flex justify-between text-sm font-medium">
+          <div className="flex justify-between text-sm">
             {minLabel ? (
-              <span className="text-sm">{minLabel}</span>
+              <span className="text-xs">{minLabel}</span>
             ) : (
-              <span className="text-secondary">{min}</span>
+              <span className="text-xs text-muted-foreground">{min}</span>
             )}
             {maxLabel ? (
-              <span className="text-sm">{maxLabel}</span>
+              <span className="text-xs">{maxLabel}</span>
             ) : (
-              <span className="text-secondary">{max}</span>
+              <span className="text-xs text-muted-foreground">{max}</span>
             )}
           </div>
 
@@ -70,7 +70,7 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
               step={step}
               value={currentValue}
               onValueChange={(newValue) => onChange(newValue)}
-              className="group w-full"
+              className="w-full"
             />
           </div>
         </div>
@@ -250,16 +250,16 @@ const SelectedParameters = ({
 
   if (!parameters.length) {
     return (
-      <div className="space-y-4 p-4">
-        <h2 className="text-lg font-bold">Selected Parameters</h2>
-        <div className="p-6 border-2 border-dashed rounded-lg flex flex-col items-center justify-center min-h-[200px] text-center bg-background-muted">
-          <p className="text-secondary mb-2">
-            No parameters selected yet.
-          </p>
-          <p className="text-xs text-secondary max-w-sm">
-            Browse the genres on the left, then add parameters from each genre
-            to customize your story.
-          </p>
+      <div className="h-full flex flex-col">
+        <h2 className="text-sm font-medium pb-3 text-foreground">Selected Parameters</h2>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center max-w-md">
+            <p className="text-sm font-medium mb-2">No parameters selected yet.</p>
+            <p className="text-xs text-muted-foreground">
+              Browse the genres on the left, then add parameters from each genre
+              to customize your story.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -267,105 +267,92 @@ const SelectedParameters = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-2 py-1 space-y-2">
+      <div className="sticky top-0 z-10 bg-background pb-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold">Selected Parameters</h2>
+          <h2 className="text-sm font-medium text-foreground">Selected Parameters</h2>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
               onClick={() => handleRandomize('all')}
-              className={`h-7 w-7 p-0 text-secondary ${
-                randomizing ? 'animate-spin' : ''
-              } focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1`}
+              className={cn(
+                "h-7 w-7",
+                randomizing ? "animate-spin" : ""
+              )}
               aria-label="Randomize all parameters"
             >
-              <Dices className="h-4 w-4" />
+              <Dices className="h-3.5 w-3.5" />
             </Button>
-            <span className="text-xs font-medium bg-accent/10 border-transparent text-accent px-2 py-0.5 rounded-md">
-              {parameters.length}
-            </span>
+            <Badge variant="outline">{parameters.length}</Badge>
           </div>
         </div>
       </div>
 
-      <div className="flex-grow overflow-auto px-2">
+      <div className="flex-grow overflow-auto">
         <Accordion
           type="multiple"
           defaultValue={parametersByCategory.map((cat) => cat.id)}
-          className="divide-y divide-border max-h-[calc(100vh-300px)]"
+          className="space-y-3"
         >
           {parametersByCategory.map((category) => (
             <AccordionItem
               key={category.id}
               value={category.id}
+              className="border rounded-md px-3"
             >
-              <AccordionTrigger className="px-2 py-0.5 hover:bg-background-muted transition-colors">
+              <AccordionTrigger className="py-2 hover:no-underline">
                 <div className="flex items-center gap-2">
-                  <Folder className="h-4 w-4 text-secondary" />
-                  <span className="font-medium text-sm">{category.name}</span>
-                  <Badge className="text-[9px] px-1.5 py-px ml-2 bg-background-muted text-secondary">
+                  <Folder className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-sm font-medium">{category.name}</span>
+                  <Badge variant="outline" className="ml-1 text-xs">
                     {category.parameters.length}
                   </Badge>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="px-2 pb-1">
-                <div className="space-y-3 pt-1">
+              <AccordionContent>
+                <div className="space-y-3 py-2">
                   {category.parameters.map((parameter) => (
                     <div
                       key={parameter.id}
-                      className="py-2 space-y-2 border-b border-border"
+                      className="space-y-2 pb-3 border-b last:border-0 last:pb-0"
                     >
-                      {/* Header with actions */}
-                      <div className="mb-2">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium text-sm">
-                            {parameter.name}
-                          </h3>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                handleRandomize(
-                                  'parameter',
-                                  null,
-                                  parameter.id
-                                )
-                              }
-                              className={`h-7 w-7 p-0 text-secondary ${
-                                randomizing ? 'animate-spin' : ''
-                              } focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1`}
-                              aria-label={`Randomize ${parameter.name}`}
-                            >
-                              <RefreshCw className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              aria-label={`Remove ${parameter.name}`}
-                              onClick={() => onRemoveParameter(parameter)}
-                              className="h-7 w-7 p-0 text-red-600 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1"
-                            >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                          </div>
+                      {/* Parameter header with actions */}
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium">{parameter.name}</h3>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRandomize('parameter', null, parameter.id)}
+                            className="h-6 w-6"
+                            aria-label={`Randomize ${parameter.name}`}
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onRemoveParameter(parameter)}
+                            className="h-6 w-6 text-destructive"
+                            aria-label={`Remove ${parameter.name}`}
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
                         </div>
-                        {parameter.description && (
-                          <p className="mt-1 text-sm text-secondary">
-                            {parameter.description}
-                          </p>
-                        )}
                       </div>
+                      
+                      {parameter.description && (
+                        <p className="text-xs text-muted-foreground">
+                          {parameter.description}
+                        </p>
+                      )}
 
                       {/* Value input */}
-                      <div className="bg-background-muted p-2 rounded-md border border-border">
+                      <div className="p-3 bg-muted/40 rounded-md">
                         <ParameterValueInput
                           parameter={parameter}
                           value={parameter.value}
-                          onChange={(newVal) =>
-                            onUpdateParameterValue(parameter.id, newVal)
-                          }
+                          onChange={(newVal) => onUpdateParameterValue(parameter.id, newVal)}
                         />
                       </div>
                     </div>
@@ -377,15 +364,14 @@ const SelectedParameters = ({
         </Accordion>
       </div>
 
-      <div className="flex-none px-2 py-1">
+      <div className="pt-3">
         <Button
           variant="default"
-          size="lg"
           onClick={onNavigateToGenerate}
           disabled={!areAllConfigured}
-          className="w-full bg-accent hover:bg-accent/90 text-white font-medium border border-border py-1.5 text-sm"
+          className="w-full"
         >
-          <Zap className="h-4 w-4 mr-2" />
+          <Zap className="h-3.5 w-3.5 mr-2" />
           {!areAllConfigured
             ? 'Configure All Parameters First'
             : 'Generate Content'}

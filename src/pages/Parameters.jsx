@@ -4,20 +4,23 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Search, X, ArrowLeft, Frown, Tag } from 'lucide-react';
+import { cn } from '../lib/utils';
+
 
 // Memoized parameter component for performance
 const MemoizedParameter = memo(({ parameter, onAddParameter, isSelected }) => {
   return (
-    <div className="py-4 flex items-center justify-between overflow-hidden border-b border-border/60 last:border-b-0">
+    <div className="py-3 flex items-center justify-between border-b last:border-0">
       <h3 className="text-sm truncate">{parameter.name}</h3>
       {isSelected ? (
-        <Badge className="h-8 rounded-md bg-green-100 text-green-700 px-4 flex items-center justify-center transition hover:bg-green-200">
+        <Badge variant="outline" className="bg-muted">
           Added
         </Badge>
       ) : (
         <Button
           onClick={() => onAddParameter(parameter)}
-          className="h-8 rounded-md border border-gray-300 bg-white text-gray-900 px-4 hover:bg-gray-100 transition"
+          variant="outline"
+          size="sm"
         >
           Add
         </Button>
@@ -114,9 +117,8 @@ const Parameters = ({
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-full py-12">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-        <p className="text-sm text-muted-foreground mt-2">Loading parameters...</p>
+      <div className="flex justify-center items-center h-full py-4">
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/50 border-t-primary"></div>
       </div>
     );
   }
@@ -129,93 +131,88 @@ const Parameters = ({
     );
   }
 
-  if (!currentCategory) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="bg-gray-50 rounded-lg p-8 text-center max-w-md">
-          <ArrowLeft className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-          <h3 className="text-sm mb-2">Select a Genre</h3>
-          <p className="text-muted-foreground">
-            Choose a genre from the left panel to see available parameters for your story.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
-      <div className="mb-2">
-        <div className="flex items-center mb-2">
-          <h2 className="text-sm">{currentCategory.name} Parameters</h2>
-          <Badge className="ml-2 bg-primary/10 text-primary border-primary/20">
-            {filteredParameters.length}
-          </Badge>
+      <div>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium text-foreground">
+            {currentCategory?.name || "Parameters"}
+          </h2>
+          {filteredParameters?.length > 0 && (
+            <Badge variant="outline" className="text-xs">
+              {filteredParameters.length}
+            </Badge>
+          )}
         </div>
       </div>
 
       {/* Search Bar */}
-      <div className="relative mb-4">
-        <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-          <Search className="h-3.5 w-3.5 text-muted-foreground" />
-        </div>
-        <input
-          type="text"
-          placeholder={`Search ${currentCategory.name} parameters...`}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-8 h-9 w-full rounded-md border border-input/60 bg-white py-1 text-sm transition-colors placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery('')}
-            className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
-
-      {searchQuery && filteredParameters.length === 0 && (
-        <div className="py-10 px-6 flex flex-col items-center justify-center text-center bg-gray-50 rounded-md border border-border">
-          <Frown className="h-10 w-10 text-muted-foreground mb-3" />
-          <p className="text-lg font-medium text-foreground mb-2">
-            No parameters match your search.
-          </p>
-          <p className="text-sm text-foreground/70 mb-4">
-            Try adjusting your search or clear the filter to see more results.
-          </p>
-          <button
-            onClick={() => setSearchQuery('')}
-            className="text-sm text-primary underline"
-          >
-            Clear search
-          </button>
+      {currentCategory && (
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+            <Search className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <input
+            type="text"
+            placeholder={`Search ${currentCategory.name} parameters...`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-9 rounded-md border bg-transparent px-8 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       )}
 
-      <div className="max-h-[calc(100vh-280px)] overflow-auto pr-1">
-        {filteredParameters.length > 0 ? (
-          filteredParameters.map(parameter => (
+      {!currentCategory ? (
+        <div className="flex flex-col items-center justify-center h-[calc(100%-3rem)] text-center">
+          <ArrowLeft className="h-6 w-6 text-muted-foreground mb-2" />
+          <h3 className="text-sm font-medium mb-1">Select a Genre</h3>
+          <p className="text-muted-foreground text-xs">
+            Choose a genre from the left panel to see available parameters.
+          </p>
+        </div>
+      ) : filteredParameters?.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-[calc(100%-5rem)] text-center">
+          {searchQuery ? (
+            <>
+              <Frown className="h-6 w-6 text-muted-foreground mb-2" />
+              <h3 className="text-sm font-medium mb-1">No matching parameters</h3>
+              <p className="text-muted-foreground text-xs mb-2">
+                Try adjusting your search or clear the filter.
+              </p>
+              <Button variant="link" size="sm" onClick={() => setSearchQuery('')}>
+                Clear search
+              </Button>
+            </>
+          ) : (
+            <>
+              <Tag className="h-6 w-6 text-muted-foreground mb-2" />
+              <h3 className="text-sm font-medium mb-1">No parameters available</h3>
+              <p className="text-muted-foreground text-xs">
+                Select a different genre to explore parameters.
+              </p>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="max-h-[calc(100vh-220px)] overflow-auto">
+          {filteredParameters.map(parameter => (
             <MemoizedParameter
               key={parameter.id}
               parameter={parameter}
               onAddParameter={handleAddParameter}
               isSelected={isParameterSelected(parameter)}
             />
-          ))
-        ) : (
-          <div className="py-10 px-6 flex flex-col items-center justify-center text-center bg-gray-50 rounded-md border border-border">
-            <Tag className="h-10 w-10 text-muted-foreground mb-3" />
-            <p className="text-lg font-medium text-foreground mb-2">
-              No parameters in this genre.
-            </p>
-            <p className="text-sm text-foreground/70">
-              Select a different genre to explore available parameters.
-            </p>
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

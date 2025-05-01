@@ -1,7 +1,9 @@
+// src/pages/Categories.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchCategories } from '../services/api';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Folder, FolderOpen, ChevronRight } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 const Categories = ({ onCategorySelect }) => {
   const [categories, setCategories] = useState([]);
@@ -33,22 +35,19 @@ const Categories = ({ onCategorySelect }) => {
     loadCategories();
   }, []);
 
-  // Handle category selection - modified for single selection
+  // Handle category selection
   const handleCategorySelect = useCallback((category) => {
-    // If the same category is clicked again, don't clear the selection
-    // This allows the user to keep viewing the same category's parameters
     setSelectedCategory(category);
     
-    // Send the selected category to parent component
     if (onCategorySelect && typeof onCategorySelect === 'function') {
-      onCategorySelect([category]); // Still pass as array for compatibility
+      onCategorySelect([category]);
     }
   }, [onCategorySelect]);
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-full py-4">
-        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/50 border-t-primary"></div>
       </div>
     );
   }
@@ -70,46 +69,42 @@ const Categories = ({ onCategorySelect }) => {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="mb-3">
-        <h2 className="text-sm">Explore Genres</h2>
+    <div className="flex flex-col h-full space-y-4">
+      <div>
+        <h2 className="text-sm font-medium text-foreground">Explore Genres</h2>
       </div>
       
-      <div className="flex-grow overflow-hidden w-full">
-        <div className="grid grid-cols-1 gap-y-1 w-full overflow-y-auto max-h-[calc(100vh-220px)]">
+      <div className="flex-grow overflow-auto">
+        <div className="space-y-1">
           {categories.map((category) => {
             const isSelected = selectedCategory?.id === category.id;
             return (
-              <div
+              <button
                 key={category.id}
-                className={`
-                  flex w-full items-center justify-between rounded-lg px-3 py-2 min-h-[3rem]
-                  cursor-pointer transition-colors
-                  ${isSelected
-                    ? 'bg-primary/10 border border-primary/25 shadow-sm'
-                    : 'hover:bg-gray-100 border border-transparent'}
-                `}
+                className={cn(
+                  "flex w-full items-center justify-between px-3 py-2 text-sm rounded-md",
+                  isSelected 
+                    ? "bg-accent text-accent-foreground" 
+                    : "hover:bg-accent/50 hover:text-accent-foreground"
+                )}
                 onClick={() => handleCategorySelect(category)}
                 title={category.description || 'No description available'}
               >
-                <div className="flex items-center space-x-3">
-                  <div className="text-muted-foreground">
-                    {isSelected ? (
-                      <FolderOpen className="h-5 w-5 text-primary" />
-                    ) : (
-                      <Folder className="h-5 w-5" />
-                    )}
-                  </div>
-                  <div className={`text-sm ${isSelected ? 'text-primary' : ''}`}>
-                    {category.name}
-                  </div>
+                <div className="flex items-center gap-2">
+                  {isSelected ? (
+                    <FolderOpen className="h-4 w-4" />
+                  ) : (
+                    <Folder className="h-4 w-4" />
+                  )}
+                  <span>{category.name}</span>
                 </div>
                 <ChevronRight
-                  className={`h-4 w-4 transition-transform ${
-                    isSelected ? 'text-primary rotate-90' : 'text-muted-foreground'
-                  }`}
+                  className={cn(
+                    "h-4 w-4 transition-transform",
+                    isSelected ? "rotate-90" : ""
+                  )}
                 />
-              </div>
+              </button>
             );
           })}
         </div>
