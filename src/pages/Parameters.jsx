@@ -3,31 +3,37 @@ import { fetchParameters } from '../services/api';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
+import { Search, X, Plus, Check, ArrowLeft } from 'lucide-react';
 import { Tooltip } from '../components/ui/tooltip';
-import { 
-  Search, X, Plus, Check, ArrowLeft, 
-  List, Sliders, ToggleLeft, 
-  CheckSquare, Dot 
-} from 'lucide-react';
-import TipBanner from '../components/TipBanner';
 
 // Memoized parameter component for performance
-const MemoizedParameter = memo(({ 
-  parameter, 
-  onAddParameter, 
-  isParameterSelected 
-}) => {
+const MemoizedParameter = memo(({ parameter, onAddParameter, isSelected }) => {
+  const typeBadge = {
+    'Dropdown': 'bg-blue-50 text-blue-700',
+    'Slider': 'bg-amber-50 text-amber-700',
+    'Toggle Switch': 'bg-green-50 text-green-700',
+    'Radio Buttons': 'bg-purple-50 text-purple-700',
+    'Checkbox': 'bg-indigo-50 text-indigo-700'
+  }[parameter.type] || 'bg-gray-100 text-gray-700';
+
   return (
     <div className="mb-3 last:mb-0 bg-white border border-border/60 rounded-lg p-3 hover:shadow-sm transition-all">
       <div className="flex items-center justify-between mb-2">
-        <div className="flex-1 mr-2 flex items-center space-x-2">
-          <h3 className="font-medium text-sm">{parameter.name}</h3>
-        </div>
-        {isParameterSelected ? (
-          <Badge 
-            variant="secondary"
-            className="bg-green-50 text-green-700 border-green-200 flex items-center"
+        <div className="flex-1 mr-2">
+          <Tooltip 
+            content={parameter.description || 'No description available'} 
+            position="top"
           >
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm">{parameter.name}</h3>
+              <Badge className={`text-[9px] px-1.5 py-px ${typeBadge}`}>
+                {parameter.type}
+              </Badge>
+            </div>
+          </Tooltip>
+        </div>
+        {isSelected ? (
+          <Badge className="bg-green-50 text-green-700">
             <Check className="h-3 w-3 mr-1" /> Added
           </Badge>
         ) : (
@@ -41,12 +47,6 @@ const MemoizedParameter = memo(({
           </Button>
         )}
       </div>
-      
-      {parameter.description && (
-        <p className="text-xs text-muted-foreground">
-          {parameter.description}
-        </p>
-      )}
     </div>
   );
 });
@@ -62,7 +62,6 @@ const Parameters = ({
   const [parameters, setParameters] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-  const [showTip, setShowTip] = useState(true);
 
   // Current selected category (assuming it's the first in the array)
   const currentCategory = selectedCategory && selectedCategory.length > 0 ? selectedCategory[0] : null;
@@ -160,7 +159,7 @@ const Parameters = ({
       <div className="flex flex-col items-center justify-center h-full">
         <div className="bg-gray-50 rounded-lg p-8 text-center max-w-md">
           <ArrowLeft className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-          <h3 className="text-lg font-medium mb-2">Select a Genre</h3>
+          <h3 className="text-sm mb-2">Select a Genre</h3>
           <p className="text-muted-foreground">
             Choose a genre from the left panel to see available parameters for your story.
           </p>
@@ -173,22 +172,12 @@ const Parameters = ({
     <div className="space-y-4">
       <div className="mb-2">
         <div className="flex items-center mb-2">
-          <h2 className="text-lg font-bold">{currentCategory.name} Parameters</h2>
+          <h2 className="text-sm">{currentCategory.name} Parameters</h2>
           <Badge className="ml-2 bg-primary/10 text-primary border-primary/20">
             {filteredParameters.length}
           </Badge>
         </div>
-        {currentCategory.description && (
-          <p className="text-sm text-muted-foreground">{currentCategory.description}</p>
-        )}
       </div>
-
-      {showTip && (
-        <TipBanner 
-          message="Click the 'Add' button to select parameters for your story. You can mix parameters from different genres."
-          onClose={() => setShowTip(false)}
-        />
-      )}
 
       {/* Search Bar */}
       <div className="relative mb-4">
@@ -233,7 +222,7 @@ const Parameters = ({
               key={parameter.id}
               parameter={parameter}
               onAddParameter={handleAddParameter}
-              isParameterSelected={isParameterSelected(parameter)}
+              isSelected={isParameterSelected(parameter)}
             />
           ))
         ) : (

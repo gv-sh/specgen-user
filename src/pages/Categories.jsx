@@ -3,6 +3,7 @@ import { fetchCategories } from '../services/api';
 import { Button } from '../components/ui/button';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Folder, FolderOpen, ChevronRight } from 'lucide-react';
+import { Tooltip } from '../components/ui/tooltip';
 
 const Categories = ({ onCategorySelect }) => {
   const [categories, setCategories] = useState([]);
@@ -73,10 +74,7 @@ const Categories = ({ onCategorySelect }) => {
   return (
     <div className="flex flex-col h-full">
       <div className="mb-3">
-        <h2 className="text-lg font-bold mb-1">Explore Genres</h2>
-        <p className="text-sm text-muted-foreground mb-3">
-          Select a genre to see its parameters.
-        </p>
+        <h2 className="text-sm">Explore Genres</h2>
       </div>
       
       <div className="flex-grow overflow-hidden">
@@ -85,40 +83,40 @@ const Categories = ({ onCategorySelect }) => {
             const isSelected = selectedCategory && selectedCategory.id === category.id;
             
             return (
-              <div 
+              <Tooltip 
                 key={category.id} 
-                className={`
-                  flex items-center space-x-3 rounded-lg px-3 py-2 min-h-[3rem]
-                  cursor-pointer transition-colors
-                  ${isSelected 
-                    ? 'bg-primary/10 border border-primary/25 shadow-sm' 
-                    : 'hover:bg-gray-100 border border-transparent'}
-                `}
-                onClick={() => handleCategorySelect(category)}
+                content={category.description || 'No description available'}
+                position="right"
               >
-                <div className="text-muted-foreground">
-                  {isSelected ? (
-                    <FolderOpen className="h-5 w-5 text-primary" />
-                  ) : (
-                    <Folder className="h-5 w-5" />
-                  )}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className={`text-sm font-medium ${isSelected ? 'text-primary' : ''}`}>
-                    {category.name}
+                <div 
+                  className={`
+                    flex items-center space-x-3 rounded-lg px-3 py-2 min-h-[3rem]
+                    cursor-pointer transition-colors
+                    ${isSelected 
+                      ? 'bg-primary/10 border border-primary/25 shadow-sm' 
+                      : 'hover:bg-gray-100 border border-transparent'}
+                  `}
+                  onClick={() => handleCategorySelect(category)}
+                >
+                  <div className="text-muted-foreground">
+                    {isSelected ? (
+                      <FolderOpen className="h-5 w-5 text-primary" />
+                    ) : (
+                      <Folder className="h-5 w-5" />
+                    )}
                   </div>
-                  {category.description && (
-                    <div className="text-xs text-muted-foreground line-clamp-1">
-                      {category.description}
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className={`text-sm ${isSelected ? 'text-primary' : ''}`}>
+                      {category.name}
                     </div>
-                  )}
+                  </div>
+                  
+                  <ChevronRight 
+                    className={`h-4 w-4 transition-transform ${isSelected ? 'text-primary rotate-90' : 'text-muted-foreground'}`} 
+                  />
                 </div>
-                
-                <ChevronRight 
-                  className={`h-4 w-4 transition-transform ${isSelected ? 'text-primary rotate-90' : 'text-muted-foreground'}`} 
-                />
-              </div>
+              </Tooltip>
             );
           })}
         </div>
