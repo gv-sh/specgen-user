@@ -3,39 +3,60 @@ import { fetchParameters } from '../services/api';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
-import { Search, X, Plus, ArrowLeft } from 'lucide-react';
-import { stringToColor } from '../utils/colorUtils';
+import { Tooltip } from '../components/ui/tooltip';
+import { 
+  Search, X, Plus, Check, ArrowLeft, 
+  List, Sliders, ToggleLeft, 
+  CheckSquare, Dot 
+} from 'lucide-react';
 import TipBanner from '../components/TipBanner';
 
+// Mapping parameter types to icons
+const parameterTypeIcons = {
+  'Dropdown': List,
+  'Slider': Sliders,
+  'Toggle Switch': ToggleLeft,
+  'Radio Buttons': Dot,
+  'Checkbox': CheckSquare
+};
+
 // Memoized parameter component for performance
-const MemoizedParameter = memo(({ parameter, onAddParameter }) => {
-  const typeBadge = {
-    'Dropdown': 'bg-blue-50 text-blue-700',
-    'Slider': 'bg-amber-50 text-amber-700',
-    'Toggle Switch': 'bg-green-50 text-green-700',
-    'Radio Buttons': 'bg-purple-50 text-purple-700',
-    'Checkbox': 'bg-indigo-50 text-indigo-700'
-  }[parameter.type] || 'bg-gray-100 text-gray-700';
+const MemoizedParameter = memo(({ 
+  parameter, 
+  onAddParameter, 
+  isParameterSelected 
+}) => {
+  // Get the icon for the parameter type
+  const ParameterIcon = parameterTypeIcons[parameter.type] || List;
 
   return (
     <div className="mb-3 last:mb-0 bg-white border border-border/60 rounded-lg p-3 hover:shadow-sm transition-all">
       <div className="flex items-center justify-between mb-2">
-        <div className="flex-1 mr-2">
-          <div className="flex items-center gap-2">
-            <h3 className="font-medium text-sm">{parameter.name}</h3>
-            <Badge className={`text-[9px] px-1.5 py-px ${typeBadge}`}>
-              {parameter.type}
-            </Badge>
-          </div>
+        <div className="flex-1 mr-2 flex items-center space-x-2">
+          <Tooltip content={parameter.type}>
+            <div className="text-muted-foreground">
+              <ParameterIcon className="h-4 w-4" />
+            </div>
+          </Tooltip>
+          <h3 className="font-medium text-sm">{parameter.name}</h3>
         </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => onAddParameter(parameter)}
-          className="h-7 px-2 bg-primary/5 hover:bg-primary/10 border-primary/20"
-        >
-          <Plus className="h-4 w-4 mr-1" /> Add
-        </Button>
+        {isParameterSelected ? (
+          <Badge 
+            variant="secondary"
+            className="bg-green-50 text-green-700 border-green-200 flex items-center"
+          >
+            <Check className="h-3 w-3 mr-1" /> Added
+          </Badge>
+        ) : (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => onAddParameter(parameter)}
+            className="h-7 px-2 bg-primary/5 hover:bg-primary/10 border-primary/20"
+          >
+            <Plus className="h-4 w-4 mr-1" /> Add
+          </Button>
+        )}
       </div>
       
       {parameter.description && (
@@ -123,6 +144,11 @@ const Parameters = ({
       return true;
     });
   }, [parameters, debouncedSearchQuery]);
+
+  // Check if a parameter is already selected
+  const isParameterSelected = (parameter) => {
+    return selectedParameters.some(p => p.id === parameter.id);
+  };
 
   // Handle adding a parameter
   const handleAddParameter = (parameter) => {
@@ -224,6 +250,7 @@ const Parameters = ({
               key={parameter.id}
               parameter={parameter}
               onAddParameter={handleAddParameter}
+              isParameterSelected={isParameterSelected(parameter)}
             />
           ))
         ) : (
