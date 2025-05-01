@@ -2,7 +2,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Minus, Folder, Zap, Dices, RefreshCw } from 'lucide-react';
+import { Minus, Folder, Zap, Dices, RefreshCw, Trash2 } from 'lucide-react';
 import { Select } from '../components/ui/select';
 import { Slider } from '../components/ui/slider';
 import { Switch } from '../components/ui/switch';
@@ -20,7 +20,7 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
   switch (parameter.type) {
     case 'Dropdown':
       return (
-        <div className="relative w-full">
+        <div className="relative w-full max-w-[400px]">
           <Select
             value={value || parameter.values[0]?.id || ''}
             onChange={(e) => onChange(e.target.value)}
@@ -197,6 +197,14 @@ const SelectedParameters = ({
   onNavigateToGenerate
 }) => {
   const [randomizing, setRandomizing] = useState(false);
+  
+  // Function to remove all parameters at once
+  const handleRemoveAll = () => {
+    // Call onRemoveParameter for each parameter
+    [...parameters].forEach(param => {
+      onRemoveParameter(param);
+    });
+  };
 
   // Group and reverse for newest first
   const parametersByCategory = useMemo(() => {
@@ -282,6 +290,16 @@ const SelectedParameters = ({
               aria-label="Randomize all parameters"
             >
               <Dices className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRemoveAll}
+              className="h-7 w-7 text-destructive"
+              aria-label="Remove all parameters"
+              title="Remove all parameters"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
             <Badge variant="outline">{parameters.length}</Badge>
           </div>
@@ -379,7 +397,7 @@ const SelectedParameters = ({
           variant="default"
           onClick={onNavigateToGenerate}
           disabled={!areAllConfigured}
-          className="w-full"
+          className="mx-auto px-6"
         >
           <Zap className="h-3.5 w-3.5 mr-2" />
           {!areAllConfigured

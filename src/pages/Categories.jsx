@@ -98,12 +98,10 @@ const Categories = ({ onCategorySelect }) => {
                   )}
                   <span>{category.name}</span>
                 </div>
-                <ChevronRight
-                  className={cn(
-                    "h-4 w-4 transition-transform",
-                    isSelected ? "rotate-90" : ""
-                  )}
-                />
+                { isSelected ? (
+                    <ChevronRight className={cn("h-4 w-4 transition-transform","")}/>
+                ) : null
+                }
               </button>
             );
           })}
