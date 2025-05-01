@@ -1,7 +1,6 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ThemeProvider } from './components/ThemeProvider';
 import MainLayout from './components/layout/MainLayout';
 import ResponsiveLayout, { Column } from './components/layout/ResponsiveLayout';
 import GuidedTour from './components/GuidedTour';
@@ -15,14 +14,12 @@ const Generation = lazy(() => import('./pages/Generation'));
 // Main App Component
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="specgen-theme">
-      <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/generate" element={<GenerationPage />} />
-        </Routes>
-      </Router>
-    </ThemeProvider>
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/generate" element={<GenerationPage />} />
+      </Routes>
+    </Router>
   );
 }
 

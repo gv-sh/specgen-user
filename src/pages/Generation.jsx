@@ -1,9 +1,8 @@
 // src/pages/Generation.jsx - Updated for standalone page
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { generateContent } from '../services/api';
 import { Button } from '../components/ui/button';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { Card, CardContent } from '../components/ui/card';
 import { Copy, Download, Check, Image as ImageIcon, FileText, ArrowLeft, RefreshCw } from 'lucide-react';
 import { copyToClipboard, downloadTextFile, downloadImage } from '../utils/exportUtils';
 
@@ -20,7 +19,7 @@ const Generation = ({
   const [copied, setCopied] = useState(false);
 
   // Validate parameters before generation
-  const validateParameters = () => {
+  const validateParameters = useCallback(() => {
     // Check if parameters are selected
     if (!selectedParameters || selectedParameters.length === 0) {
       setError('Please select at least one parameter');
@@ -39,7 +38,7 @@ const Generation = ({
     }
 
     return true;
-  };
+  }, [selectedParameters, setError]);
 
   // Organize parameters for API
   const prepareParameterValues = () => {
@@ -58,7 +57,7 @@ const Generation = ({
   };
 
   // Handle generation
-  const handleGeneration = async () => {
+  const handleGeneration = useCallback(async () => {
     // Reset previous states
     setError(null);
     setGeneratedContent(null);
@@ -109,7 +108,7 @@ const Generation = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [setGeneratedContent, validateParameters, prepareParameterValues]);
 
   // Handle copying text
   const handleCopyText = async () => {
@@ -145,7 +144,7 @@ const Generation = ({
     if (selectedParameters.length > 0 && !generatedContent && !loading) {
       handleGeneration();
     }
-  }, [selectedParameters]);
+  }, [generatedContent, handleGeneration, loading, selectedParameters]);
 
   return (
     <div className="max-w-5xl mx-auto">

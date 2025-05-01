@@ -2,14 +2,9 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Minus, Folder, Zap, Dices, Wand, RefreshCw } from 'lucide-react';
+import { Minus, Folder, Zap, Dices, RefreshCw } from 'lucide-react';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '../components/ui/select';
+  Select} from '../components/ui/select';
 import { Slider } from '../components/ui/slider';
 import { Switch } from '../components/ui/switch';
 import { Checkbox } from '../components/ui/checkbox';
@@ -19,7 +14,6 @@ import {
   AccordionTrigger,
   AccordionContent
 } from '../components/ui/accordion';
-import TipBanner from '../components/TipBanner';
 
 // Parameter Value Input Component
 const ParameterValueInput = ({ parameter, value, onChange }) => {
@@ -202,7 +196,6 @@ const SelectedParameters = ({
   onUpdateParameterValue,
   onNavigateToGenerate
 }) => {
-  const [showTip, setShowTip] = useState(true);
   const [randomizing, setRandomizing] = useState(false);
 
   // Group and reverse for newest first
@@ -253,7 +246,7 @@ const SelectedParameters = ({
       .forEach((p) =>
         onUpdateParameterValue(p.id, randomizeParameterValue(p))
       );
-  }, [parameters]);
+  }, [onUpdateParameterValue, parameters]);
 
   if (!parameters.length) {
     return (
@@ -294,13 +287,6 @@ const SelectedParameters = ({
             </span>
           </div>
         </div>
-
-        {showTip && (
-          <TipBanner
-            message="Configure the selected parameters below to customize your generated story. Mix parameters from different genres for more creative results."
-            onClose={() => setShowTip(false)}
-          />
-        )}
       </div>
 
       <div className="flex-grow overflow-auto px-2">

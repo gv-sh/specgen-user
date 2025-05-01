@@ -1,13 +1,10 @@
 // src/components/layout/MainLayout.jsx - Updated with back button
 import React from 'react';
-import { useTheme } from '../ThemeProvider';
 import { motion } from 'framer-motion';
 import { Button } from '../ui/button';
-import { Moon, Sun, Zap, HelpCircle, ArrowLeft } from 'lucide-react';
+import { Zap, HelpCircle, ArrowLeft } from 'lucide-react';
 
 const MainLayout = ({ children, onShowTour, showBackButton, onBackClick }) => {
-  const { theme, setTheme } = useTheme();
-
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-background">
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-background/80 backdrop-blur-sm">
