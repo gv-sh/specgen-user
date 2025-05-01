@@ -24,7 +24,7 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
           <Select
             value={value || parameter.values[0]?.id || ''}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full h-9 rounded-md border bg-transparent px-3 py-1 text-sm"
+            className="w-full h-9 rounded-md border bg-transparent px-3 py-1 text-sm appearance-none"
           >
             <option value="" disabled>
               Select...
@@ -35,6 +35,23 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
               </option>
             ))}
           </Select>
+          {/* Custom dropdown arrow with proper spacing */}
+          <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4 opacity-70"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </div>
         </div>
       );
 
@@ -49,7 +66,7 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
       const maxLabel = parameter.values?.[1]?.label;
 
       return (
-        <div className="space-y-2">
+        <div className="space-y-2 max-w-[400px]">
           <div className="flex justify-between text-sm">
             {minLabel ? (
               <span className="text-xs">{minLabel}</span>
@@ -288,6 +305,7 @@ const SelectedParameters = ({
                 randomizing ? "animate-spin" : ""
               )}
               aria-label="Randomize all parameters"
+              title="Randomize all parameters"
             >
               <Dices className="h-3.5 w-3.5" />
             </Button>
@@ -351,6 +369,7 @@ const SelectedParameters = ({
                                   onClick={() => handleRandomize('parameter', null, parameter.id)}
                                   className="h-6 w-6"
                                   aria-label={`Randomize ${parameter.name}`}
+                                  title={`Randomize ${parameter.name}`}
                                 >
                                   <RefreshCw className="h-3 w-3" />
                                 </Button>
@@ -360,6 +379,7 @@ const SelectedParameters = ({
                                   onClick={() => onRemoveParameter(parameter)}
                                   className="h-6 w-6 text-destructive"
                                   aria-label={`Remove ${parameter.name}`}
+                                  title={`Remove ${parameter.name}`}
                                 >
                                   <Minus className="h-3 w-3" />
                                 </Button>
@@ -392,12 +412,12 @@ const SelectedParameters = ({
         </div>
       </div>
 
-      <div className="pt-3 border-t border-input mt-3">
+      <div className="pt-3 border-t border-input mt-3 flex justify-center">
         <Button
           variant="default"
           onClick={onNavigateToGenerate}
           disabled={!areAllConfigured}
-          className="mx-auto px-6"
+          className="px-6"
         >
           <Zap className="h-3.5 w-3.5 mr-2" />
           {!areAllConfigured
