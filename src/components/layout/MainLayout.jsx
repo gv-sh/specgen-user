@@ -43,16 +43,6 @@ const MainLayout = ({ children, onShowTour, showBackButton, onBackClick }) => {
                 <span className="text-sm">Tour</span>
               </Button>
             )}
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              className="rounded-full h-9 w-9 mr-2 text-foreground/80 hover:text-foreground"
-            >
-              {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
-              <span className="sr-only">Toggle theme</span>
-            </Button>
           </div>
         </div>
       </header>

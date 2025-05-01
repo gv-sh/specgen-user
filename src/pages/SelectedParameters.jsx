@@ -92,9 +92,6 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
                 }}
                 className="group"
               />
-              <div className="text-xs text-center text-muted-foreground mt-1">
-                <span>Value: {currentValue}</span>
-              </div>
             </div>
           </div>
         </div>
