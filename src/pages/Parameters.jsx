@@ -11,33 +11,16 @@ import {
 } from 'lucide-react';
 import TipBanner from '../components/TipBanner';
 
-// Mapping parameter types to icons
-const parameterTypeIcons = {
-  'Dropdown': List,
-  'Slider': Sliders,
-  'Toggle Switch': ToggleLeft,
-  'Radio Buttons': Dot,
-  'Checkbox': CheckSquare
-};
-
 // Memoized parameter component for performance
 const MemoizedParameter = memo(({ 
   parameter, 
   onAddParameter, 
   isParameterSelected 
 }) => {
-  // Get the icon for the parameter type
-  const ParameterIcon = parameterTypeIcons[parameter.type] || List;
-
   return (
     <div className="mb-3 last:mb-0 bg-white border border-border/60 rounded-lg p-3 hover:shadow-sm transition-all">
       <div className="flex items-center justify-between mb-2">
         <div className="flex-1 mr-2 flex items-center space-x-2">
-          <Tooltip content={parameter.type}>
-            <div className="text-muted-foreground">
-              <ParameterIcon className="h-4 w-4" />
-            </div>
-          </Tooltip>
           <h3 className="font-medium text-sm">{parameter.name}</h3>
         </div>
         {isParameterSelected ? (
