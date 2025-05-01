@@ -1,12 +1,21 @@
 // src/App.js
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+
+// Theme and Layout Components
 import { ThemeProvider } from './components/theme/theme-provider';
 import MainLayout from './components/layout/MainLayout';
 import ResponsiveLayout, { Column } from './components/layout/ResponsiveLayout';
 import GuidedTour from './components/GuidedTour';
 
-// Lazy load components for better performance
+// Loading Spinner Component
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center h-full">
+    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/50 border-t-primary"></div>
+  </div>
+);
+
+// Lazy load pages for better performance
 const Categories = lazy(() => import('./pages/Categories'));
 const Parameters = lazy(() => import('./pages/Parameters'));
 const SelectedParameters = lazy(() => import('./pages/SelectedParameters'));
@@ -17,40 +26,35 @@ function App() {
   return (
     <ThemeProvider defaultTheme="dark">
       <Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/generate" element={<GenerationPage />} />
-        </Routes>
+        <AppContent />
       </Router>
     </ThemeProvider>
   );
 }
 
-// HomePage Component
-function HomePage() {
+// App Content Component with shared state
+function AppContent() {
+  // State management
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [selectedParameters, setSelectedParameters] = useState([]);
   const [showTour, setShowTour] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState(null);
+  
+  // Hooks
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Check if user has seen the guided tour before
   useEffect(() => {
     const hasSeenTour = localStorage.getItem('specgen-tour-completed');
-    if (!hasSeenTour) {
+    if (!hasSeenTour && location.pathname === '/') {
       // Slight delay to show tour after initial render
-      const timer = setTimeout(() => {
-        setShowTour(true);
-      }, 1000);
+      const timer = setTimeout(() => setShowTour(true), 1000);
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [location.pathname]);
 
-  // Function to manually show the tour
-  const handleShowTour = () => {
-    setShowTour(true);
-  };
-
-  // Handle parameter selection
+  // Parameter management handlers
   const handleParameterSelect = (parameter) => {
     // Prevent duplicates
     if (!selectedParameters.some(p => p.id === parameter.id)) {
@@ -58,113 +62,95 @@ function HomePage() {
     }
   };
 
-  // Handle parameter removal
   const handleParameterRemove = (parameter) => {
-    setSelectedParameters(prev => 
-      prev.filter(p => p.id !== parameter.id)
-    );
+    setSelectedParameters(prev => prev.filter(p => p.id !== parameter.id));
   };
 
-  // Handle parameter value update
   const handleParameterValueUpdate = (parameterId, newValue) => {
     setSelectedParameters(prev => 
       prev.map(param => 
-        param.id === parameterId 
-          ? { ...param, value: newValue } 
-          : param
+        param.id === parameterId ? { ...param, value: newValue } : param
       )
     );
   };
 
-  // Handle navigation to generation page
+  // Navigation handlers
   const handleNavigateToGenerate = () => {
-    // Store selected parameters in localStorage for the generation page
-    localStorage.setItem('selectedParameters', JSON.stringify(selectedParameters));
     navigate('/generate');
   };
-
-  return (
-    <MainLayout onShowTour={handleShowTour}>
-      {showTour && <GuidedTour onClose={() => setShowTour(false)} />}
-      
-      <ResponsiveLayout>
-        <Column 
-          span={4}
-          mobileOrder={1} 
-          tabletSpan={2}
-        >
-          <Categories 
-            onCategorySelect={setSelectedCategory} 
-            selectedCategory={selectedCategory}
-          />
-        </Column>
-        
-        <Column 
-          span={4}
-          mobileOrder={3} 
-          tabletSpan={2}
-        >
-          <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/50 border-t-primary"></div></div>}>
-            <Parameters 
-              selectedCategory={selectedCategory}
-              selectedParameters={selectedParameters}
-              onParameterSelect={handleParameterSelect}
-              onParameterRemove={handleParameterRemove}
-            />
-          </Suspense>
-        </Column>
-        
-        <Column 
-          span={8}
-          mobileOrder={2} 
-          tabletSpan={4}
-        >
-          <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/50 border-t-primary"></div></div>}>
-            <SelectedParameters 
-              parameters={selectedParameters}
-              onRemoveParameter={handleParameterRemove}
-              onUpdateParameterValue={handleParameterValueUpdate}
-              onNavigateToGenerate={handleNavigateToGenerate}
-            />
-          </Suspense>
-        </Column>
-      </ResponsiveLayout>
-    </MainLayout>
-  );
-}
-
-// Generation Page Component
-function GenerationPage() {
-  const [generatedContent, setGeneratedContent] = useState(null);
-  const [selectedParameters, setSelectedParameters] = useState([]);
-  const navigate = useNavigate();
-
-  // Load selected parameters from localStorage
-  useEffect(() => {
-    const storedParameters = localStorage.getItem('selectedParameters');
-    if (storedParameters) {
-      setSelectedParameters(JSON.parse(storedParameters));
-    }
-  }, []);
-
-  // Handle navigation back to home
+  
   const handleBackToHome = () => {
     navigate('/');
   };
 
+  // UI handlers
+  const handleShowTour = () => {
+    setShowTour(true);
+  };
+
   return (
-    <MainLayout showBackButton={true} onBackClick={handleBackToHome}>
-      <div className="bg-card rounded-md border shadow-sm p-4 h-full">
-        <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/50 border-t-primary"></div></div>}>
-          <Generation 
-            setGeneratedContent={setGeneratedContent} 
-            generatedContent={generatedContent}
-            selectedParameters={selectedParameters}
-            onBackToHome={handleBackToHome}
-          />
-        </Suspense>
-      </div>
-    </MainLayout>
+    <>
+      {/* Tour overlay */}
+      {showTour && <GuidedTour onClose={() => setShowTour(false)} />}
+      
+      {/* Main app layout */}
+      <MainLayout onShowTour={handleShowTour}>
+        <Routes>
+          {/* Homepage - Parameter Selection */}
+          <Route path="/" element={
+            <ResponsiveLayout>
+              {/* Category Selection Column */}
+              <Column span={4} mobileOrder={1} tabletSpan={2}>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Categories 
+                    onCategorySelect={setSelectedCategory} 
+                    selectedCategory={selectedCategory}
+                  />
+                </Suspense>
+              </Column>
+              
+              {/* Parameter List Column */}
+              <Column span={4} mobileOrder={3} tabletSpan={2}>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Parameters 
+                    selectedCategory={selectedCategory}
+                    selectedParameters={selectedParameters}
+                    onParameterSelect={handleParameterSelect}
+                    onParameterRemove={handleParameterRemove}
+                  />
+                </Suspense>
+              </Column>
+              
+              {/* Selected Parameters Column */}
+              <Column span={8} mobileOrder={2} tabletSpan={4}>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <SelectedParameters 
+                    parameters={selectedParameters}
+                    onRemoveParameter={handleParameterRemove}
+                    onUpdateParameterValue={handleParameterValueUpdate}
+                    onNavigateToGenerate={handleNavigateToGenerate}
+                  />
+                </Suspense>
+              </Column>
+            </ResponsiveLayout>
+          } />
+          
+          {/* Generation Page */}
+          <Route path="/generate" element={
+            <div className="bg-card rounded-md border shadow-sm h-full">
+              <Suspense fallback={<LoadingSpinner />}>
+                <Generation 
+                  setGeneratedContent={setGeneratedContent} 
+                  generatedContent={generatedContent}
+                  selectedParameters={selectedParameters}
+                  onBackToHome={handleBackToHome}
+                />
+              </Suspense>
+            </div>
+          } />
+        </Routes>
+      </MainLayout>
+    </>
   );
 }
 

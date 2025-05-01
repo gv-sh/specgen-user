@@ -1,3 +1,4 @@
+// src/services/api.js
 import axios from 'axios';
 import config from '../config';
 import { apiCache } from '../utils/performanceUtils';
@@ -96,6 +97,16 @@ export const generateContent = async (parameterValues, categoryIds, contentType 
     // Make the API call
     const response = await api.post('/generate', payload);
     
+    // Save to generation history in localStorage
+    saveToGenerationHistory({
+      content: response.data.content,
+      imageData: response.data.imageData,
+      metadata: response.data.metadata,
+      parameterValues,
+      timestamp: new Date().toISOString(),
+      id: `gen-${Date.now()}`
+    });
+    
     return response.data;
   } catch (error) {
     console.error('Content generation error:', error);
@@ -121,6 +132,80 @@ export const generateContent = async (parameterValues, categoryIds, contentType 
       };
     }
   }
+};
+
+/**
+ * Save generation to local storage history
+ * @param {Object} generation - Generation data to save
+ */
+const saveToGenerationHistory = (generation) => {
+  try {
+    // Get existing history
+    const historyJSON = localStorage.getItem('specgen-history');
+    let history = historyJSON ? JSON.parse(historyJSON) : [];
+    
+    // Add new generation at the beginning
+    history = [generation, ...history];
+    
+    // Keep only the last 20 generations
+    if (history.length > 20) {
+      history = history.slice(0, 20);
+    }
+    
+    // Save back to localStorage
+    localStorage.setItem('specgen-history', JSON.stringify(history));
+  } catch (error) {
+    console.error('Error saving to generation history:', error);
+  }
+};
+
+/**
+ * Fetch previous generations from history
+ * @returns {Promise<Object>} Promise resolving to previous generations
+ */
+export const fetchPreviousGenerations = async () => {
+  try {
+    // In a real app, this would be an API call
+    // For now, we'll use localStorage
+    const historyJSON = localStorage.getItem('specgen-history');
+    const history = historyJSON ? JSON.parse(historyJSON) : [];
+    
+    // Process the data to add titles
+    const processedHistory = history.map(item => ({
+      ...item,
+      title: generateTitle(item.content),
+      createdAt: item.timestamp || new Date().toISOString()
+    }));
+    
+    return {
+      success: true,
+      data: processedHistory
+    };
+  } catch (error) {
+    console.error('Error fetching generation history:', error);
+    return {
+      success: false,
+      error: 'Failed to fetch generation history',
+      data: []
+    };
+  }
+};
+
+/**
+ * Generate a title from content
+ * @param {string} content - Generated content
+ * @returns {string} Generated title
+ */
+const generateTitle = (content) => {
+  if (!content) return 'New Generation';
+  
+  // Take first sentence or first 40 characters
+  const firstSentence = content.split(/[.!?]|\n/)[0].trim();
+  if (firstSentence.length <= 40) {
+    return firstSentence;
+  }
+  
+  return firstSentence.substring(0, 37) + '...';
 };
 
 // Alias for backward compatibility

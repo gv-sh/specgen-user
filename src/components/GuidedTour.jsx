@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, X } from 'lucide-react';
+import { ChevronRight, X, BookOpen, Sparkles, Dices, ZoomIn, Settings2, Layers, Boxes } from 'lucide-react';
 
 /**
  * GuidedTour component provides a simple step-by-step tour for new users
- * Updated with responsive positioning for different screen sizes
+ * Updated with responsive positioning and improved visual design
  */
 const GuidedTour = ({ onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -28,37 +28,49 @@ const GuidedTour = ({ onClose }) => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  // Define tour steps
+  // Define tour steps with icons
   const steps = [
     {
       title: "Welcome to SpecGen",
-      content: "This tool helps you create detailed specifications for generating customized fiction.",
-      position: "center" // This will be handled differently
+      content: "This tool helps you create detailed specifications for generating customized fiction and imagery based on your chosen parameters.",
+      position: "center",
+      icon: <Sparkles className="h-4 w-4 text-primary" />
     },
     {
       title: "Browse Genres",
       content: "Start by selecting a genre from the left panel. Each genre contains unique parameters for your story.",
-      position: "left"
+      position: "left",
+      icon: <BookOpen className="h-4 w-4 text-primary" />
     },
     {
       title: "Explore Parameters",
-      content: "After selecting a genre, browse its parameters in the middle panel. Add the ones you want to include.",
-      position: "center-left" 
+      content: "After selecting a genre, browse its parameters in the middle panel. Add the ones you want to include in your generation.",
+      position: "center-left",
+      icon: <Layers className="h-4 w-4 text-primary" />
     },
     {
       title: "Select Multiple Genres",
       content: "You can select parameters from different genres. Simply click on another genre to see its parameters.",
-      position: "left"
+      position: "left",
+      icon: <Boxes className="h-4 w-4 text-primary" />
     },
     {
       title: "Configure Parameters",
       content: "Adjust your selected parameters in the right panel to fine-tune how your story will be generated.",
-      position: "center-right"
+      position: "center-right",
+      icon: <Settings2 className="h-4 w-4 text-primary" />
+    },
+    {
+      title: "Randomize Options",
+      content: "Can't decide? Use the randomize buttons to quickly generate parameter values.",
+      position: "right",
+      icon: <Dices className="h-4 w-4 text-primary" />
     },
     {
       title: "Generate Content",
-      content: "When you're ready, click 'Generate' to create a story based on your selected parameters.",
-      position: "right"
+      content: "When you're ready, click 'Generate' to create a story and image based on your selected parameters.",
+      position: "right",
+      icon: <ZoomIn className="h-4 w-4 text-primary" />
     }
   ];
   
@@ -97,7 +109,7 @@ const GuidedTour = ({ onClose }) => {
     
     // For mobile devices, position everything at the bottom center
     if (isMobile) {
-      return "bottom-20 left-1/2 -translate-x-1/2";
+      return "bottom-24 left-1/2 -translate-x-1/2";
     }
     
     // For tablets, use simpler positioning
@@ -127,22 +139,25 @@ const GuidedTour = ({ onClose }) => {
   if (!isVisible) return null;
   
   return (
-    <div className="fixed inset-0 bg-black/5 z-50 pointer-events-none">
+    <div className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm pointer-events-auto">
       <div
         className={`absolute pointer-events-auto ${getPositionClasses()}`}
       >
-        <div className="bg-white rounded-lg shadow-lg border border-primary/20 w-72 p-3 animate-in fade-in duration-300">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-medium text-primary">{steps[currentStep].title}</h3>
+        <div className="bg-card rounded-lg shadow-lg border border-primary/20 w-72 p-4 animate-in fade-in duration-300">
+          <div className="flex justify-between items-center mb-1">
+            <div className="flex items-center gap-2">
+              {steps[currentStep].icon}
+              <h3 className="text-base font-medium text-foreground">{steps[currentStep].title}</h3>
+            </div>
             <button 
               onClick={completeTour}
               className="text-muted-foreground hover:text-foreground p-1 rounded-sm"
             >
-              <X className="h-3 w-3" />
+              <X className="h-4 w-4" />
             </button>
           </div>
           
-          <p className="text-xs text-muted-foreground mb-3">
+          <p className="text-sm text-muted-foreground mb-4">
             {steps[currentStep].content}
           </p>
           
@@ -151,19 +166,19 @@ const GuidedTour = ({ onClose }) => {
               {steps.map((_, index) => (
                 <div 
                   key={index}
-                  className={`h-1 w-4 rounded-full ${index === currentStep ? 'bg-primary' : 'bg-primary/20'}`}
+                  className={`h-1.5 w-5 rounded-full ${index === currentStep ? 'bg-primary' : 'bg-primary/20'}`}
                 />
               ))}
             </div>
             
             <button
               onClick={nextStep}
-              className="text-xs bg-primary/10 text-primary px-2 py-1 rounded flex items-center"
+              className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md flex items-center font-medium"
             >
               {currentStep < steps.length - 1 ? (
-                <>Next <ChevronRight className="h-3 w-3 ml-1" /></>
+                <>Next <ChevronRight className="h-3.5 w-3.5 ml-1" /></>
               ) : (
-                'Got it!'
+                'Get Started'
               )}
             </button>
           </div>
