@@ -58,7 +58,10 @@ const AccordionItem = React.forwardRef(({ className, value, children, ...props }
     <div
       ref={ref}
       data-state={isOpen ? "open" : "closed"}
-      className={cn("border-b border-border last:border-0", className)}
+      className={cn(
+        "border-b border-border",
+        className
+      )}
       {...props}
     >
       {React.Children.map(children, child => {
@@ -81,7 +84,7 @@ const AccordionTrigger = React.forwardRef(({ className, children, isOpen, 'data-
       ref={ref}
       onClick={() => onToggle(value)}
       className={cn(
-        "flex w-full items-center justify-between p-4 font-medium transition-all hover:underline",
+        "flex w-full items-center justify-between py-3 px-4 font-medium transition-all hover:underline",
         className
       )}
       {...props}
@@ -110,19 +113,24 @@ const AccordionTrigger = React.forwardRef(({ className, children, isOpen, 'data-
 
 AccordionTrigger.displayName = "AccordionTrigger";
 
-const AccordionContent = React.forwardRef(({ className, children, isOpen, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "overflow-hidden transition-all",
-      isOpen ? "animate-accordion-down" : "animate-accordion-up h-0",
-      className
-    )}
-    {...props}
-  >
-    {isOpen && <div className="pb-2 pt-0 px-0">{children}</div>}
-  </div>
-));
+const AccordionContent = React.forwardRef(({ className, children, isOpen, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      style={{ margin: 0, padding: 0 }}
+      className={cn(
+        "grid grid-rows-[0fr] transition-all duration-200",
+        isOpen && "grid-rows-[1fr]",
+        className
+      )}
+      {...props}
+    >
+      <div className="overflow-hidden">
+        {isOpen && <div className="pb-2 pt-0 px-4">{children}</div>}
+      </div>
+    </div>
+  );
+});
 
 AccordionContent.displayName = "AccordionContent";
 

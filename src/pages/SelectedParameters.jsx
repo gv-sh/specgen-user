@@ -289,82 +289,92 @@ const SelectedParameters = ({
       </div>
 
       <div className="flex-grow overflow-auto">
-        <Accordion
-          type="multiple"
-          defaultValue={parametersByCategory.map((cat) => cat.id)}
-          className="space-y-3"
-        >
-          {parametersByCategory.map((category) => (
-            <AccordionItem
+        <div className="space-y-2">
+          {parametersByCategory.map((category, categoryIndex) => (
+            <div 
               key={category.id}
-              value={category.id}
-              className="border rounded-md px-3"
+              className="border border-input rounded-md overflow-hidden"
             >
-              <AccordionTrigger className="py-2 hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <Folder className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-sm font-medium">{category.name}</span>
-                  <Badge variant="outline" className="ml-1 text-xs">
-                    {category.parameters.length}
-                  </Badge>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-3 py-2">
-                  {category.parameters.map((parameter) => (
-                    <div
-                      key={parameter.id}
-                      className="space-y-2 pb-3 border-b last:border-0 last:pb-0"
-                    >
-                      {/* Parameter header with actions */}
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium">{parameter.name}</h3>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleRandomize('parameter', null, parameter.id)}
-                            className="h-6 w-6"
-                            aria-label={`Randomize ${parameter.name}`}
-                          >
-                            <RefreshCw className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => onRemoveParameter(parameter)}
-                            className="h-6 w-6 text-destructive"
-                            aria-label={`Remove ${parameter.name}`}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      {parameter.description && (
-                        <p className="text-xs text-muted-foreground">
-                          {parameter.description}
-                        </p>
-                      )}
-
-                      {/* Value input */}
-                      <div className="p-3 bg-muted/40 rounded-md">
-                        <ParameterValueInput
-                          parameter={parameter}
-                          value={parameter.value}
-                          onChange={(newVal) => onUpdateParameterValue(parameter.id, newVal)}
-                        />
-                      </div>
+              <Accordion
+                type="multiple"
+                defaultValue={[category.id]}
+                className="w-full"
+              >
+                <AccordionItem
+                  value={category.id}
+                  className="border-none"
+                >
+                  <AccordionTrigger className="py-1 px-3 h-9 hover:no-underline">
+                    <div className="flex items-center gap-2">
+                      <Folder className="h-3.5 w-3.5 text-muted-foreground" />
+                      <span className="text-sm font-medium">{category.name}</span>
+                      <Badge variant="outline" className="ml-1 text-xs">
+                        {category.parameters.length}
+                      </Badge>
                     </div>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-3 pt-1 pb-2">
+                    <div className="space-y-0">
+                      {category.parameters.map((parameter, paramIndex) => (
+                        <div
+                          key={parameter.id}
+                          className={cn(
+                            "py-3",
+                            paramIndex !== 0 ? "border-t border-input" : ""
+                          )}
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-sm font-medium">{parameter.name}</h3>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleRandomize('parameter', null, parameter.id)}
+                                  className="h-6 w-6"
+                                  aria-label={`Randomize ${parameter.name}`}
+                                >
+                                  <RefreshCw className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => onRemoveParameter(parameter)}
+                                  className="h-6 w-6 text-destructive"
+                                  aria-label={`Remove ${parameter.name}`}
+                                >
+                                  <Minus className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            {parameter.description && (
+                              <p className="text-xs text-muted-foreground">
+                                {parameter.description}
+                              </p>
+                            )}
+
+                            {/* Value input */}
+                            <div className="p-3 bg-muted/40 rounded-md border border-input">
+                              <ParameterValueInput
+                                parameter={parameter}
+                                value={parameter.value}
+                                onChange={(newVal) => onUpdateParameterValue(parameter.id, newVal)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
           ))}
-        </Accordion>
+        </div>
       </div>
 
-      <div className="pt-3">
+      <div className="pt-3 border-t border-input mt-3">
         <Button
           variant="default"
           onClick={onNavigateToGenerate}

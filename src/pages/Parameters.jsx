@@ -12,19 +12,15 @@ const MemoizedParameter = memo(({ parameter, onAddParameter, isSelected }) => {
   return (
     <div className="py-3 flex items-center justify-between border-b last:border-0">
       <h3 className="text-sm truncate">{parameter.name}</h3>
-      {isSelected ? (
-        <Badge variant="outline" className="bg-muted">
-          Added
-        </Badge>
-      ) : (
-        <Button
-          onClick={() => onAddParameter(parameter)}
-          variant="outline"
-          size="sm"
-        >
-          Add
-        </Button>
-      )}
+            <Button
+        onClick={() => !isSelected && onAddParameter(parameter)}
+        variant={isSelected ? "secondary" : "outline"}
+        size="sm"
+        disabled={isSelected}
+        className="min-w-[60px] h-9"
+      >
+        {isSelected ? "Added" : "Add"}
+      </Button>
     </div>
   );
 });
@@ -154,7 +150,7 @@ const Parameters = ({
           </div>
           <input
             type="text"
-            placeholder={`Search ${currentCategory.name} parameters...`}
+            placeholder={`Search parameters...`}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-9 rounded-md border bg-transparent px-8 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
