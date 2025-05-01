@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchCategories } from '../services/api';
-import { Button } from '../components/ui/button';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Folder, FolderOpen, ChevronRight } from 'lucide-react';
-import { Tooltip } from '../components/ui/tooltip';
 
 const Categories = ({ onCategorySelect }) => {
   const [categories, setCategories] = useState([]);
@@ -77,27 +75,24 @@ const Categories = ({ onCategorySelect }) => {
         <h2 className="text-sm">Explore Genres</h2>
       </div>
       
-      <div className="flex-grow overflow-hidden">
-        <div className="overflow-y-auto h-[calc(100vh-220px)] pr-1 space-y-1">
+      <div className="flex-grow overflow-hidden w-full">
+        <div className="grid grid-cols-1 gap-y-1 w-full overflow-y-auto max-h-[calc(100vh-220px)]">
           {categories.map((category) => {
-            const isSelected = selectedCategory && selectedCategory.id === category.id;
-            
+            const isSelected = selectedCategory?.id === category.id;
             return (
-              <Tooltip 
-                key={category.id} 
-                content={category.description || 'No description available'}
-                position="right"
+              <div
+                key={category.id}
+                className={`
+                  flex w-full items-center justify-between rounded-lg px-3 py-2 min-h-[3rem]
+                  cursor-pointer transition-colors
+                  ${isSelected
+                    ? 'bg-primary/10 border border-primary/25 shadow-sm'
+                    : 'hover:bg-gray-100 border border-transparent'}
+                `}
+                onClick={() => handleCategorySelect(category)}
+                title={category.description || 'No description available'}
               >
-                <div 
-                  className={`
-                    flex items-center space-x-3 rounded-lg px-3 py-2 min-h-[3rem]
-                    cursor-pointer transition-colors
-                    ${isSelected 
-                      ? 'bg-primary/10 border border-primary/25 shadow-sm' 
-                      : 'hover:bg-gray-100 border border-transparent'}
-                  `}
-                  onClick={() => handleCategorySelect(category)}
-                >
+                <div className="flex items-center space-x-3">
                   <div className="text-muted-foreground">
                     {isSelected ? (
                       <FolderOpen className="h-5 w-5 text-primary" />
@@ -105,18 +100,16 @@ const Categories = ({ onCategorySelect }) => {
                       <Folder className="h-5 w-5" />
                     )}
                   </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-sm ${isSelected ? 'text-primary' : ''}`}>
-                      {category.name}
-                    </div>
+                  <div className={`text-sm ${isSelected ? 'text-primary' : ''}`}>
+                    {category.name}
                   </div>
-                  
-                  <ChevronRight 
-                    className={`h-4 w-4 transition-transform ${isSelected ? 'text-primary rotate-90' : 'text-muted-foreground'}`} 
-                  />
                 </div>
-              </Tooltip>
+                <ChevronRight
+                  className={`h-4 w-4 transition-transform ${
+                    isSelected ? 'text-primary rotate-90' : 'text-muted-foreground'
+                  }`}
+                />
+              </div>
             );
           })}
         </div>

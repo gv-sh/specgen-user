@@ -88,18 +88,18 @@ function HomePage() {
       {showTour && <GuidedTour onClose={() => setShowTour(false)} />}
       
       <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 h-full">
-        <ResponsiveLayout className="bg-gray-50">
+        <ResponsiveLayout className="gap-0 divide-x divide-border/60">
           <Column 
             span={4}  // 1 part of the 1:1:2 ratio
             mobileOrder={1} 
             tabletSpan={2}
-            className="bg-white rounded-lg shadow-sm"
+            className="bg-white rounded-lg shadow-sm p-4"
           >
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="h-full"
+              className="h-full w-full"
             >
               <Categories 
                 onCategorySelect={setSelectedCategory} 
@@ -112,7 +112,7 @@ function HomePage() {
             span={4}  // 1 part of the 1:1:2 ratio
             mobileOrder={3} 
             tabletSpan={2}
-            className="bg-white rounded-lg shadow-sm"
+            className="bg-white rounded-lg shadow-sm p-4"
           >
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
@@ -135,7 +135,7 @@ function HomePage() {
             span={8}  // 2 parts of the 1:1:2 ratio
             mobileOrder={2} 
             tabletSpan={4}  // Adjust tablet span to maintain ratio
-            className="bg-white rounded-lg shadow-sm"
+            className="bg-white rounded-lg shadow-sm p-4"
           >
             <motion.div 
               initial={{ opacity: 0, y: 10 }}

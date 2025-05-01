@@ -3,50 +3,25 @@ import { fetchParameters } from '../services/api';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
-import { Search, X, Plus, Check, ArrowLeft } from 'lucide-react';
-import { Tooltip } from '../components/ui/tooltip';
+import { Search, X, ArrowLeft, Frown, Tag } from 'lucide-react';
 
 // Memoized parameter component for performance
 const MemoizedParameter = memo(({ parameter, onAddParameter, isSelected }) => {
-  const typeBadge = {
-    'Dropdown': 'bg-blue-50 text-blue-700',
-    'Slider': 'bg-amber-50 text-amber-700',
-    'Toggle Switch': 'bg-green-50 text-green-700',
-    'Radio Buttons': 'bg-purple-50 text-purple-700',
-    'Checkbox': 'bg-indigo-50 text-indigo-700'
-  }[parameter.type] || 'bg-gray-100 text-gray-700';
-
   return (
-    <div className="mb-3 last:mb-0 bg-white border border-border/60 rounded-lg p-3 hover:shadow-sm transition-all">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex-1 mr-2">
-          <Tooltip 
-            content={parameter.description || 'No description available'} 
-            position="top"
-          >
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm">{parameter.name}</h3>
-              <Badge className={`text-[9px] px-1.5 py-px ${typeBadge}`}>
-                {parameter.type}
-              </Badge>
-            </div>
-          </Tooltip>
-        </div>
-        {isSelected ? (
-          <Badge className="bg-green-50 text-green-700">
-            <Check className="h-3 w-3 mr-1" /> Added
-          </Badge>
-        ) : (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => onAddParameter(parameter)}
-            className="h-7 px-2 bg-primary/5 hover:bg-primary/10 border-primary/20"
-          >
-            <Plus className="h-4 w-4 mr-1" /> Add
-          </Button>
-        )}
-      </div>
+    <div className="py-4 flex items-center justify-between overflow-hidden border-b border-border/60 last:border-b-0">
+      <h3 className="text-sm truncate">{parameter.name}</h3>
+      {isSelected ? (
+        <Badge className="h-8 rounded-md bg-green-100 text-green-700 px-4 flex items-center justify-center transition hover:bg-green-200">
+          Added
+        </Badge>
+      ) : (
+        <Button
+          onClick={() => onAddParameter(parameter)}
+          className="h-8 rounded-md border border-gray-300 bg-white text-gray-900 px-4 hover:bg-gray-100 transition"
+        >
+          Add
+        </Button>
+      )}
     </div>
   );
 });
@@ -189,7 +164,7 @@ const Parameters = ({
           placeholder={`Search ${currentCategory.name} parameters...`}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-8 h-9 w-full rounded-md border border-input/60 bg-white px-2.5 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          className="pl-8 h-9 w-full rounded-md border border-input/60 bg-white py-1 text-sm transition-colors placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         />
         {searchQuery && (
           <button
@@ -202,20 +177,24 @@ const Parameters = ({
       </div>
 
       {searchQuery && filteredParameters.length === 0 && (
-        <div className="py-6 flex flex-col items-center justify-center text-center bg-gray-50 rounded-lg border border-border">
-          <p className="text-foreground/70">
-            No parameters found matching "{searchQuery}"
+        <div className="py-10 px-6 flex flex-col items-center justify-center text-center bg-gray-50 rounded-md border border-border">
+          <Frown className="h-10 w-10 text-muted-foreground mb-3" />
+          <p className="text-lg font-medium text-foreground mb-2">
+            No parameters match your search.
+          </p>
+          <p className="text-sm text-foreground/70 mb-4">
+            Try adjusting your search or clear the filter to see more results.
           </p>
           <button
             onClick={() => setSearchQuery('')}
-            className="mt-2 text-xs text-primary underline"
+            className="text-sm text-primary underline"
           >
             Clear search
           </button>
         </div>
       )}
 
-      <div className="space-y-1 max-h-[calc(100vh-280px)] overflow-auto pr-1">
+      <div className="max-h-[calc(100vh-280px)] overflow-auto pr-1">
         {filteredParameters.length > 0 ? (
           filteredParameters.map(parameter => (
             <MemoizedParameter
@@ -226,9 +205,13 @@ const Parameters = ({
             />
           ))
         ) : (
-          <div className="py-8 flex flex-col items-center justify-center text-center">
-            <p className="text-foreground/70">
-              No parameters available for this genre.
+          <div className="py-10 px-6 flex flex-col items-center justify-center text-center bg-gray-50 rounded-md border border-border">
+            <Tag className="h-10 w-10 text-muted-foreground mb-3" />
+            <p className="text-lg font-medium text-foreground mb-2">
+              No parameters in this genre.
+            </p>
+            <p className="text-sm text-foreground/70">
+              Select a different genre to explore available parameters.
             </p>
           </div>
         )}
