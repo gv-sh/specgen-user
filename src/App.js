@@ -12,6 +12,7 @@ const SelectedParameters = lazy(() => import('./pages/SelectedParameters'));
 const Generation = lazy(() => import('./pages/Generation'));
 
 function App() {
+  // Changed from array to single object for better clarity
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [generatedContent, setGeneratedContent] = useState(null);
   const [selectedParameters, setSelectedParameters] = useState([]);
@@ -29,6 +30,11 @@ function App() {
       return () => clearTimeout(timer);
     }
   }, []);
+
+  // Function to manually show the tour
+  const handleShowTour = () => {
+    setShowTour(true);
+  };
 
   // Handle parameter selection
   const handleParameterSelect = (parameter) => {
@@ -58,7 +64,7 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="light" storageKey="specgen-theme">
-      <MainLayout>
+      <MainLayout onShowTour={handleShowTour}>
         {showTour && <GuidedTour onClose={() => setShowTour(false)} />}
         
         <div className="container mx-auto px-2 sm:px-4 lg:px-6 py-4 h-full">

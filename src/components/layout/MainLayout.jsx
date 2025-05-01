@@ -2,9 +2,9 @@ import React from 'react';
 import { useTheme } from '../ThemeProvider';
 import { motion } from 'framer-motion';
 import { Button } from '../ui/button';
-import { Moon, Sun, Zap } from 'lucide-react';
+import { Moon, Sun, Zap, HelpCircle } from 'lucide-react';
 
-const MainLayout = ({ children }) => {
+const MainLayout = ({ children, onShowTour }) => {
   const { theme, setTheme } = useTheme();
 
   return (
@@ -17,7 +17,20 @@ const MainLayout = ({ children }) => {
               <span className="text-xl font-bold tracking-tight">SpecGen</span>
             </a>
           </div>
-          <div className="flex flex-1 items-center justify-end">
+          <div className="flex flex-1 items-center justify-end space-x-2">
+            {/* Tour button */}
+            {onShowTour && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onShowTour}
+                className="rounded-full h-9 px-3 text-foreground/80 hover:text-foreground flex items-center"
+              >
+                <HelpCircle className="h-4 w-4 mr-1.5" />
+                <span className="text-sm">Tour</span>
+              </Button>
+            )}
+            
             <Button
               variant="ghost"
               size="icon"

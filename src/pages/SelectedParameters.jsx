@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Minus } from 'lucide-react';
+import { Minus, Folder } from 'lucide-react';
 import { 
   Select, 
   SelectContent, 
@@ -12,6 +12,13 @@ import {
 import { Slider } from '../components/ui/slider';
 import { Switch } from '../components/ui/switch';
 import { Checkbox } from '../components/ui/checkbox';
+import { 
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent
+} from '../components/ui/accordion';
+import TipBanner from '../components/TipBanner';
 
 const ParameterValueInput = ({ parameter, value, onChange }) => {
   switch (parameter.type) {
@@ -82,10 +89,9 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
                 }}
                 className="group"
               />
-              {/* Uncomment the line below if you want to show the numeric value */}
-              {/* <div className="text-xs text-center text-muted-foreground mt-1">
+              <div className="text-xs text-center text-muted-foreground mt-1">
                 <span>Value: {currentValue}</span>
-              </div> */}
+              </div>
             </div>
           </div>
         </div>
@@ -164,14 +170,40 @@ const SelectedParameters = ({
   onRemoveParameter,
   onUpdateParameterValue 
 }) => {
+  const [showTip, setShowTip] = React.useState(true);
+  
+  // Group parameters by category
+  const parametersByCategory = useMemo(() => {
+    const grouped = {};
+    
+    parameters.forEach(param => {
+      const categoryId = param.categoryId || 'uncategorized';
+      const categoryName = param.categoryName || 'Uncategorized';
+      
+      if (!grouped[categoryId]) {
+        grouped[categoryId] = {
+          id: categoryId,
+          name: categoryName,
+          parameters: []
+        };
+      }
+      
+      grouped[categoryId].parameters.push(param);
+    });
+    
+    return Object.values(grouped);
+  }, [parameters]);
+
   if (!parameters || parameters.length === 0) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 p-4">
         <h2 className="text-lg font-bold">Selected Parameters</h2>
-        <div className="p-4 border-2 border-dashed rounded-lg flex flex-col items-center justify-center min-h-[200px] text-center bg-gray-50">
-          <p className="text-muted-foreground">
-            No parameters selected yet. 
-            Add parameters from the list on the left.
+        <div className="p-6 border-2 border-dashed rounded-lg flex flex-col items-center justify-center min-h-[200px] text-center bg-gray-50">
+          <p className="text-muted-foreground mb-2">
+            No parameters selected yet.
+          </p>
+          <p className="text-xs text-muted-foreground max-w-sm">
+            Browse the genres on the left, then add parameters from each genre to customize your story.
           </p>
         </div>
       </div>
@@ -179,7 +211,7 @@ const SelectedParameters = ({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-bold">Selected Parameters</h2>
         <span className="text-xs font-medium bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded-md">
@@ -187,50 +219,78 @@ const SelectedParameters = ({
         </span>
       </div>
       
-      <div className="space-y-2">
-        {parameters.map((parameter) => (
-          <div 
-            key={parameter.id} 
-            className="bg-white p-3 rounded-md border border-border shadow-sm space-y-2"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex-1 mr-2">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-sm truncate">{parameter.name}</h3>
-                  {parameter.categoryName && (
-                    <Badge className="text-[9px] px-1.5 py-px">
-                      {parameter.categoryName}
-                    </Badge>
-                  )}
+      {showTip && (
+        <TipBanner 
+          message="Configure the selected parameters below to customize your generated story. Mix parameters from different genres for more creative results."
+          onClose={() => setShowTip(false)}
+        />
+      )}
+      
+      <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-auto pr-1">
+        <Accordion 
+          type="multiple" 
+          defaultValue={parametersByCategory.map(cat => cat.id)}
+          className="space-y-3"
+        >
+          {parametersByCategory.map((category) => (
+            <AccordionItem 
+              key={category.id} 
+              value={category.id}
+              className="border border-border/60 rounded-lg overflow-hidden bg-white shadow-sm"
+            >
+              <AccordionTrigger className="px-4 py-2 hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-2">
+                  <Folder className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-sm">{category.name}</span>
+                  <Badge className="text-[9px] px-1.5 py-px ml-2 bg-gray-100 text-gray-700">
+                    {category.parameters.length}
+                  </Badge>
                 </div>
-                {parameter.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
-                    {parameter.description}
-                  </p>
-                )}
-              </div>
-              <Button 
-                variant="destructive" 
-                size="sm" 
-                onClick={() => onRemoveParameter(parameter)}
-                className="h-7 px-2"
-              >
-                <Minus className="h-4 w-4 mr-1" /> Remove
-              </Button>
-            </div>
-            
-            <div className="mt-2">
-              <ParameterValueInput
-                parameter={parameter}
-                value={parameter.value}
-                onChange={(newValue) => {
-                  console.log('Updating parameter:', parameter.id, newValue);
-                  onUpdateParameterValue(parameter.id, newValue);
-                }}
-              />
-            </div>
-          </div>
-        ))}
+              </AccordionTrigger>
+              <AccordionContent className="px-2 pb-2">
+                <div className="space-y-3 pt-1">
+                  {category.parameters.map((parameter) => (
+                    <div 
+                      key={parameter.id} 
+                      className="bg-white p-3 rounded-md border border-border/60 space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 mr-2">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <h3 className="font-medium text-sm">{parameter.name}</h3>
+                          </div>
+                          {parameter.description && (
+                            <p className="text-xs text-muted-foreground mb-1.5">
+                              {parameter.description}
+                            </p>
+                          )}
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => onRemoveParameter(parameter)}
+                          className="h-7 px-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        >
+                          <Minus className="h-4 w-4 mr-1" /> Remove
+                        </Button>
+                      </div>
+                      
+                      <div className="mt-2 bg-gray-50 p-2 rounded-md border border-border/40">
+                        <ParameterValueInput
+                          parameter={parameter}
+                          value={parameter.value}
+                          onChange={(newValue) => {
+                            onUpdateParameterValue(parameter.id, newValue);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       </div>
     </div>
   );

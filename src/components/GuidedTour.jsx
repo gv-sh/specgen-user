@@ -3,6 +3,7 @@ import { ChevronRight, X } from 'lucide-react';
 
 /**
  * GuidedTour component provides a simple step-by-step tour for new users
+ * Updated to reflect the folder-like navigation flow and to handle being shown multiple times
  */
 const GuidedTour = ({ onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -12,30 +13,41 @@ const GuidedTour = ({ onClose }) => {
   const steps = [
     {
       title: "Welcome to SpecGen",
-      content: "This tool helps you create detailed specifications for generating customized content.",
+      content: "This tool helps you create detailed specifications for generating customized fiction.",
       position: "center"
     },
     {
-      title: "Choose Categories",
-      content: "Start by selecting categories from the left panel. These define the themes of your content.",
+      title: "Browse Genres",
+      content: "Start by selecting a genre from the left panel. Each genre contains unique parameters for your story.",
       position: "left"
     },
     {
-      title: "Configure Parameters",
-      content: "Adjust parameters to fine-tune how your content will be generated.",
+      title: "Explore Parameters",
+      content: "After selecting a genre, browse its parameters in the middle panel. Add the ones you want to include.",
       position: "center" 
     },
     {
-      title: "Drag Parameters",
-      content: "Drag the most important parameters to 'Selected Parameters' to build your specification.",
+      title: "Select Multiple Genres",
+      content: "You can select parameters from different genres. Simply click on another genre to see its parameters.",
+      position: "center"
+    },
+    {
+      title: "Configure Parameters",
+      content: "Adjust your selected parameters in the right panel to fine-tune how your story will be generated.",
       position: "right"
     },
     {
       title: "Generate Content",
-      content: "Click 'Generate' to create content based on your selected parameters.",
+      content: "When you're ready, click 'Generate' to create a story based on your selected parameters.",
       position: "right"
     }
   ];
+  
+  // Reset state when opened (useful when tour is shown multiple times)
+  useEffect(() => {
+    setCurrentStep(0);
+    setIsVisible(true);
+  }, []);
   
   // Handle navigation between steps
   const nextStep = () => {
