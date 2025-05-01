@@ -1,15 +1,17 @@
+// src/pages/Generation.jsx - Updated for standalone page
 import React, { useState, useEffect } from 'react';
 import { generateContent } from '../services/api';
 import { Button } from '../components/ui/button';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Card, CardContent } from '../components/ui/card';
-import { Copy, Download, Check, Image as ImageIcon, FileText } from 'lucide-react';
+import { Copy, Download, Check, Image as ImageIcon, FileText, ArrowLeft, RefreshCw } from 'lucide-react';
 import { copyToClipboard, downloadTextFile, downloadImage } from '../utils/exportUtils';
 
 const Generation = ({ 
   setGeneratedContent, 
   generatedContent, 
-  selectedParameters 
+  selectedParameters,
+  onBackToHome 
 }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -138,33 +140,49 @@ const Generation = ({
     downloadImage(generatedImage, filename);
   };
 
+  // Automatically generate content when the page loads
+  useEffect(() => {
+    if (selectedParameters.length > 0 && !generatedContent && !loading) {
+      handleGeneration();
+    }
+  }, [selectedParameters]);
+
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col space-y-2 mb-3">
-        <div>
-          <h2 className="text-lg font-bold mb-1">
-            Content Generator
-          </h2>
-        </div>
+    <div className="max-w-5xl mx-auto">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">Content Generator</h1>
         
-        <Button 
-          variant="default"
-          size="sm"
-          onClick={handleGeneration}
-          disabled={loading}
-          className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium border border-gray-900 shadow-sm transition-colors py-1 text-sm"
-        >
-          {loading ? 'Generating...' : 'Generate Story & Image'}
-        </Button>
+        <div className="flex space-x-3">
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={handleGeneration}
+            disabled={loading}
+            className="flex items-center"
+          >
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
+            {loading ? 'Generating...' : 'Regenerate'}
+          </Button>
+          
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={onBackToHome}
+            className="flex items-center"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1.5" />
+            Back to Parameters
+          </Button>
+        </div>
       </div>
       
       {error && (
-        <Alert variant="destructive" className="mt-1 rounded-lg border-0 shadow-sm bg-destructive/10">
+        <Alert variant="destructive" className="mt-1 mb-4 rounded-lg border-0 shadow-sm bg-destructive/10">
           <AlertDescription className="text-destructive font-medium">{error}</AlertDescription>
         </Alert>
       )}
       
-      <div className="space-y-4 max-h-[calc(100vh-180px)] overflow-auto pr-1">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Story content */}
         <div className="space-y-3">
           <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center justify-between">
@@ -191,12 +209,21 @@ const Generation = ({
               </div>
             )}
           </h3>
-          {generatedContent ? (
-            <div className="unsplash-card p-4 text-sm leading-relaxed whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none border border-border/30 rounded-lg shadow-sm bg-white">
+          {loading ? (
+            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[300px] flex flex-col items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center mb-3">
+                <RefreshCw className="h-6 w-6 text-primary animate-spin" />
+              </div>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Generating your story...
+              </p>
+            </div>
+          ) : generatedContent ? (
+            <div className="unsplash-card p-4 text-sm leading-relaxed whitespace-pre-wrap prose prose-sm dark:prose-invert max-w-none border border-border/30 rounded-lg shadow-sm bg-white min-h-[300px]">
               {generatedContent}
             </div>
           ) : (
-            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[120px] flex flex-col items-center justify-center">
+            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[300px] flex flex-col items-center justify-center">
               <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center mb-3">
                 <FileText className="h-6 w-6 text-primary" />
               </div>
@@ -226,9 +253,18 @@ const Generation = ({
               </div>
             )}
           </h3>
-          {generatedImage ? (
+          {loading ? (
+            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[300px] flex flex-col items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center mb-3">
+                <RefreshCw className="h-6 w-6 text-primary animate-spin" />
+              </div>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Generating your image...
+              </p>
+            </div>
+          ) : generatedImage ? (
             <div className="unsplash-card overflow-hidden border border-border/30 rounded-lg shadow-sm bg-white">
-              <div className="relative pt-[56.25%]">
+              <div className="relative pt-[56.25%] min-h-[300px]">
                 <img 
                   src={generatedImage} 
                   alt="Generated visualization" 
@@ -237,7 +273,7 @@ const Generation = ({
               </div>
             </div>
           ) : (
-            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[120px] flex flex-col items-center justify-center">
+            <div className="rounded-lg p-8 border-2 border-dashed border-muted-foreground/20 text-center bg-white/50 dark:bg-background/20 min-h-[300px] flex flex-col items-center justify-center">
               <div className="w-12 h-12 rounded-full bg-accent/30 flex items-center justify-center mb-3">
                 <ImageIcon className="h-6 w-6 text-primary" />
               </div>
@@ -250,7 +286,7 @@ const Generation = ({
 
         {/* Generation metadata (optional) */}
         {metadata && (
-          <div className="border border-border/30 rounded-lg p-3 bg-white/50">
+          <div className="border border-border/30 rounded-lg p-3 bg-white/50 lg:col-span-2">
             <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
               GENERATION INFO
             </h3>

@@ -1,10 +1,11 @@
+// src/components/layout/MainLayout.jsx - Updated with back button
 import React from 'react';
 import { useTheme } from '../ThemeProvider';
 import { motion } from 'framer-motion';
 import { Button } from '../ui/button';
-import { Moon, Sun, Zap, HelpCircle } from 'lucide-react';
+import { Moon, Sun, Zap, HelpCircle, ArrowLeft } from 'lucide-react';
 
-const MainLayout = ({ children, onShowTour }) => {
+const MainLayout = ({ children, onShowTour, showBackButton, onBackClick }) => {
   const { theme, setTheme } = useTheme();
 
   return (
@@ -12,10 +13,22 @@ const MainLayout = ({ children, onShowTour }) => {
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-background/80 backdrop-blur-sm">
         <div className="container flex h-16 max-w-[1400px] items-center px-4 sm:px-6 lg:px-8">
           <div className="mr-4 flex">
-            <a href="/" className="flex items-center space-x-2">
-              <Zap className="h-7 w-7 text-primary" />
-              <span className="text-xl font-bold tracking-tight">SpecGen</span>
-            </a>
+            {showBackButton ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBackClick}
+                className="mr-2 rounded-full h-9 px-3 text-foreground/80 hover:text-foreground flex items-center"
+              >
+                <ArrowLeft className="h-4 w-4 mr-1.5" />
+                <span className="text-sm">Back</span>
+              </Button>
+            ) : (
+              <a href="/" className="flex items-center space-x-2">
+                <Zap className="h-7 w-7 text-primary" />
+                <span className="text-xl font-bold tracking-tight">SpecGen</span>
+              </a>
+            )}
           </div>
           <div className="flex flex-1 items-center justify-end space-x-2">
             {/* Tour button */}
@@ -33,7 +46,7 @@ const MainLayout = ({ children, onShowTour }) => {
             
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={() => setTheme(theme === "light" ? "dark" : "light")}
               className="rounded-full h-9 w-9 mr-2 text-foreground/80 hover:text-foreground"
             >

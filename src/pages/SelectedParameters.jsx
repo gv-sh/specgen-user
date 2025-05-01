@@ -1,7 +1,8 @@
+// src/pages/SelectedParameters.jsx - Fixed with ParameterValueInput included
 import React, { useMemo } from 'react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Minus, Folder } from 'lucide-react';
+import { Minus, Folder, Zap } from 'lucide-react';
 import { 
   Select, 
   SelectContent, 
@@ -20,6 +21,7 @@ import {
 } from '../components/ui/accordion';
 import TipBanner from '../components/TipBanner';
 
+// Parameter Value Input Component
 const ParameterValueInput = ({ parameter, value, onChange }) => {
   switch (parameter.type) {
     case 'Dropdown':
@@ -168,7 +170,8 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
 const SelectedParameters = ({ 
   parameters, 
   onRemoveParameter,
-  onUpdateParameterValue 
+  onUpdateParameterValue,
+  onNavigateToGenerate 
 }) => {
   const [showTip, setShowTip] = React.useState(true);
   
@@ -192,6 +195,15 @@ const SelectedParameters = ({
     });
     
     return Object.values(grouped);
+  }, [parameters]);
+
+  // Check if all parameters have values
+  const areAllParametersConfigured = useMemo(() => {
+    if (parameters.length === 0) return false;
+    
+    return !parameters.some(param => 
+      param.value === undefined || param.value === null
+    );
   }, [parameters]);
 
   if (!parameters || parameters.length === 0) {
@@ -226,7 +238,23 @@ const SelectedParameters = ({
         />
       )}
       
-      <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-auto pr-1">
+      {/* Generate button */}
+      <Button 
+        variant="default"
+        size="lg"
+        onClick={onNavigateToGenerate}
+        disabled={!areAllParametersConfigured || parameters.length === 0}
+        className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium border border-gray-900 shadow-sm transition-colors py-1.5 text-sm"
+      >
+        <Zap className="h-4 w-4 mr-2" />
+        {!areAllParametersConfigured 
+          ? "Configure All Parameters First" 
+          : parameters.length === 0 
+            ? "Select Parameters First" 
+            : "Generate Content"}
+      </Button>
+      
+      <div className="space-y-4 max-h-[calc(100vh-240px)] overflow-auto pr-1">
         <Accordion 
           type="multiple" 
           defaultValue={parametersByCategory.map(cat => cat.id)}
