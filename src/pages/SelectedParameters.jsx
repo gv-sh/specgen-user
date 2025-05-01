@@ -179,7 +179,9 @@ const SelectedParameters = ({
   const parametersByCategory = useMemo(() => {
     const grouped = {};
     
-    parameters.forEach(param => {
+    // Iterate through parameters in reverse to add newest first
+    // We'll reverse the array to process the most recently added parameters first
+    [...parameters].reverse().forEach(param => {
       const categoryId = param.categoryId || 'uncategorized';
       const categoryName = param.categoryName || 'Uncategorized';
       
@@ -191,7 +193,8 @@ const SelectedParameters = ({
         };
       }
       
-      grouped[categoryId].parameters.push(param);
+      // Add to the beginning of the array to keep newest at the top
+      grouped[categoryId].parameters.unshift(param);
     });
     
     return Object.values(grouped);
