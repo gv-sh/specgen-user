@@ -223,102 +223,109 @@ const SelectedParameters = ({
   }
 
   return (
-    <div className="space-y-4 p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold">Selected Parameters</h2>
-        <span className="text-xs font-medium bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded-md">
-          {parameters.length}
-        </span>
+    <div className="flex flex-col h-full">
+      <div className="flex-none p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">Selected Parameters</h2>
+          <span className="text-xs font-medium bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded-md">
+            {parameters.length}
+          </span>
+        </div>
+        
+        {showTip && (
+          <TipBanner 
+            message="Configure the selected parameters below to customize your generated story. Mix parameters from different genres for more creative results."
+            onClose={() => setShowTip(false)}
+          />
+        )}
       </div>
       
-      {showTip && (
-        <TipBanner 
-          message="Configure the selected parameters below to customize your generated story. Mix parameters from different genres for more creative results."
-          onClose={() => setShowTip(false)}
-        />
-      )}
-      
-      {/* Generate button */}
-      <Button 
-        variant="default"
-        size="lg"
-        onClick={onNavigateToGenerate}
-        disabled={!areAllParametersConfigured || parameters.length === 0}
-        className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium border border-gray-900 shadow-sm transition-colors py-1.5 text-sm"
-      >
-        <Zap className="h-4 w-4 mr-2" />
-        {!areAllParametersConfigured 
-          ? "Configure All Parameters First" 
-          : parameters.length === 0 
-            ? "Select Parameters First" 
-            : "Generate Content"}
-      </Button>
-      
-      <div className="space-y-4 max-h-[calc(100vh-240px)] overflow-auto pr-1">
-        <Accordion 
-          type="multiple" 
-          defaultValue={parametersByCategory.map(cat => cat.id)}
-          className="space-y-3"
-        >
-          {parametersByCategory.map((category) => (
-            <AccordionItem 
-              key={category.id} 
-              value={category.id}
-              className="border border-border/60 rounded-lg overflow-hidden bg-white shadow-sm"
-            >
-              <AccordionTrigger className="px-4 py-2 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-2">
-                  <Folder className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium text-sm">{category.name}</span>
-                  <Badge className="text-[9px] px-1.5 py-px ml-2 bg-gray-100 text-gray-700">
-                    {category.parameters.length}
-                  </Badge>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="px-2 pb-2">
-                <div className="space-y-3 pt-1">
-                  {category.parameters.map((parameter) => (
-                    <div 
-                      key={parameter.id} 
-                      className="bg-white p-3 rounded-md border border-border/60 space-y-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 mr-2">
-                          <div className="flex items-center justify-between mb-0.5">
-                            <h3 className="font-medium text-sm">{parameter.name}</h3>
+      {/* Parameters section - using flex-grow to take available space */}
+      <div className="flex-grow overflow-auto p-4 pt-0">
+        <div className="space-y-4 max-h-[calc(100vh-300px)]">
+          <Accordion 
+            type="multiple" 
+            defaultValue={parametersByCategory.map(cat => cat.id)}
+            className="space-y-3"
+          >
+            {parametersByCategory.map((category) => (
+              <AccordionItem 
+                key={category.id} 
+                value={category.id}
+                className="border border-border/60 rounded-lg overflow-hidden bg-white shadow-sm"
+              >
+                <AccordionTrigger className="px-4 py-2 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Folder className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium text-sm">{category.name}</span>
+                    <Badge className="text-[9px] px-1.5 py-px ml-2 bg-gray-100 text-gray-700">
+                      {category.parameters.length}
+                    </Badge>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-2 pb-2">
+                  <div className="space-y-3 pt-1">
+                    {category.parameters.map((parameter) => (
+                      <div 
+                        key={parameter.id} 
+                        className="bg-white p-3 rounded-md border border-border/60 space-y-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 mr-2">
+                            <div className="flex items-center justify-between mb-0.5">
+                              <h3 className="font-medium text-sm">{parameter.name}</h3>
+                            </div>
+                            {parameter.description && (
+                              <p className="text-xs text-muted-foreground mb-1.5">
+                                {parameter.description}
+                              </p>
+                            )}
                           </div>
-                          {parameter.description && (
-                            <p className="text-xs text-muted-foreground mb-1.5">
-                              {parameter.description}
-                            </p>
-                          )}
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => onRemoveParameter(parameter)}
+                            className="h-7 px-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          >
+                            <Minus className="h-4 w-4 mr-1" /> Remove
+                          </Button>
                         </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => onRemoveParameter(parameter)}
-                          className="h-7 px-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                        >
-                          <Minus className="h-4 w-4 mr-1" /> Remove
-                        </Button>
+                        
+                        <div className="mt-2 bg-gray-50 p-2 rounded-md border border-border/40">
+                          <ParameterValueInput
+                            parameter={parameter}
+                            value={parameter.value}
+                            onChange={(newValue) => {
+                              onUpdateParameterValue(parameter.id, newValue);
+                            }}
+                          />
+                        </div>
                       </div>
-                      
-                      <div className="mt-2 bg-gray-50 p-2 rounded-md border border-border/40">
-                        <ParameterValueInput
-                          parameter={parameter}
-                          value={parameter.value}
-                          onChange={(newValue) => {
-                            onUpdateParameterValue(parameter.id, newValue);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </div>
+      
+      {/* Generate button - moved to the bottom with flex-none to prevent stretching */}
+      <div className="flex-none p-4 pt-2">
+        <Button 
+          variant="default"
+          size="lg"
+          onClick={onNavigateToGenerate}
+          disabled={!areAllParametersConfigured || parameters.length === 0}
+          className="w-full bg-gray-800 hover:bg-gray-700 text-white font-medium border border-gray-900 shadow-sm transition-colors py-1.5 text-sm"
+        >
+          <Zap className="h-4 w-4 mr-2" />
+          {!areAllParametersConfigured 
+            ? "Configure All Parameters First" 
+            : parameters.length === 0 
+              ? "Select Parameters First" 
+              : "Generate Content"}
+        </Button>
       </div>
     </div>
   );
