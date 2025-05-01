@@ -1,8 +1,8 @@
 // src/pages/SelectedParameters.jsx - Fixed with ParameterValueInput included
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Minus, Folder, Zap } from 'lucide-react';
+import { Minus, Folder, Zap, Dices, Wand, RefreshCw } from 'lucide-react';
 import { 
   Select, 
   SelectContent, 
@@ -19,6 +19,7 @@ import {
   AccordionTrigger,
   AccordionContent
 } from '../components/ui/accordion';
+import { Tooltip } from '../components/ui/tooltip';
 import TipBanner from '../components/TipBanner';
 
 // Parameter Value Input Component
@@ -167,13 +168,72 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
   }
 };
 
+// Function to generate a random value for a parameter based on its type
+const randomizeParameterValue = (parameter) => {
+  switch (parameter.type) {
+    case 'Dropdown':
+    case 'Radio':
+    case 'Radio Buttons':
+      // Randomly select one option from the values array
+      if (parameter.values && parameter.values.length > 0) {
+        const randomIndex = Math.floor(Math.random() * parameter.values.length);
+        return parameter.values[randomIndex].id;
+      }
+      return null;
+    
+    case 'Slider':
+      // Generate a random number within the slider's range
+      const config = parameter.config || {};
+      const min = config.min !== undefined ? config.min : 0;
+      const max = config.max !== undefined ? config.max : 100;
+      const step = config.step !== undefined ? config.step : 1;
+      
+      // Calculate how many steps fit in the range
+      const stepsInRange = Math.floor((max - min) / step);
+      // Generate a random step count
+      const randomSteps = Math.floor(Math.random() * (stepsInRange + 1));
+      // Calculate the value from the random step count
+      return min + (randomSteps * step);
+    
+    case 'Toggle Switch':
+      // 50% chance of true or false
+      return Math.random() >= 0.5;
+    
+    case 'Checkbox':
+      // Randomly decide how many checkboxes to select (0 to all)
+      if (parameter.values && parameter.values.length > 0) {
+        const result = [];
+        
+        // For each checkbox, randomly decide whether to include it
+        parameter.values.forEach(value => {
+          if (Math.random() >= 0.5) {
+            result.push(value.id);
+          }
+        });
+        
+        // Ensure at least one checkbox is selected if there are options
+        if (result.length === 0 && parameter.values.length > 0) {
+          const randomIndex = Math.floor(Math.random() * parameter.values.length);
+          result.push(parameter.values[randomIndex].id);
+        }
+        
+        return result;
+      }
+      return [];
+    
+    default:
+      return null;
+  }
+};
+
 const SelectedParameters = ({ 
   parameters, 
   onRemoveParameter,
   onUpdateParameterValue,
   onNavigateToGenerate 
 }) => {
-  const [showTip, setShowTip] = React.useState(true);
+  const [showTip, setShowTip] = useState(true);
+  const [randomizing, setRandomizing] = useState(false);
   
   // Group parameters by category
   const parametersByCategory = useMemo(() => {
@@ -208,6 +268,63 @@ const SelectedParameters = ({
       param.value === undefined || param.value === null
     );
   }, [parameters]);
+  
+  // Handle randomization of parameters
+  const handleRandomize = (scope, categoryId = null, parameterId = null) => {
+    setRandomizing(true);
+    
+    // Small delay to show animation
+    setTimeout(() => {
+      switch (scope) {
+        case 'parameter':
+          // Randomize a single parameter
+          if (parameterId) {
+            const param = parameters.find(p => p.id === parameterId);
+            if (param) {
+              const newValue = randomizeParameterValue(param);
+              onUpdateParameterValue(param.id, newValue);
+            }
+          }
+          break;
+        
+        case 'category':
+          // Randomize all parameters in a specific category
+          if (categoryId) {
+            parameters
+              .filter(p => p.categoryId === categoryId)
+              .forEach(param => {
+                const newValue = randomizeParameterValue(param);
+                onUpdateParameterValue(param.id, newValue);
+              });
+          }
+          break;
+        
+        case 'all':
+          // Randomize all parameters
+          parameters.forEach(param => {
+            const newValue = randomizeParameterValue(param);
+            onUpdateParameterValue(param.id, newValue);
+          });
+          break;
+      }
+      
+      setRandomizing(false);
+    }, 300);
+  };
+  
+  // Auto-randomize parameters that don't have values yet
+  useEffect(() => {
+    // Find parameters without values
+    const unconfiguredParams = parameters.filter(
+      param => param.value === undefined || param.value === null
+    );
+    
+    // Randomize each unconfigured parameter
+    unconfiguredParams.forEach(param => {
+      const newValue = randomizeParameterValue(param);
+      onUpdateParameterValue(param.id, newValue);
+    });
+  }, [parameters]);
 
   if (!parameters || parameters.length === 0) {
     return (
@@ -230,9 +347,22 @@ const SelectedParameters = ({
       <div className="flex-none p-4 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold">Selected Parameters</h2>
-          <span className="text-xs font-medium bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded-md">
-            {parameters.length}
-          </span>
+          <div className="flex items-center gap-2">
+            <Tooltip content="Randomize all parameters" position="left">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleRandomize('all')}
+                className={`h-7 w-7 p-0 text-muted-foreground ${randomizing ? 'animate-spin' : ''}`}
+                aria-label="Randomize all parameters"
+              >
+                <Dices className="h-4 w-4" />
+              </Button>
+            </Tooltip>
+            <span className="text-xs font-medium bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded-md">
+              {parameters.length}
+            </span>
+          </div>
         </div>
         
         {showTip && (
@@ -284,14 +414,27 @@ const SelectedParameters = ({
                               </p>
                             )}
                           </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => onRemoveParameter(parameter)}
-                            className="h-7 px-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-                          >
-                            <Minus className="h-4 w-4 mr-1" /> Remove
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Tooltip content={`Randomize ${parameter.name}`} position="top">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRandomize('parameter', null, parameter.id)}
+                                className="h-7 w-7 p-0 text-muted-foreground hover:text-primary"
+                                aria-label={`Randomize ${parameter.name}`}
+                              >
+                                <RefreshCw className="h-3.5 w-3.5" />
+                              </Button>
+                            </Tooltip>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => onRemoveParameter(parameter)}
+                              className="h-7 px-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                            >
+                              <Minus className="h-4 w-4 mr-1" /> Remove
+                            </Button>
+                          </div>
                         </div>
                         
                         <div className="mt-2 bg-gray-50 p-2 rounded-md border border-border/40">
