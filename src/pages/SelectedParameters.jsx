@@ -50,22 +50,43 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
       const currentValue = value !== undefined 
         ? value 
         : defaultValue;
+      
+      // Get the labels for the min and max values (if available)
+      const minLabel = parameter.values && parameter.values[0]?.label;
+      const maxLabel = parameter.values && parameter.values[1]?.label;
 
       return (
         <div>
-          <Slider
-            min={min}
-            max={max}
-            step={step}
-            value={currentValue}
-            onValueChange={(newValue) => {
-              onChange(newValue);
-            }}
-          />
-          <div className="flex justify-between text-xs mt-1">
-            <span>{min}</span>
-            <span className="font-medium">{currentValue}</span>
-            <span>{max}</span>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm font-medium">
+              {minLabel ? (
+                <span>{minLabel}</span>
+              ) : (
+                <span className="text-muted-foreground">{min}</span>
+              )}
+              {maxLabel ? (
+                <span>{maxLabel}</span>
+              ) : (
+                <span className="text-muted-foreground">{max}</span>
+              )}
+            </div>
+            
+            <div className="relative">
+              <Slider
+                min={min}
+                max={max}
+                step={step}
+                value={currentValue}
+                onValueChange={(newValue) => {
+                  onChange(newValue);
+                }}
+                className="group"
+              />
+              {/* Uncomment the line below if you want to show the numeric value */}
+              {/* <div className="text-xs text-center text-muted-foreground mt-1">
+                <span>Value: {currentValue}</span>
+              </div> */}
+            </div>
           </div>
         </div>
       );
