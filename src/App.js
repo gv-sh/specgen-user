@@ -1,6 +1,6 @@
 // src/App.js
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
 // Theme and Layout Components
 import { ThemeProvider } from './components/theme/theme-provider';
@@ -48,8 +48,8 @@ function AppContent() {
 
   // Check if user has seen the guided tour before
   useEffect(() => {
-    const hasSeenTour = localStorage.getItem('specgen-tour-completed');
-    if (!hasSeenTour && location.pathname === '/') {
+    const hasSeenTour = localStorage.getItem('anantabhavi-tour-completed');
+    if (!hasSeenTour && location.pathname === '/parameters') {
       // Slight delay to show tour after initial render
       const timer = setTimeout(() => setShowTour(true), 1000);
       return () => clearTimeout(timer);
@@ -82,7 +82,7 @@ function AppContent() {
   };
 
   const handleBackToHome = () => {
-    navigate('/');
+    navigate('/parameters');
   };
 
   // UI handlers
@@ -98,8 +98,15 @@ function AppContent() {
       {/* Main app layout */}
       <MainLayout onShowTour={handleShowTour}>
         <Routes>
-          {/* Homepage - Parameter Selection */}
+          {/* Landing Page */}
           <Route path="/" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <Landing />
+            </Suspense>
+          } />
+
+          {/* Parameters Page */}
+          <Route path="/parameters" element={
             <ResponsiveLayout>
               {/* Category Selection Column */}
               <Column span={4} mobileOrder={1} tabletSpan={2} position="left">
@@ -159,19 +166,6 @@ function AppContent() {
               </Suspense>
             </div>
           } />
-
-          {/* Landing Page */}
-          <Route path="/landing" element={
-            <div className="bg-background h-full">
-              <Suspense fallback={<LoadingSpinner />}>
-                <Landing />
-              </Suspense>
-            </div>
-          } />
-
-          {/* Redirect from root to landing */}
-          <Route path="/" element={<Navigate to="/landing" replace />} />
-
         </Routes>
       </MainLayout>
     </>

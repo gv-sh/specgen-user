@@ -106,8 +106,8 @@ const MainLayout = ({ children, onShowTour, className }) => {
                   </Link>
                 ))}
                 
-                {/* Conditionally render Tour option */}
-                {(isParametersPage || isGeneratePage) && onShowTour && (
+                {/* Conditionally render Tour option ONLY on Parameters page */}
+                {isParametersPage && onShowTour && (
                   <button
                     onClick={() => {
                       onShowTour();
