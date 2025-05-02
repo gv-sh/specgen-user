@@ -1,10 +1,7 @@
+// src/components/GuidedTour.jsx
 import React, { useState, useEffect } from 'react';
 import { ChevronRight, X, BookOpen, Sparkles, Dices, ZoomIn, Settings2, Layers, Boxes } from 'lucide-react';
 
-/**
- * GuidedTour component provides a simple step-by-step tour for new users
- * Updated with responsive positioning and improved visual design
- */
 const GuidedTour = ({ onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
@@ -31,7 +28,7 @@ const GuidedTour = ({ onClose }) => {
   // Define tour steps with icons
   const steps = [
     {
-      title: "Welcome to SpecGen",
+      title: "Welcome to Anantabhavi",
       content: "This tool helps you create detailed specifications for generating customized fiction and imagery based on your chosen parameters.",
       position: "center",
       icon: <Sparkles className="h-4 w-4 text-primary" />
@@ -68,13 +65,13 @@ const GuidedTour = ({ onClose }) => {
     },
     {
       title: "Generate Content",
-      content: "When you're ready, click 'Generate' to create a story and image based on your selected parameters.",
-      position: "right",
+      content: "Click Generate to create a story and image based on your selected parameters.",
+      position: "center",
       icon: <ZoomIn className="h-4 w-4 text-primary" />
     }
   ];
   
-  // Reset state when opened (useful when tour is shown multiple times)
+  // Reset state when opened
   useEffect(() => {
     setCurrentStep(0);
     setIsVisible(true);
@@ -94,7 +91,7 @@ const GuidedTour = ({ onClose }) => {
     setIsVisible(false);
     
     // Store in localStorage that the user has seen the tour
-    localStorage.setItem('specgen-tour-completed', 'true');
+    localStorage.setItem('anantabhavi-tour-completed', 'true');
     
     // Notify parent component
     if (onClose) onClose();
@@ -102,9 +99,9 @@ const GuidedTour = ({ onClose }) => {
   
   // Get position classes based on the position string and screen size
   const getPositionClasses = () => {
-    // Handle welcome screen (center for all devices)
-    if (currentStep === 0) {
-      return "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2";
+    // Handle last step (Generate Content) specifically
+    if (currentStep === steps.length - 1) {
+      return "bottom-24 left-1/2 -translate-x-1/2";
     }
     
     // For mobile devices, position everything at the bottom center
@@ -143,26 +140,26 @@ const GuidedTour = ({ onClose }) => {
       <div
         className={`absolute pointer-events-auto ${getPositionClasses()}`}
       >
-        <div className="bg-card rounded-lg shadow-lg border border-primary/20 w-72 p-4 animate-in fade-in duration-300">
-          <div className="flex justify-between items-center mb-1">
-            <div className="flex items-center gap-2">
+        <div className="bg-card rounded-lg shadow-lg border border-primary/20 w-72 p-5 animate-in fade-in duration-300">
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex items-center gap-3">
               {steps[currentStep].icon}
-              <h3 className="text-base font-medium text-foreground">{steps[currentStep].title}</h3>
+              <h3 className="text-base font-semibold text-foreground">{steps[currentStep].title}</h3>
             </div>
             <button 
               onClick={completeTour}
-              className="text-muted-foreground hover:text-foreground p-1 rounded-sm"
+              className="text-muted-foreground hover:text-foreground p-1 rounded-sm -mt-1"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
           
-          <p className="text-sm text-muted-foreground mb-5">
+          <p className="text-sm text-muted-foreground mb-6">
             {steps[currentStep].content}
           </p>
           
-          <div className="flex justify-between items-center">
-            <div className="flex space-x-1">
+          <div className="flex flex-col space-y-4">
+            <div className="flex justify-center space-x-1.5">
               {steps.map((_, index) => (
                 <div 
                   key={index}
@@ -173,7 +170,7 @@ const GuidedTour = ({ onClose }) => {
             
             <button
               onClick={nextStep}
-              className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md flex items-center font-medium hover:bg-primary/90 transition-colors"
+              className="w-full text-sm bg-primary text-primary-foreground py-3 rounded-md flex items-center justify-center font-medium hover:bg-primary/90 transition-colors"
             >
               {currentStep < steps.length - 1 ? (
                 <>Next <ChevronRight className="h-3.5 w-3.5 ml-1" /></>
