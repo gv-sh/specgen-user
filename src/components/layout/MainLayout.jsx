@@ -17,7 +17,7 @@ const MainLayout = ({ children, onShowTour, className }) => {
   
   return (
     <div className={cn("min-h-screen bg-background text-foreground flex flex-col", className)}>
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 max-w-screen-2xl items-center">
           <div className="mr-4 flex">
             <a href="/" className="flex items-center gap-2 mr-6">
@@ -56,13 +56,13 @@ const MainLayout = ({ children, onShowTour, className }) => {
         </div>
       </header>
       
-      <main className="flex-1 container py-6">
-        <div className="h-[calc(100vh-theme(spacing.14)-theme(spacing.16))]">
+      <main className="flex-1 container pt-20 pb-16">
+        <div className="h-[calc(100vh-theme(spacing.20)-theme(spacing.16))]">
           {children}
         </div>
       </main>
       
-      <footer className="border-t py-4 text-center text-sm text-muted-foreground mt-auto sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
+      <footer className="fixed bottom-0 left-0 right-0 border-t py-4 text-center text-sm text-muted-foreground bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-40">
         <div className="container">
           <p>
             ©️ Conceptualized by <a 

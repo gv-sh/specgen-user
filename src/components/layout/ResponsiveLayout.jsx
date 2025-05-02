@@ -9,7 +9,7 @@ const ResponsiveLayout = ({ children, className = '' }) => {
   return (
     <div 
       className={cn(
-        "grid h-full w-full gap-0", // Change from gap-4 to gap-0
+        "grid h-full w-full gap-0", 
         isMobile ? "grid-cols-1" : isTablet ? "grid-cols-2" : "grid-cols-[16rem_16rem_1fr]",
         className
       )}
@@ -48,14 +48,14 @@ export const Column = ({
   return (
     <div 
       className={cn(
-        "bg-card text-card-foreground shadow-sm h-full",
+        "bg-card text-card-foreground shadow-sm h-full overflow-hidden",
         roundedClasses,
         borderClasses,
         isMobile && mobileOrder !== undefined ? `order-${mobileOrder}` : "",
         className
       )}
     >
-      <div className="h-full p-4">
+      <div className="h-full p-4 overflow-hidden">
         {children}
       </div>
     </div>

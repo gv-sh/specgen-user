@@ -292,7 +292,7 @@ const SelectedParameters = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="sticky top-0 z-10 bg-background pb-3">
+      <div className="sticky top-0 z-10 bg-card pb-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-medium text-foreground">Selected Parameters</h2>
           <div className="flex items-center gap-2">
@@ -324,7 +324,7 @@ const SelectedParameters = ({
         </div>
       </div>
 
-      <div className="flex-grow overflow-auto">
+      <div className="flex-grow overflow-auto" style={{ height: "calc(100% - 96px)" }}>
         <div className="space-y-2">
           {parametersByCategory.map((category, categoryIndex) => (
             <div 
@@ -412,12 +412,12 @@ const SelectedParameters = ({
         </div>
       </div>
 
-      <div className="pt-3 border-t border-input mt-3 flex justify-center">
+      <div className="sticky bottom-0 py-3 border-t border-input bg-card z-10 mt-auto">
         <Button
           variant="default"
           onClick={onNavigateToGenerate}
           disabled={!areAllConfigured}
-          className="px-6"
+          className="w-full"
         >
           <Zap className="h-3.5 w-3.5 mr-2" />
           {!areAllConfigured
