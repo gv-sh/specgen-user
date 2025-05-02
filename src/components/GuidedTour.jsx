@@ -157,7 +157,7 @@ const GuidedTour = ({ onClose }) => {
             </button>
           </div>
           
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-muted-foreground mb-5">
             {steps[currentStep].content}
           </p>
           
@@ -173,7 +173,7 @@ const GuidedTour = ({ onClose }) => {
             
             <button
               onClick={nextStep}
-              className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md flex items-center font-medium"
+              className="text-sm bg-primary text-primary-foreground px-3 py-1.5 rounded-md flex items-center font-medium hover:bg-primary/90 transition-colors"
             >
               {currentStep < steps.length - 1 ? (
                 <>Next <ChevronRight className="h-3.5 w-3.5 ml-1" /></>

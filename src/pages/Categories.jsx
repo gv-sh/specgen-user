@@ -1,8 +1,8 @@
 // src/pages/Categories.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchCategories } from '../services/api';
+import { fetchCategories, fetchParameters } from '../services/api';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { Folder, FolderOpen, ChevronRight } from 'lucide-react';
+import { Folder, FolderOpen } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const Categories = ({ onCategorySelect }) => {
@@ -10,6 +10,8 @@ const Categories = ({ onCategorySelect }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [parameterCounts, setParameterCounts] = useState({});
+  const [filteredCategories, setFilteredCategories] = useState([]);
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -34,6 +36,38 @@ const Categories = ({ onCategorySelect }) => {
 
     loadCategories();
   }, []);
+
+  // Fetch parameter counts for each category
+  useEffect(() => {
+    const fetchParameterCounts = async () => {
+      if (!categories.length) return;
+      
+      const counts = {};
+      const categoriesWithParameters = [];
+      
+      // For each category, fetch its parameters and count them
+      for (const category of categories) {
+        try {
+          const result = await fetchParameters(category.id);
+          const count = (result.data || []).length;
+          counts[category.id] = count;
+          
+          // Only include categories with at least one parameter
+          if (count > 0) {
+            categoriesWithParameters.push(category);
+          }
+        } catch (err) {
+          console.error(`Error fetching parameters for ${category.id}:`, err);
+          counts[category.id] = 0;
+        }
+      }
+      
+      setParameterCounts(counts);
+      setFilteredCategories(categoriesWithParameters);
+    };
+    
+    fetchParameterCounts();
+  }, [categories]);
 
   // Handle category selection
   const handleCategorySelect = useCallback((category) => {
@@ -60,10 +94,10 @@ const Categories = ({ onCategorySelect }) => {
     );
   }
 
-  if (categories.length === 0) {
+  if (filteredCategories.length === 0) {
     return (
       <Alert>
-        <AlertDescription>No categories available.</AlertDescription>
+        <AlertDescription>No categories with parameters available.</AlertDescription>
       </Alert>
     );
   }
@@ -76,8 +110,11 @@ const Categories = ({ onCategorySelect }) => {
       
       <div className="flex-grow overflow-auto">
         <div className="space-y-1">
-          {categories.map((category) => {
+          {/* Only map over categories that have parameters */}
+          {filteredCategories.map((category) => {
             const isSelected = selectedCategory?.id === category.id;
+            const paramCount = parameterCounts[category.id] || 0;
+            
             return (
               <button
                 key={category.id}
@@ -98,10 +135,11 @@ const Categories = ({ onCategorySelect }) => {
                   )}
                   <span>{category.name}</span>
                 </div>
-                { isSelected ? (
-                    <ChevronRight className={cn("h-4 w-4 transition-transform","")}/>
-                ) : null
-                }
+                
+                {/* Show parameter count badge */}
+                <span className="inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 text-xs font-medium rounded-full bg-muted text-muted-foreground">
+                  {paramCount}
+                </span>
               </button>
             );
           })}

@@ -9,8 +9,8 @@ const ResponsiveLayout = ({ children, className = '' }) => {
   return (
     <div 
       className={cn(
-        "grid h-full w-full gap-4", 
-        isMobile ? "grid-cols-1" : isTablet ? "grid-cols-2" : "grid-cols-[16rem_16rem_1fr]", // Set fixed column widths
+        "grid h-full w-full gap-0", // Change from gap-4 to gap-0
+        isMobile ? "grid-cols-1" : isTablet ? "grid-cols-2" : "grid-cols-[16rem_16rem_1fr]",
         className
       )}
     >
@@ -23,13 +23,34 @@ export const Column = ({
   children, 
   className = '',
   mobileOrder,
+  position // 'left', 'middle', 'right'
 }) => {
   const { isMobile } = useScreenSize();
+  
+  // Determine corner rounding based on position
+  const roundedClasses = position === 'left' 
+    ? "rounded-l-md rounded-r-none" 
+    : position === 'middle'
+      ? "rounded-none"
+      : position === 'right'
+        ? "rounded-l-none rounded-r-md"
+        : "rounded-md"; // Default
+  
+  // Determine border classes based on position
+  const borderClasses = position === 'left' 
+    ? "border border-r-0" 
+    : position === 'middle'
+      ? "border-t border-b border-r-0" // No left border for middle column
+      : position === 'right'
+        ? "border" // Full border for right column
+        : "border"; // Default
   
   return (
     <div 
       className={cn(
-        "rounded-md border bg-card text-card-foreground shadow-sm h-full",
+        "bg-card text-card-foreground shadow-sm h-full",
+        roundedClasses,
+        borderClasses,
         isMobile && mobileOrder !== undefined ? `order-${mobileOrder}` : "",
         className
       )}

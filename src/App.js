@@ -39,11 +39,11 @@ function AppContent() {
   const [selectedParameters, setSelectedParameters] = useState([]);
   const [showTour, setShowTour] = useState(false);
   const [generatedContent, setGeneratedContent] = useState(null);
-  
+
   // Hooks
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Check if user has seen the guided tour before
   useEffect(() => {
     const hasSeenTour = localStorage.getItem('specgen-tour-completed');
@@ -67,8 +67,8 @@ function AppContent() {
   };
 
   const handleParameterValueUpdate = (parameterId, newValue) => {
-    setSelectedParameters(prev => 
-      prev.map(param => 
+    setSelectedParameters(prev =>
+      prev.map(param =>
         param.id === parameterId ? { ...param, value: newValue } : param
       )
     );
@@ -78,7 +78,7 @@ function AppContent() {
   const handleNavigateToGenerate = () => {
     navigate('/generate');
   };
-  
+
   const handleBackToHome = () => {
     navigate('/');
   };
@@ -92,7 +92,7 @@ function AppContent() {
     <>
       {/* Tour overlay */}
       {showTour && <GuidedTour onClose={() => setShowTour(false)} />}
-      
+
       {/* Main app layout */}
       <MainLayout onShowTour={handleShowTour}>
         <Routes>
@@ -100,19 +100,19 @@ function AppContent() {
           <Route path="/" element={
             <ResponsiveLayout>
               {/* Category Selection Column */}
-              <Column span={4} mobileOrder={1} tabletSpan={2}>
+              <Column span={4} mobileOrder={1} tabletSpan={2} position="left">
                 <Suspense fallback={<LoadingSpinner />}>
-                  <Categories 
-                    onCategorySelect={setSelectedCategory} 
+                  <Categories
+                    onCategorySelect={setSelectedCategory}
                     selectedCategory={selectedCategory}
                   />
                 </Suspense>
               </Column>
-              
+
               {/* Parameter List Column */}
-              <Column span={4} mobileOrder={3} tabletSpan={2}>
+              <Column span={4} mobileOrder={3} tabletSpan={2} position="middle">
                 <Suspense fallback={<LoadingSpinner />}>
-                  <Parameters 
+                  <Parameters
                     selectedCategory={selectedCategory}
                     selectedParameters={selectedParameters}
                     onParameterSelect={handleParameterSelect}
@@ -120,11 +120,11 @@ function AppContent() {
                   />
                 </Suspense>
               </Column>
-              
+
               {/* Selected Parameters Column */}
-              <Column span={8} mobileOrder={2} tabletSpan={4}>
+              <Column span={8} mobileOrder={2} tabletSpan={4} position="right">
                 <Suspense fallback={<LoadingSpinner />}>
-                  <SelectedParameters 
+                  <SelectedParameters
                     parameters={selectedParameters}
                     onRemoveParameter={handleParameterRemove}
                     onUpdateParameterValue={handleParameterValueUpdate}
@@ -134,13 +134,13 @@ function AppContent() {
               </Column>
             </ResponsiveLayout>
           } />
-          
+
           {/* Generation Page */}
           <Route path="/generate" element={
             <div className="bg-card rounded-md border shadow-sm h-full">
               <Suspense fallback={<LoadingSpinner />}>
-                <Generation 
-                  setGeneratedContent={setGeneratedContent} 
+                <Generation
+                  setGeneratedContent={setGeneratedContent}
                   generatedContent={generatedContent}
                   selectedParameters={selectedParameters}
                   onBackToHome={handleBackToHome}
