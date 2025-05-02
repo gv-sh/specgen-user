@@ -5,7 +5,7 @@ import { ArrowRight } from 'lucide-react';
 
 const Landing = () => {
   return (
-    <div className="min-h-screen flex flex-col justify-center px-4">
+    <div className="flex items-center justify-center h-full">
       <div className="container max-w-screen-2xl">
         <div className="max-w-4xl">
           <h1 className="text-4xl md:text-5xl font-bold text-primary leading-tight mb-8 tracking-tight">
