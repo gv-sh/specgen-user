@@ -371,7 +371,7 @@ const SelectedParameters = ({
                                   aria-label={`Randomize ${parameter.name}`}
                                   title={`Randomize ${parameter.name}`}
                                 >
-                                  <RefreshCw className="h-3 w-3" />
+                                  <Dices className="h-3 w-3" />
                                 </Button>
                                 <Button
                                   variant="ghost"

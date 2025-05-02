@@ -1,6 +1,6 @@
 // src/App.js
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 
 // Theme and Layout Components
 import { ThemeProvider } from './components/theme/theme-provider';
@@ -16,10 +16,12 @@ const LoadingSpinner = () => (
 );
 
 // Lazy load pages for better performance
+const Landing = lazy(() => import('./pages/Landing'));
 const Categories = lazy(() => import('./pages/Categories'));
 const Parameters = lazy(() => import('./pages/Parameters'));
 const SelectedParameters = lazy(() => import('./pages/SelectedParameters'));
 const Generation = lazy(() => import('./pages/Generation'));
+const About = lazy(() => import('./pages/About'));
 
 // Main App Component
 function App() {
@@ -148,6 +150,28 @@ function AppContent() {
               </Suspense>
             </div>
           } />
+
+          {/* About Page */}
+          <Route path="/about" element={
+            <div className="bg-background h-full">
+              <Suspense fallback={<LoadingSpinner />}>
+                <About />
+              </Suspense>
+            </div>
+          } />
+
+          {/* Landing Page */}
+          <Route path="/landing" element={
+            <div className="bg-background h-full">
+              <Suspense fallback={<LoadingSpinner />}>
+                <Landing />
+              </Suspense>
+            </div>
+          } />
+
+          {/* Redirect from root to landing */}
+          <Route path="/" element={<Navigate to="/landing" replace />} />
+
         </Routes>
       </MainLayout>
     </>
