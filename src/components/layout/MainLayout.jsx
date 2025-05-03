@@ -49,18 +49,6 @@ const MainLayout = ({ children, onShowTour, className }) => {
             </Tooltip>
             
             <div className="ml-auto flex items-center">
-              {isGeneratePage && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBackClick}
-                  className="mr-4 gap-1.5"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                  <span>Parameters</span>
-                </Button>
-              )}
-              
               <ThemeToggle className="mr-4" />
               
               {/* Hamburger Menu Button */}
