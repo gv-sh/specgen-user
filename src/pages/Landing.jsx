@@ -17,7 +17,7 @@ const Landing = () => {
           </p>
 
           <Link
-            to="/parameters"
+            to="/library"
             className="inline-flex items-center bg-primary text-primary-foreground 
               px-6 py-3 rounded-md text-lg font-semibold hover:bg-primary/90 transition-colors"
           >

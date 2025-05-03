@@ -491,8 +491,10 @@ const [storyYear, setStoryYear] = useState(() => {
         <Button
           variant="default"
           onClick={() => {
-            // Pass the storyYear when navigating to generate
+            // Pass the storyYear when navigating to library
             sessionStorage.setItem('specgen-story-year', storyYear.toString());
+            // Also set a flag to indicate we should generate content on library page load
+            sessionStorage.setItem('specgen-auto-generate', 'true');
             onNavigateToGenerate();
           }}
           disabled={!areAllConfigured}

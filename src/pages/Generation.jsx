@@ -4,6 +4,7 @@ import { generateContent, fetchPreviousGenerations } from '../services/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
+import { Alert, AlertDescription } from '../components/ui/alert';
 import { 
   Download, 
   Share, 
@@ -20,7 +21,8 @@ import {
   BookOpen,
   Home,
   ChevronRight,
-  Trash2
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { copyToClipboard, downloadTextFile, downloadImage } from '../utils/exportUtils';
 import { cn } from '../lib/utils';
@@ -34,7 +36,10 @@ const generateRandomYear = () => {
 const Generation = ({ 
   setGeneratedContent, 
   generatedContent, 
-  selectedParameters,
+  selectedParameters, 
+  setSelectedParameters,
+  generationInProgress,
+  setGenerationInProgress,
   onBackToHome 
 }) => {
   const navigate = useNavigate();
@@ -48,6 +53,7 @@ const Generation = ({
   const [storyTitle, setStoryTitle] = useState("Untitled Story");
   const [storyYear, setStoryYear] = useState(generateRandomYear().toString());
   const [shouldGenerate, setShouldGenerate] = useState(false);
+  const [highlightedStoryId, setHighlightedStoryId] = useState(null);
   
   // State for library filtering and search
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,6 +61,17 @@ const Generation = ({
   const [sortOrder, setSortOrder] = useState('newest'); // 'newest' or 'oldest'
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [allYears, setAllYears] = useState([]);
+  
+  // Format date for stories
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric'
+    };
+    return date.toLocaleDateString('en-US', options);
+  };
   
   // Extract all available years from the stories for filtering
   const extractAvailableYears = useCallback((storyList = []) => {
@@ -66,48 +83,96 @@ const Generation = ({
     });
     return [...years].sort((a, b) => a - b); // sort chronologically
   }, []);
+  
+  // Fix for image display in stories
+  const getStoryImage = (story) => {
+    if (!story) return null;
+    
+    // Handle base64 image data that's already properly formatted
+    if (story.imageData && story.imageData.startsWith('data:image')) {
+      return story.imageData;
+    }
+    
+    // Handle raw base64 data without the prefix
+    if (story.imageData) {
+      return `data:image/png;base64,${story.imageData}`;
+    }
+    
+    return null;
+  };
+  
+  // Fix for story title extraction
+  const getStoryTitle = (story) => {
+    if (!story) return "Untitled Story";
+    
+    // Use title if available
+    if (story.title && story.title !== "Untitled Story") {
+      return story.title;
+    }
+    
+    // Try to extract title from content
+    if (story.content) {
+      const contentLines = story.content.split('\n');
+      for (const line of contentLines) {
+        if (line.trim().startsWith('**Title:')) {
+          const extractedTitle = line.trim().replace(/\*\*/g, '').replace('Title:', '').trim();
+          if (extractedTitle) return extractedTitle;
+        }
+      }
+    }
+    
+    return "Untitled Story";
+  };
+  
+  // Calculate display properties
+  const displayContent = activeStory ? activeStory.content : generatedContent;
+  const displayImage = activeStory ? getStoryImage(activeStory) : generatedImage;
+  const displayTitle = activeStory ? getStoryTitle(activeStory) : storyTitle;
+  const displayYear = activeStory && activeStory.year ? 
+    activeStory.year.toString() : storyYear;
+  const displayDate = activeStory ? formatDate(activeStory.createdAt) : formatDate(new Date());
 
   // Render breadcrumbs for better navigation
   const renderBreadcrumbs = () => {
+    // If we're viewing a story
+    if (activeStory || generatedContent) {
+      return (
+        <nav className="flex mb-4" aria-label="Breadcrumb">
+          <ol className="inline-flex items-center space-x-1 md:space-x-3">
+            <li className="inline-flex items-center">
+              <Button 
+                variant="link" 
+                className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground p-0 h-auto"
+                onClick={() => {
+                  setActiveStory(null);
+                  setGeneratedContent(null);
+                }}
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                Story Library
+              </Button>
+            </li>
+            <li aria-current="page">
+              <div className="flex items-center">
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                <span className="ml-1 text-sm font-medium text-foreground md:ml-2">
+                  {displayTitle || "View Story"}
+                </span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+      );
+    }
+    
+    // If we're at the library page
     return (
       <nav className="flex mb-4" aria-label="Breadcrumb">
         <ol className="inline-flex items-center space-x-1 md:space-x-3">
           <li className="inline-flex items-center">
-            <Button 
-              variant="link" 
-              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground p-0 h-auto"
-              onClick={() => {
-                setActiveStory(null);
-                setGeneratedContent(null);
-                navigate('/');
-              }}
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Home
-            </Button>
-          </li>
-          <li>
             <div className="flex items-center">
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              <Button 
-                variant="link" 
-                className="ml-1 text-sm font-medium text-muted-foreground hover:text-foreground p-0 h-auto"
-                onClick={() => {
-                  setActiveStory(null);
-                  setGeneratedContent(null);
-                  navigate('/parameters');
-                }}
-              >
-                Parameters
-              </Button>
-            </div>
-          </li>
-          <li aria-current="page">
-            <div className="flex items-center">
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              <span className="ml-1 text-sm font-medium md:ml-2">
-                {activeStory || generatedContent ? "View Story" : "Story Library"}
-              </span>
+              <BookOpen className="w-4 h-4 mr-2 text-primary" />
+              <span className="text-sm font-medium">Story Library</span>
             </div>
           </li>
         </ol>
@@ -190,13 +255,17 @@ const Generation = ({
   }, [selectedParameters]);
 
   // Handle generation
-  const handleGeneration = useCallback(async () => {
+  const handleGeneration = useCallback(async (providedParameters = null) => {
+    let newStoryId = null;
     // Reset previous states
     setError(null);
     setGeneratedContent(null);
     setGeneratedImage('');
     setMetadata(null);
     setActiveStory(null);
+    
+    // Use provided parameters or selected parameters
+    const paramsToUse = providedParameters || selectedParameters;
     
     // Use the current storyYear or generate a new random year if none exists
     let yearToUse;
@@ -211,7 +280,17 @@ const Generation = ({
     setStoryYear(yearToUse.toString());
 
     // Validate parameters
-    if (!validateParameters()) {
+    if (!paramsToUse || paramsToUse.length === 0) {
+      setError('Please select at least one parameter');
+      return;
+    }
+
+    const missingValueParams = paramsToUse.filter(
+      param => param.value === undefined || param.value === null
+    );
+
+    if (missingValueParams.length > 0) {
+      setError(`Please set values for all selected parameters.`);
       return;
     }
 
@@ -222,7 +301,7 @@ const Generation = ({
       const parameterValues = {};
       
       // Group parameters by category
-      selectedParameters.forEach(param => {
+      paramsToUse.forEach(param => {
         if (!parameterValues[param.categoryId]) {
           parameterValues[param.categoryId] = {};
         }
@@ -282,6 +361,9 @@ const Generation = ({
         };
         
         setStories(prev => [newStory, ...prev]);
+        
+        // Return the ID of the new story for highlighting
+        newStoryId = newStory.id;
       } else {
         // Handle API-level errors
         setError(response.error || 'Generation failed');
@@ -292,8 +374,9 @@ const Generation = ({
     } finally {
       setLoading(false);
       setShouldGenerate(false); // Reset the flag
+      return newStoryId;
     }
-  }, [selectedParameters, validateParameters, storyYear, storyTitle]);
+  }, [storyYear, storyTitle, setGenerationInProgress]);
 
   // Handle deleting a story
   const handleDeleteStory = useCallback((storyId, event) => {
@@ -326,24 +409,13 @@ const Generation = ({
         }
         
         // Show success message if needed
-        console.log(`Story "${storyToDelete?.title || 'Unknown'}" deleted from library`);
+        console.log(`Story "${storyToDelete?.title || getStoryTitle(storyToDelete) || 'Unknown'}" deleted from library`);
       } catch (error) {
         console.error('Error deleting story:', error);
         setError('Failed to delete story. Please try again.');
       }
     }
   }, [activeStory]);
-
-  // Format date for stories
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const options = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric'
-    };
-    return date.toLocaleDateString('en-US', options);
-  };
 
   // Load a story
   const handleLoadStory = (story) => {
@@ -362,9 +434,9 @@ const Generation = ({
     }
   };
 
-  // Handle back to parameters with auto-generation flag
+  // Navigate to parameters page to create a new story
   const handleCreateNew = () => {
-    navigate('/parameters?returnToGenerate=true');
+    navigate('/parameters');
   };
   
   // Filtered stories based on search and year filter
@@ -394,25 +466,68 @@ const Generation = ({
   // Automatically trigger generation when shouldGenerate is true
   useEffect(() => {
     if (shouldGenerate && selectedParameters && selectedParameters.length > 0 && !loading) {
-      handleGeneration();
+      handleGeneration().then(newStoryId => {
+        if (newStoryId) {
+          setHighlightedStoryId(newStoryId);
+          // Clear highlight after 3 seconds
+          setTimeout(() => setHighlightedStoryId(null), 3000);
+        }
+      });
     }
   }, [shouldGenerate, selectedParameters, handleGeneration, loading]);
 
-  // Check if we just came from parameters page and should auto-generate
-  useEffect(() => {
-    if (selectedParameters && selectedParameters.length > 0 && !generatedContent && !activeStory && !loading) {
-      handleGeneration();
-    }
-  }, [selectedParameters, generatedContent, activeStory, loading, handleGeneration]);
+  // Handle generation recovery from accidental page navigation
+  const [recoveryAttempted, setRecoveryAttempted] = useState(false);
+  const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
 
-  // Determine what content to display
-  const displayContent = activeStory ? activeStory.content : generatedContent;
-  const displayImage = activeStory ? activeStory.imageData : generatedImage;
-  const displayTitle = activeStory && activeStory.title ? 
-    activeStory.title : storyTitle;
-  const displayYear = activeStory && activeStory.year ? 
-    activeStory.year.toString() : storyYear;
-  const displayDate = activeStory ? formatDate(activeStory.createdAt) : formatDate(new Date());
+  // Check for saved parameters and handle recovery
+  useEffect(() => {
+    // Don't attempt recovery if we've already tried or if we have content
+    if (recoveryAttempted || activeStory || generatedContent) {
+      return;
+    }
+
+    // Check if we have saved parameters to recover generation
+    const savedParams = sessionStorage.getItem('specgen-parameters');
+    const autoGenerate = sessionStorage.getItem('specgen-auto-generate');
+    
+    if (savedParams && autoGenerate === 'true' && !loading) {
+      try {
+        // Parse the parameters
+        const parsedParams = JSON.parse(savedParams);
+        
+        // Check if we need to restore parameters to the parent component
+        if (selectedParameters.length === 0 && parsedParams.length > 0) {
+          setSelectedParameters(parsedParams);
+          setShowRecoveryBanner(true);
+        }
+        
+        // Trigger generation with the recovered parameters
+        if (!loading && !generatedContent && parsedParams.length > 0) {
+          // Clear the auto-generate flag
+          sessionStorage.removeItem('specgen-auto-generate');
+          // Inform user we're resuming their generation
+          setLoading(true);
+          // Use the parsed parameters
+          handleGeneration(parsedParams).then(() => {
+            setShowRecoveryBanner(false);
+            setGenerationInProgress(false);
+          });
+        }
+      } catch (error) {
+        console.error('Error recovering parameters:', error);
+        // Clear the flags to prevent repeated errors
+        sessionStorage.removeItem('specgen-parameters');
+        sessionStorage.removeItem('specgen-auto-generate');
+      }
+    }
+    
+    // Mark recovery as attempted
+    setRecoveryAttempted(true);
+  }, [recoveryAttempted, activeStory, generatedContent, loading, selectedParameters, setSelectedParameters, generationInProgress, setGenerationInProgress, handleGeneration]);
+  
+
+
 
   // Parse content into paragraphs
   const contentParagraphs = displayContent ? displayContent.split('\n\n').filter(p => p.trim()) : [];
@@ -420,11 +535,21 @@ const Generation = ({
   // If we're in loading state and have no content yet
   if (loading && !displayContent) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
-          <h3 className="text-lg font-medium mb-2">Generating your story</h3>
-          <p className="text-muted-foreground">This may take a few moments...</p>
+      <div className="container max-w-6xl mx-auto h-full">
+        {/* Breadcrumb navigation */}
+        {renderBreadcrumbs()}
+        
+        <div className="h-full flex items-center justify-center">
+          <div className="text-center">
+            <RefreshCw className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">Generating your story</h3>
+            <p className="text-muted-foreground mb-4">{showRecoveryBanner ? "Resuming generation after navigation..." : "This may take a few moments..."}</p>
+            {showRecoveryBanner && (
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                Your story generation is continuing after a page navigation. Your parameters have been restored automatically.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -445,7 +570,7 @@ const Generation = ({
             className="mb-4"
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to library
+            Back to Library
           </Button>
           
           <div className="flex items-center justify-between">
@@ -475,7 +600,7 @@ const Generation = ({
                 onClick={handleCreateNew}
               >
                 <PlusCircle className="h-4 w-4 mr-2" />
-                New Story
+                Create New Story
               </Button>
             </div>
           </div>
@@ -567,6 +692,15 @@ const Generation = ({
           Create New Story
         </Button>
       </div>
+      
+      {showRecoveryBanner && (
+        <Alert className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Resuming your story generation. Your parameters have been restored after page navigation.
+          </AlertDescription>
+        </Alert>
+      )}
       
       {/* Display error if any */}
       {error && (
@@ -673,7 +807,7 @@ const Generation = ({
           {filteredStories.map((story) => (
             <Card 
               key={story.id} 
-              className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer relative group"
+              className={`overflow-hidden hover:shadow-md transition-shadow cursor-pointer relative group ${highlightedStoryId === story.id ? 'ring-2 ring-primary animate-pulse' : ''}`}
               onClick={() => handleLoadStory(story)}
             >
               {/* Delete button (visible on hover) */}
@@ -690,15 +824,15 @@ const Generation = ({
               {story.imageData && (
                 <div className="h-48 w-full overflow-hidden">
                   <img 
-                    src={story.imageData} 
-                    alt={story.title} 
+                    src={getStoryImage(story)} 
+                    alt={getStoryTitle(story)} 
                     className="w-full h-full object-cover" 
                   />
                 </div>
               )}
               
               <CardContent className="p-5">
-                <h3 className="text-xl font-semibold line-clamp-2 mb-2">{story.title}</h3>
+                <h3 className="text-xl font-semibold line-clamp-2 mb-2">{getStoryTitle(story)}</h3>
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <div className="flex items-center">
                     <Calendar className="h-3.5 w-3.5 mr-1.5" />

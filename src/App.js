@@ -1,6 +1,6 @@
 // src/App.js
 import React, { useState, useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 
 // Theme and Layout Components
 import { ThemeProvider } from './components/theme/theme-provider';
@@ -20,7 +20,7 @@ const Landing = lazy(() => import('./pages/Landing'));
 const Categories = lazy(() => import('./pages/Categories'));
 const Parameters = lazy(() => import('./pages/Parameters'));
 const SelectedParameters = lazy(() => import('./pages/SelectedParameters'));
-const Generation = lazy(() => import('./pages/Generation'));
+const Library = lazy(() => import('./pages/Generation')); // Using the Generation component as Library
 const About = lazy(() => import('./pages/About'));
 
 // Main App Component
@@ -41,6 +41,7 @@ function AppContent() {
   const [selectedParameters, setSelectedParameters] = useState([]);
   const [showTour, setShowTour] = useState(false);
   const [generatedContent, setGeneratedContent] = useState(null);
+  const [generationInProgress, setGenerationInProgress] = useState(false);
 
   // Hooks
   const navigate = useNavigate();
@@ -78,10 +79,18 @@ function AppContent() {
 
   // Navigation handlers
   const handleNavigateToGenerate = () => {
-    navigate('/generate');
+    // Store generation request details in session storage to handle page refreshes
+    if (selectedParameters.length > 0) {
+      // Save the current parameters for potential recovery
+      sessionStorage.setItem('specgen-parameters', JSON.stringify(selectedParameters));
+      sessionStorage.setItem('specgen-auto-generate', 'true');
+      setGenerationInProgress(true);
+    }
+    navigate('/library');
   };
 
   const handleBackToHome = () => {
+    // Navigate to parameters page for editing
     navigate('/parameters');
   };
 
@@ -144,19 +153,25 @@ function AppContent() {
             </ResponsiveLayout>
           } />
 
-          {/* Generation Page */}
-          <Route path="/generate" element={
+          {/* Library Page (formerly Generation) */}
+          <Route path="/library" element={
             <div className="bg-card rounded-md border shadow-sm h-full">
               <Suspense fallback={<LoadingSpinner />}>
-                <Generation
+                <Library
                   setGeneratedContent={setGeneratedContent}
                   generatedContent={generatedContent}
                   selectedParameters={selectedParameters}
+                  setSelectedParameters={setSelectedParameters}
+                  generationInProgress={generationInProgress}
+                  setGenerationInProgress={setGenerationInProgress}
                   onBackToHome={handleBackToHome}
                 />
               </Suspense>
             </div>
           } />
+          
+          {/* Redirect /generate to /library for backward compatibility */}
+          <Route path="/generate" element={<Navigate to="/library" replace />} />
 
           {/* About Page */}
           <Route path="/about" element={
