@@ -1,32 +1,15 @@
 // src/pages/Generation.jsx
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { generateContent, fetchPreviousGenerations } from '../services/api';
-import { Button } from '../components/ui/button';
-import { Card, CardContent } from '../components/ui/card';
-import { Input } from '../components/ui/input';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { 
-  Download, 
-  Share, 
-  Pencil, 
-  RefreshCw,
-  PlusCircle,
-  Calendar,
-  ChevronLeft,
-  Search,
-  Filter,
-  X,
-  SortAsc,
-  SortDesc,
-  BookOpen,
-  Home,
-  ChevronRight,
-  Trash2,
-  AlertTriangle
-} from 'lucide-react';
-import { copyToClipboard, downloadTextFile, downloadImage } from '../utils/exportUtils';
-import { cn } from '../lib/utils';
+import { AlertTriangle, ChevronRight, BookOpen } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import { useNavigate, useLocation } from 'react-router-dom';
+
+// Import the new components
+import StoryLibrary from '../components/stories/StoryLibrary';
+import StoryViewer from '../components/stories/StoryViewer';
+import StoryGenerator from '../components/stories/StoryGenerator';
 
 // Generate a random year between 2050 and 2150
 const generateRandomYear = () => {
@@ -44,6 +27,8 @@ const Generation = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // State for managing story generation and viewing
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [generatedImage, setGeneratedImage] = useState('');
@@ -54,84 +39,13 @@ const Generation = ({
   const [storyYear, setStoryYear] = useState(generateRandomYear().toString());
   const [shouldGenerate, setShouldGenerate] = useState(false);
   const [highlightedStoryId, setHighlightedStoryId] = useState(null);
-  
-  // State for library filtering and search
-  const [searchQuery, setSearchQuery] = useState('');
-  const [yearFilter, setYearFilter] = useState('');
-  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' or 'oldest'
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
-  const [allYears, setAllYears] = useState([]);
-  
-  // Format date for stories
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const options = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric'
-    };
-    return date.toLocaleDateString('en-US', options);
-  };
-  
-  // Extract all available years from the stories for filtering
-  const extractAvailableYears = useCallback((storyList = []) => {
-    const years = new Set();
-    storyList.forEach(story => {
-      if (story.year) {
-        years.add(parseInt(story.year, 10));
-      }
-    });
-    return [...years].sort((a, b) => a - b); // sort chronologically
-  }, []);
-  
-  // Fix for image display in stories
-  const getStoryImage = (story) => {
-    if (!story) return null;
-    
-    // Handle base64 image data that's already properly formatted
-    if (story.imageData && story.imageData.startsWith('data:image')) {
-      return story.imageData;
-    }
-    
-    // Handle raw base64 data without the prefix
-    if (story.imageData) {
-      return `data:image/png;base64,${story.imageData}`;
-    }
-    
-    return null;
-  };
-  
-  // Fix for story title extraction
-  const getStoryTitle = (story) => {
-    if (!story) return "Untitled Story";
-    
-    // Use title if available
-    if (story.title && story.title !== "Untitled Story") {
-      return story.title;
-    }
-    
-    // Try to extract title from content
-    if (story.content) {
-      const contentLines = story.content.split('\n');
-      for (const line of contentLines) {
-        if (line.trim().startsWith('**Title:')) {
-          const extractedTitle = line.trim().replace(/\*\*/g, '').replace('Title:', '').trim();
-          if (extractedTitle) return extractedTitle;
-        }
-      }
-    }
-    
-    return "Untitled Story";
-  };
-  
-  // Calculate display properties
-  const displayContent = activeStory ? activeStory.content : generatedContent;
-  const displayImage = activeStory ? getStoryImage(activeStory) : generatedImage;
-  const displayTitle = activeStory ? getStoryTitle(activeStory) : storyTitle;
-  const displayYear = activeStory && activeStory.year ? 
-    activeStory.year.toString() : storyYear;
-  const displayDate = activeStory ? formatDate(activeStory.createdAt) : formatDate(new Date());
+  const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
+  const [recoveryAttempted, setRecoveryAttempted] = useState(false);
 
+  const handleDeleteStory = (storyId) => {
+    setStories(prevStories => prevStories.filter(story => story.id !== storyId));
+  };
+  
   // Render breadcrumbs for better navigation
   const renderBreadcrumbs = () => {
     // If we're viewing a story
@@ -156,7 +70,7 @@ const Generation = ({
               <div className="flex items-center">
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
                 <span className="ml-1 text-sm font-medium text-foreground md:ml-2">
-                  {displayTitle || "View Story"}
+                  {activeStory?.title || storyTitle || "View Story"}
                 </span>
               </div>
             </li>
@@ -184,21 +98,10 @@ const Generation = ({
   useEffect(() => {
     const loadStories = async () => {
       try {
-        // Apply any active filters
-        const filters = {
-          year: yearFilter || undefined,
-          search: searchQuery || undefined,
-          sort: sortOrder
-        };
-        
-        const response = await fetchPreviousGenerations(filters);
+        const response = await fetchPreviousGenerations();
         
         if (response.success && response.data) {
           setStories(response.data);
-          
-          // Extract all available years for filter dropdown
-          const years = extractAvailableYears(response.data);
-          setAllYears(years);
         }
       } catch (err) {
         console.error('Error fetching stories:', err);
@@ -222,18 +125,9 @@ const Generation = ({
       // Clear it after using
       sessionStorage.removeItem('specgen-story-year');
     }
-  }, [location.search, sortOrder, extractAvailableYears, searchQuery, yearFilter]);
+  }, [location.search]);
 
-  // Handle search filter changes
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-  
-  // Handle clearing all filters
-  const clearFilters = () => {
-    setSearchQuery('');
-    setYearFilter('');
-  };
+  // No delete functionality as requested
 
   // Validate parameters before generation
   const validateParameters = useCallback(() => {
@@ -338,7 +232,7 @@ const Generation = ({
           setStoryTitle(finalTitle);
         }
 
-        // Set generated image
+        // Set generated image with proper formatting
         if (response.imageData) {
           setGeneratedImage(`data:image/png;base64,${response.imageData}`);
         }
@@ -348,8 +242,8 @@ const Generation = ({
           setMetadata(response.metadata);
         }
         
-        // Add to stories
-        const newStory = {
+        // Use the story object returned from the API
+        const newStory = response.generatedStory || {
           id: `story-${Date.now()}`,
           title: response.title || storyTitle || "Untitled Story",
           createdAt: new Date().toISOString(),
@@ -360,7 +254,16 @@ const Generation = ({
           year: response.year || yearToUse
         };
         
-        setStories(prev => [newStory, ...prev]);
+        // Add to stories and reload from localStorage to ensure consistency
+        setTimeout(() => {
+          fetchPreviousGenerations().then(result => {
+            if (result.success) {
+              setStories(result.data);
+            }
+          });
+        }, 500);
+        
+        setActiveStory(newStory);
         
         // Return the ID of the new story for highlighting
         newStoryId = newStory.id;
@@ -370,98 +273,30 @@ const Generation = ({
       }
     } catch (err) {
       console.error('Generation error:', err);
-      setError(err.message || 'An unexpected error occurred');
+      
+      // Handle different error types
+      if (err.response) {
+        // The request was made and the server responded with an error status
+        setError(err.response.data?.error || `Server error: ${err.response.status}`);
+      } else if (err.request) {
+        // The request was made but no response was received
+        setError('No response from server. Please check your connection.');
+      } else {
+        // Something else caused the error
+        setError(err.message || 'Failed to generate content. Please try again.');
+      }
     } finally {
       setLoading(false);
       setShouldGenerate(false); // Reset the flag
+      setGenerationInProgress(false);
       return newStoryId;
     }
-  }, [storyYear, storyTitle, setGenerationInProgress]);
-
-  // Handle deleting a story
-  const handleDeleteStory = useCallback((storyId, event) => {
-    // Prevent the click from bubbling up to the card and opening the story
-    event?.stopPropagation();
-    
-    // Show confirmation dialog
-    if (window.confirm("Are you sure you want to delete this story? This action cannot be undone.")) {
-      try {
-        // Get existing history
-        const historyJSON = localStorage.getItem('specgen-history');
-        let history = historyJSON ? JSON.parse(historyJSON) : [];
-        
-        // Find the story to delete
-        const storyToDelete = history.find(story => story.id === storyId);
-        
-        // Filter out the story with the given ID
-        const updatedHistory = history.filter(story => story.id !== storyId);
-        
-        // Save updated history back to localStorage
-        localStorage.setItem('specgen-history', JSON.stringify(updatedHistory));
-        
-        // Update state
-        setStories(updatedHistory);
-        
-        // If the active story was deleted, clear it
-        if (activeStory && activeStory.id === storyId) {
-          setActiveStory(null);
-          setGeneratedContent(null);
-        }
-        
-        // Show success message if needed
-        console.log(`Story "${storyToDelete?.title || getStoryTitle(storyToDelete) || 'Unknown'}" deleted from library`);
-      } catch (error) {
-        console.error('Error deleting story:', error);
-        setError('Failed to delete story. Please try again.');
-      }
-    }
-  }, [activeStory]);
-
-  // Load a story
-  const handleLoadStory = (story) => {
-    setActiveStory(story);
-    
-    // Set title from the selected story
-    if (story.title) {
-      setStoryTitle(story.title);
-    }
-    
-    // Set year from the story
-    if (story.year) {
-      setStoryYear(story.year.toString());
-    } else {
-      setStoryYear(generateRandomYear().toString());
-    }
-  };
+  }, [storyYear, storyTitle, selectedParameters, setGenerationInProgress]);
 
   // Navigate to parameters page to create a new story
   const handleCreateNew = () => {
     navigate('/parameters');
   };
-  
-  // Filtered stories based on search and year filter
-  const filteredStories = useMemo(() => {
-    let filtered = [...stories];
-    
-    // Apply year filter
-    if (yearFilter) {
-      filtered = filtered.filter(story => 
-        story.year === parseInt(yearFilter, 10) || 
-        story.year?.toString() === yearFilter
-      );
-    }
-    
-    // Apply search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(story => 
-        story.title?.toLowerCase().includes(query) || 
-        story.content?.toLowerCase().includes(query)
-      );
-    }
-    
-    return filtered;
-  }, [stories, yearFilter, searchQuery]);
 
   // Automatically trigger generation when shouldGenerate is true
   useEffect(() => {
@@ -477,10 +312,6 @@ const Generation = ({
   }, [shouldGenerate, selectedParameters, handleGeneration, loading]);
 
   // Handle generation recovery from accidental page navigation
-  const [recoveryAttempted, setRecoveryAttempted] = useState(false);
-  const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
-
-  // Check for saved parameters and handle recovery
   useEffect(() => {
     // Don't attempt recovery if we've already tried or if we have content
     if (recoveryAttempted || activeStory || generatedContent) {
@@ -525,336 +356,85 @@ const Generation = ({
     // Mark recovery as attempted
     setRecoveryAttempted(true);
   }, [recoveryAttempted, activeStory, generatedContent, loading, selectedParameters, setSelectedParameters, generationInProgress, setGenerationInProgress, handleGeneration]);
-  
 
+  // Create a combined story object for the currently generated content
+  const currentGeneratedStory = generatedContent ? {
+    id: 'current-generation',
+    title: storyTitle || "Untitled Story",
+    content: generatedContent || "",
+    imageData: generatedImage || null,
+    createdAt: new Date().toISOString(),
+    year: storyYear || generateRandomYear(),
+    metadata: metadata || {}
+  } : null;
 
-
-  // Parse content into paragraphs
-  const contentParagraphs = displayContent ? displayContent.split('\n\n').filter(p => p.trim()) : [];
-
-  // If we're in loading state and have no content yet
-  if (loading && !displayContent) {
-    return (
-      <div className="container max-w-6xl mx-auto h-full">
-        {/* Breadcrumb navigation */}
-        {renderBreadcrumbs()}
-        
-        <div className="h-full flex items-center justify-center">
-          <div className="text-center">
-            <RefreshCw className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Generating your story</h3>
-            <p className="text-muted-foreground mb-4">{showRecoveryBanner ? "Resuming generation after navigation..." : "This may take a few moments..."}</p>
-            {showRecoveryBanner && (
-              <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                Your story generation is continuing after a page navigation. Your parameters have been restored automatically.
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // If we have a story to display
-  if (displayContent) {
-    return (
-      <div className="container max-w-6xl mx-auto h-full flex flex-col">
-        {/* Header */}
-        <header className="py-6 border-b">
-          <Button 
-            variant="ghost" 
-            onClick={() => {
+  // Determine which view to show
+  const renderContent = () => {
+    // If we're loading and have no content yet
+    if (loading && !activeStory && !generatedContent) {
+      return (
+        <>
+          {renderBreadcrumbs()}
+          <StoryGenerator 
+            loading={loading} 
+            error={error}
+            showRecoveryBanner={showRecoveryBanner}
+          />
+        </>
+      );
+    }
+    
+    // If we're viewing a story
+    if (activeStory || currentGeneratedStory) {
+      const storyToView = activeStory || currentGeneratedStory;
+      return (
+        <>
+          {renderBreadcrumbs()}
+          <StoryViewer
+            story={storyToView}
+            onBackToLibrary={() => {
               setActiveStory(null);
               setGeneratedContent(null);
             }}
-            className="mb-4"
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Library
-          </Button>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight mb-2">{displayTitle}</h1>
-              <div className="flex items-center text-muted-foreground">
-                <Calendar className="h-4 w-4 mr-2" />
-                <span>{displayDate}</span>
-                <span className="mx-2">•</span>
-                <span>Year {displayYear}</span>
-              </div>
-            </div>
-            
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleGeneration}
-                disabled={loading}
-              >
-                <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
-                Regenerate
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCreateNew}
-              >
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Create New Story
-              </Button>
-            </div>
-          </div>
-        </header>
+            onRegenerateStory={handleGeneration}
+            onCreateNew={handleCreateNew}
+            onEditStory={onBackToHome}
+            loading={loading}
+          />
+        </>
+      );
+    }
+    
+    // Default: show the library
+    return (
+      <>
+        {renderBreadcrumbs()}
+        <StoryLibrary
+          stories={stories}
+          onStorySelect={setActiveStory}
+          onCreateNew={handleCreateNew}
+          onDeleteStory={handleDeleteStory}
+          highlightedStoryId={highlightedStoryId}
+          loading={loading}
+          error={error}
+        />
         
-        <div className="flex-1 overflow-auto py-8">
-          <div className="prose prose-lg max-w-3xl mx-auto">
-            {displayImage && (
-              <div className="mb-8 not-prose">
-                <img 
-                  src={displayImage} 
-                  alt={displayTitle} 
-                  className="w-full h-auto rounded-lg shadow-md" 
-                />
-              </div>
-            )}
-            
-            {contentParagraphs.map((paragraph, index) => {
-              // Skip title paragraphs
-              if (paragraph.includes('**Title:')) {
-                return null;
-              }
-              return (
-                <p key={index}>{paragraph}</p>
-              );
-            })}
-          </div>
-        </div>
-        
-        {/* Footer with actions */}
-        <footer className="py-6 border-t mt-auto">
-          <div className="flex items-center justify-between max-w-3xl mx-auto">
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => downloadTextFile(displayContent, `${displayTitle.replace(/\s+/g, '-').toLowerCase()}.txt`)}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-              >
-                <Share className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={onBackToHome}
-              >
-                <Pencil className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
-            </div>
-            
-            {/* Collection info */}
-            <div className="text-sm text-muted-foreground">
-              <span>From Anantabhavi •</span>
-              <span className="text-primary ml-1">Speculative Fiction</span>
-            </div>
-          </div>
-        </footer>
-      </div>
+        {/* Recovery Banner */}
+        {showRecoveryBanner && (
+          <Alert className="fixed bottom-16 left-1/2 transform -translate-x-1/2 z-50 max-w-md">
+            <AlertTriangle className="h-4 w-4 mr-2" />
+            <AlertDescription>
+              Resuming your story generation. Your parameters have been restored.
+            </AlertDescription>
+          </Alert>
+        )}
+      </>
     );
-  }
-  
-  // Library view (no specific story selected or being generated)
+  };
+
   return (
-    <div className="container max-w-6xl mx-auto p-6 h-full">
-      {/* Breadcrumb navigation */}
-      {renderBreadcrumbs()}
-      
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Your Stories</h1>
-          <p className="text-muted-foreground">Collection of your generated speculative fiction</p>
-        </div>
-        
-        <Button 
-          onClick={handleCreateNew}
-          className="flex items-center"
-        >
-          <PlusCircle className="h-4 w-4 mr-2" />
-          Create New Story
-        </Button>
-      </div>
-      
-      {showRecoveryBanner && (
-        <Alert className="mb-6">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Resuming your story generation. Your parameters have been restored after page navigation.
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      {/* Display error if any */}
-      {error && (
-        <div className="mb-6 p-4 border border-destructive/50 bg-destructive/10 rounded-md text-destructive">
-          {error}
-        </div>
-      )}
-      
-      {/* Filter and search bar */}
-      {stories.length > 0 && (
-        <div className="mb-6 flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search stories..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              className="pl-9 w-full"
-            />
-            {searchQuery && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-1 top-1 h-7 w-7 p-0"
-                aria-label="Clear search"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {/* Year filter */}
-            <div className="relative">
-              <select
-                value={yearFilter}
-                onChange={(e) => setYearFilter(e.target.value)}
-                className="h-9 rounded-md border border-input bg-background px-3 pr-9 text-sm"
-              >
-                <option value="">All Years</option>
-                {allYears.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-              <Calendar className="absolute right-3 top-2.5 h-4 w-4 pointer-events-none text-muted-foreground" />
-            </div>
-            
-            {/* Sort order toggle */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest')}
-              title={sortOrder === 'newest' ? 'Showing newest first' : 'Showing oldest first'}
-            >
-              {sortOrder === 'newest' ? (
-                <SortDesc className="h-4 w-4 mr-1" />
-              ) : (
-                <SortAsc className="h-4 w-4 mr-1" />
-              )}
-              {sortOrder === 'newest' ? 'Newest' : 'Oldest'}
-            </Button>
-            
-            {/* Clear filters button - only show if filters are active */}
-            {(searchQuery || yearFilter) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-3.5 w-3.5 mr-1" />
-                Clear Filters
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
-      
-      {stories.length === 0 ? (
-        <div className="text-center py-20">
-          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-25" />
-          <h3 className="text-lg font-medium mb-2">No stories yet</h3>
-          <p className="text-muted-foreground mb-6">Generate your first story to get started</p>
-          <Button onClick={handleCreateNew}>
-            <PlusCircle className="h-4 w-4 mr-2" />
-            Create Story
-          </Button>
-        </div>
-      ) : filteredStories.length === 0 ? (
-        <div className="text-center py-20 border rounded-lg">
-          <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-25" />
-          <h3 className="text-lg font-medium mb-2">No matching stories</h3>
-          <p className="text-muted-foreground mb-6">
-            Try changing your search or filters
-          </p>
-          <Button variant="outline" onClick={clearFilters}>
-            Clear Filters
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStories.map((story) => (
-            <Card 
-              key={story.id} 
-              className={`overflow-hidden hover:shadow-md transition-shadow cursor-pointer relative group ${highlightedStoryId === story.id ? 'ring-2 ring-primary animate-pulse' : ''}`}
-              onClick={() => handleLoadStory(story)}
-            >
-              {/* Delete button (visible on hover) */}
-              <Button
-                variant="destructive"
-                size="sm"
-                className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 h-8 w-8 p-0"
-                onClick={(e) => handleDeleteStory(story.id, e)}
-                title="Delete story"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              
-              {story.imageData && (
-                <div className="h-48 w-full overflow-hidden">
-                  <img 
-                    src={getStoryImage(story)} 
-                    alt={getStoryTitle(story)} 
-                    className="w-full h-full object-cover" 
-                  />
-                </div>
-              )}
-              
-              <CardContent className="p-5">
-                <h3 className="text-xl font-semibold line-clamp-2 mb-2">{getStoryTitle(story)}</h3>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <div className="flex items-center">
-                    <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                    {formatDate(story.createdAt)}
-                  </div>
-                  {story.year && (
-                    <div className="px-2 py-0.5 bg-secondary rounded-full text-xs font-medium">
-                      Year {story.year}
-                    </div>
-                  )}
-                </div>
-                
-                {!story.imageData && story.content && (
-                  <p className="text-muted-foreground line-clamp-3 mt-3">
-                    {story.content.split('\n\n')[0].replace(/\*\*Title:.*?\*\*/g, '')}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+    <div className="bg-card rounded-md border shadow-sm h-full overflow-auto">
+      {renderContent()}
     </div>
   );
 };

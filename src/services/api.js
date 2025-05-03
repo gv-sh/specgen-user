@@ -110,19 +110,25 @@ export const generateContent = async (parameterValues, categoryIds, contentType 
     // Make the API call
     const response = await api.post('/generate', payload);
     
-    // Save to generation history in localStorage
-    saveToGenerationHistory({
-      content: response.data.content,
-      imageData: response.data.imageData,
-      metadata: response.data.metadata,
-      parameterValues,
-      timestamp: new Date().toISOString(),
+    // Create story object
+    const newStory = {
       id: `gen-${Date.now()}`,
-      year: response.data.year || null,
-      title: response.data.title || null
-    });
+      title: response.data.title || title || "Untitled Story",
+      createdAt: new Date().toISOString(),
+      content: response.data.content,
+      imageData: response.data.imageData ? `data:image/png;base64,${response.data.imageData}` : null,
+      parameterValues,
+      metadata: response.data.metadata,
+      year: response.data.year || year || null
+    };
     
-    return response.data;
+    // Save to generation history in localStorage
+    saveToGenerationHistory(newStory);
+    
+    return {
+      ...response.data,
+      generatedStory: newStory
+    };
   } catch (error) {
     console.error('Content generation error:', error);
     
@@ -162,13 +168,15 @@ const saveToGenerationHistory = (generation) => {
     // Add new generation at the beginning
     history = [generation, ...history];
     
-    // Keep only the last 20 generations
-    if (history.length > 20) {
-      history = history.slice(0, 20);
+    // Keep only the last 100 generations (increased limit)
+    if (history.length > 100) {
+      history = history.slice(0, 100);
     }
     
     // Save back to localStorage
     localStorage.setItem('specgen-history', JSON.stringify(history));
+    
+    console.log('Saved new story to history:', generation.id);
   } catch (error) {
     console.error('Error saving to generation history:', error);
   }
@@ -176,25 +184,60 @@ const saveToGenerationHistory = (generation) => {
 
 /**
  * Fetch previous generations from history
+ * @param {Object} filters - Optional filters for stories
  * @returns {Promise<Object>} Promise resolving to previous generations
  */
-export const fetchPreviousGenerations = async () => {
+export const fetchPreviousGenerations = async (filters = {}) => {
   try {
     // In a real app, this would be an API call
     // For now, we'll use localStorage
     const historyJSON = localStorage.getItem('specgen-history');
     const history = historyJSON ? JSON.parse(historyJSON) : [];
     
-    // Process the data to add titles
+    // Process the data to ensure all fields are present
     const processedHistory = history.map(item => ({
-      ...item,
-      title: generateTitle(item.content),
-      createdAt: item.timestamp || new Date().toISOString()
+      id: item.id || `gen-${Date.now() + Math.random()}`,
+      title: item.title || generateTitle(item.content),
+      content: item.content || '',
+      imageData: normalizeImageData(item.imageData),
+      createdAt: item.timestamp || item.createdAt || new Date().toISOString(),
+      year: item.year || null,
+      parameterValues: item.parameterValues || {},
+      metadata: item.metadata || {}
     }));
+    
+    // Apply filters if provided
+    let filteredHistory = [...processedHistory];
+    
+    // Year filter
+    if (filters.year) {
+      filteredHistory = filteredHistory.filter(item => 
+        item.year === parseInt(filters.year, 10)
+      );
+    }
+    
+    // Text search
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filteredHistory = filteredHistory.filter(item => 
+        (item.title && item.title.toLowerCase().includes(searchTerm)) || 
+        (item.content && item.content.toLowerCase().includes(searchTerm))
+      );
+    }
+    
+    // Sort
+    if (filters.sort === 'oldest') {
+      filteredHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    } else {
+      // Default: newest first
+      filteredHistory.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+    
+    console.log(`Loaded ${filteredHistory.length} stories from history`);
     
     return {
       success: true,
-      data: processedHistory
+      data: filteredHistory
     };
   } catch (error) {
     console.error('Error fetching generation history:', error);
@@ -207,12 +250,39 @@ export const fetchPreviousGenerations = async () => {
 };
 
 /**
+ * Normalize image data to ensure consistent format
+ * @param {string} imageData - Raw or formatted image data
+ * @returns {string} Properly formatted image data
+ */
+const normalizeImageData = (imageData) => {
+  if (!imageData) return null;
+  
+  if (typeof imageData === 'string') {
+    if (imageData.startsWith('data:image')) {
+      return imageData;
+    } else {
+      return `data:image/png;base64,${imageData}`;
+    }
+  }
+  
+  return null;
+};
+
+/**
  * Generate a title from content
  * @param {string} content - Generated content
  * @returns {string} Generated title
  */
 const generateTitle = (content) => {
-  if (!content) return 'New Generation';
+  if (!content) return 'Untitled Story';
+  
+  // Look for **Title:** in the content
+  if (content.includes('**Title:')) {
+    const titleMatch = content.match(/\*\*Title:(.*?)\*\*/);
+    if (titleMatch && titleMatch[1]) {
+      return titleMatch[1].trim();
+    }
+  }
   
   // Take first sentence or first 40 characters
   const firstSentence = content.split(/[.!?]|\n/)[0].trim();
