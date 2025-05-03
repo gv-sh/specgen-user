@@ -1,131 +1,4 @@
-  // Render breadcrumbs for better navigation
-  const renderBreadcrumbs = () => {
-    return (
-      <nav className="flex mb-4" aria-label="Breadcrumb">
-        <ol className="inline-flex items-center space-x-1 md:space-x-3">
-          <li className="inline-flex items-center">
-            <Button 
-              variant="link" 
-              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground p-0 h-auto"
-              onClick={() => {
-                setActiveStory(null);
-                setGeneratedContent(null);
-                navigate('/');
-              }}
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Home
-            </Button>
-          </li>
-          <li>
-            <div className="flex items-center">
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              <Button 
-                variant="link" 
-                className="ml-1 text-sm font-medium text-muted-foreground hover:text-foreground p-0 h-auto"
-                onClick={() => {
-                  setActiveStory(null);
-                  setGeneratedContent(null);
-                  navigate('/parameters');
-                }}
-              >
-                Parameters
-              </Button>
-            </div>
-          </li>
-          <li aria-current="page">
-            <div className="flex items-center">
-              <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              <span className="ml-1 text-sm font-medium md:ml-2">
-                {displayContent ? "View Story" : "Story Library"}
-              </span>
-            </div>
-          </li>
-        </ol>
-      </nav>
-    );
-  };  // Handle search filter changes
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-  
-  // Handle clearing all filters
-  const clearFilters = () => {
-    setSearchQuery('');
-    setYearFilter('');
-  };
-  
-  // Handle deleting a story
-  const handleDeleteStory = useCallback((storyId, event) => {
-    // Prevent the click from bubbling up to the card and opening the story
-    event?.stopPropagation();
-    
-    // Show confirmation dialog
-    if (window.confirm("Are you sure you want to delete this story? This action cannot be undone.")) {
-      try {
-        // Get existing history
-        const historyJSON = localStorage.getItem('specgen-history');
-        let history = historyJSON ? JSON.parse(historyJSON) : [];
-        
-        // Find the story to delete
-        const storyToDelete = history.find(story => story.id === storyId);
-        
-        // Filter out the story with the given ID
-        const updatedHistory = history.filter(story => story.id !== storyId);
-        
-        // Save updated history back to localStorage
-        localStorage.setItem('specgen-history', JSON.stringify(updatedHistory));
-        
-        // Update state
-        setStories(updatedHistory);
-        
-        // If the active story was deleted, clear it
-        if (activeStory && activeStory.id === storyId) {
-          setActiveStory(null);
-          setGeneratedContent(null);
-        }
-        
-        // Show success message if needed
-        console.log(`Story "${storyToDelete?.title || 'Unknown'}" deleted from library`);
-      } catch (error) {
-        console.error('Error deleting story:', error);
-        setError('Failed to delete story. Please try again.');
-      }
-    }
-  }, [activeStory]);  // Extract all available years from the stories for filtering
-  const extractAvailableYears = useCallback((storyList = []) => {
-    const years = new Set();
-    storyList.forEach(story => {
-      if (story.year) {
-        years.add(parseInt(story.year, 10));
-      }
-    });
-    return [...years].sort((a, b) => a - b); // sort chronologically
-  }, []);
-  
-  // Filtered stories based on search and year filter
-  const filteredStories = useMemo(() => {
-    let filtered = [...stories];
-    
-    // Apply year filter
-    if (yearFilter) {
-      filtered = filtered.filter(story => 
-        story.year === parseInt(yearFilter, 10) || 
-        story.year?.toString() === yearFilter
-      );
-    }
-    
-    // Apply search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(story => 
-        story.title?.toLowerCase().includes(query) || 
-        story.content?.toLowerCase().includes(query)
-      );
-    }
-    
-    return filtered;
-  }, [stories, yearFilter, searchQuery]);// src/pages/Generation.jsx
+// src/pages/Generation.jsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { generateContent, fetchPreviousGenerations } from '../services/api';
 import { Button } from '../components/ui/button';
@@ -183,6 +56,65 @@ const Generation = ({
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [allYears, setAllYears] = useState([]);
   
+  // Extract all available years from the stories for filtering
+  const extractAvailableYears = useCallback((storyList = []) => {
+    const years = new Set();
+    storyList.forEach(story => {
+      if (story.year) {
+        years.add(parseInt(story.year, 10));
+      }
+    });
+    return [...years].sort((a, b) => a - b); // sort chronologically
+  }, []);
+
+  // Render breadcrumbs for better navigation
+  const renderBreadcrumbs = () => {
+    return (
+      <nav className="flex mb-4" aria-label="Breadcrumb">
+        <ol className="inline-flex items-center space-x-1 md:space-x-3">
+          <li className="inline-flex items-center">
+            <Button 
+              variant="link" 
+              className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground p-0 h-auto"
+              onClick={() => {
+                setActiveStory(null);
+                setGeneratedContent(null);
+                navigate('/');
+              }}
+            >
+              <Home className="w-4 h-4 mr-2" />
+              Home
+            </Button>
+          </li>
+          <li>
+            <div className="flex items-center">
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <Button 
+                variant="link" 
+                className="ml-1 text-sm font-medium text-muted-foreground hover:text-foreground p-0 h-auto"
+                onClick={() => {
+                  setActiveStory(null);
+                  setGeneratedContent(null);
+                  navigate('/parameters');
+                }}
+              >
+                Parameters
+              </Button>
+            </div>
+          </li>
+          <li aria-current="page">
+            <div className="flex items-center">
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <span className="ml-1 text-sm font-medium md:ml-2">
+                {activeStory || generatedContent ? "View Story" : "Story Library"}
+              </span>
+            </div>
+          </li>
+        </ol>
+      </nav>
+    );
+  };
+  
   // Fetch stories on component mount
   useEffect(() => {
     const loadStories = async () => {
@@ -225,7 +157,18 @@ const Generation = ({
       // Clear it after using
       sessionStorage.removeItem('specgen-story-year');
     }
-  }, [location.search, sortOrder, extractAvailableYears]);
+  }, [location.search, sortOrder, extractAvailableYears, searchQuery, yearFilter]);
+
+  // Handle search filter changes
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+  
+  // Handle clearing all filters
+  const clearFilters = () => {
+    setSearchQuery('');
+    setYearFilter('');
+  };
 
   // Validate parameters before generation
   const validateParameters = useCallback(() => {
@@ -350,7 +293,46 @@ const Generation = ({
       setLoading(false);
       setShouldGenerate(false); // Reset the flag
     }
-  }, [selectedParameters, validateParameters]);
+  }, [selectedParameters, validateParameters, storyYear, storyTitle]);
+
+  // Handle deleting a story
+  const handleDeleteStory = useCallback((storyId, event) => {
+    // Prevent the click from bubbling up to the card and opening the story
+    event?.stopPropagation();
+    
+    // Show confirmation dialog
+    if (window.confirm("Are you sure you want to delete this story? This action cannot be undone.")) {
+      try {
+        // Get existing history
+        const historyJSON = localStorage.getItem('specgen-history');
+        let history = historyJSON ? JSON.parse(historyJSON) : [];
+        
+        // Find the story to delete
+        const storyToDelete = history.find(story => story.id === storyId);
+        
+        // Filter out the story with the given ID
+        const updatedHistory = history.filter(story => story.id !== storyId);
+        
+        // Save updated history back to localStorage
+        localStorage.setItem('specgen-history', JSON.stringify(updatedHistory));
+        
+        // Update state
+        setStories(updatedHistory);
+        
+        // If the active story was deleted, clear it
+        if (activeStory && activeStory.id === storyId) {
+          setActiveStory(null);
+          setGeneratedContent(null);
+        }
+        
+        // Show success message if needed
+        console.log(`Story "${storyToDelete?.title || 'Unknown'}" deleted from library`);
+      } catch (error) {
+        console.error('Error deleting story:', error);
+        setError('Failed to delete story. Please try again.');
+      }
+    }
+  }, [activeStory]);
 
   // Format date for stories
   const formatDate = (dateString) => {
@@ -384,10 +366,34 @@ const Generation = ({
   const handleCreateNew = () => {
     navigate('/parameters?returnToGenerate=true');
   };
+  
+  // Filtered stories based on search and year filter
+  const filteredStories = useMemo(() => {
+    let filtered = [...stories];
+    
+    // Apply year filter
+    if (yearFilter) {
+      filtered = filtered.filter(story => 
+        story.year === parseInt(yearFilter, 10) || 
+        story.year?.toString() === yearFilter
+      );
+    }
+    
+    // Apply search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(story => 
+        story.title?.toLowerCase().includes(query) || 
+        story.content?.toLowerCase().includes(query)
+      );
+    }
+    
+    return filtered;
+  }, [stories, yearFilter, searchQuery]);
 
   // Automatically trigger generation when shouldGenerate is true
   useEffect(() => {
-    if (shouldGenerate && selectedParameters.length > 0 && !loading) {
+    if (shouldGenerate && selectedParameters && selectedParameters.length > 0 && !loading) {
       handleGeneration();
     }
   }, [shouldGenerate, selectedParameters, handleGeneration, loading]);
@@ -397,7 +403,7 @@ const Generation = ({
     if (selectedParameters && selectedParameters.length > 0 && !generatedContent && !activeStory && !loading) {
       handleGeneration();
     }
-  }, []);
+  }, [selectedParameters, generatedContent, activeStory, loading, handleGeneration]);
 
   // Determine what content to display
   const displayContent = activeStory ? activeStory.content : generatedContent;
