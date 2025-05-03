@@ -1,15 +1,16 @@
+// src/pages/Parameters.jsx
 import React, { useState, useEffect, useMemo, memo } from 'react';
 import { fetchParameters } from '../services/api';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
-import { Search, X, ArrowLeft, Frown, Tag } from 'lucide-react';
+import { Search, X, ArrowLeft, Frown } from 'lucide-react';
 
 
 // Memoized parameter component for performance
 const MemoizedParameter = memo(({ parameter, onAddParameter, isSelected }) => {
   return (
-    <div className="py-2 flex items-center justify-between border-b last:border-0"> {/* Changed py-3 to py-2 */}
+    <div className="py-2 flex items-center justify-between border-b last:border-0">
       <h3 className="text-sm truncate">{parameter.name}</h3>
       <Button
         onClick={() => !isSelected && onAddParameter(parameter)}
@@ -130,7 +131,10 @@ const Parameters = ({
     <div className="space-y-4">
       {!currentCategory ? (
         <div className="flex flex-col items-center justify-center h-[calc(100%-5rem)]">
-          <Tag className="h-8 w-8 text-muted-foreground/50" />
+          <h3 className="text-sm font-medium mb-1">Select a Genre</h3>
+          <p className="text-muted-foreground text-xs">
+            Choose a genre from the left panel to see parameters.
+          </p>
         </div>
       ) : filteredParameters?.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[calc(100%-5rem)] text-center">
@@ -147,7 +151,6 @@ const Parameters = ({
             </>
           ) : (
             <>
-              <Tag className="h-6 w-6 text-muted-foreground mb-2" />
               <h3 className="text-sm font-medium mb-1">No parameters available</h3>
               <p className="text-muted-foreground text-xs">
                 Select a different genre to explore parameters.
@@ -156,7 +159,7 @@ const Parameters = ({
           )}
         </div>
       ) : (
-        <div className="max-h-[calc(100vh-160px)] overflow-auto"> {/* Adjusted from calc(100vh-220px) */}
+        <div className="max-h-[calc(100vh-160px)] overflow-auto">
           {filteredParameters.map(parameter => (
             <MemoizedParameter
               key={parameter.id}

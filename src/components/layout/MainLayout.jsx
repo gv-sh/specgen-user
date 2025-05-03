@@ -1,7 +1,7 @@
 // src/components/layout/MainLayout.jsx
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
-import { HelpCircle, ArrowLeft, Menu, X } from 'lucide-react';
+import { HelpCircle, ArrowLeft, Menu, X, Sliders, Home, Info, Library, BookOpen } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { ThemeToggle } from '../theme/theme-toggle';
 import { Tooltip } from '../ui/tooltip';
@@ -12,10 +12,10 @@ const MainLayout = ({ children, onShowTour, className }) => {
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isGeneratePage = location.pathname === '/generate';
-  const isParametersPage = location.pathname === '/';
+  const isParametersPage = location.pathname === '/parameters';
   
   const handleBackClick = () => {
-    navigate('/');
+    navigate('/parameters');
   };
 
   const toggleMenu = () => {
@@ -27,8 +27,10 @@ const MainLayout = ({ children, onShowTour, className }) => {
   };
 
   const menuItems = [
-    { name: 'Home', path: '/', icon: null },
-    { name: 'About', path: '/about', icon: null },
+    { name: 'Home', path: '/', icon: <Home className="h-4 w-4 mr-2" /> },
+    { name: 'Create Story', path: '/parameters', icon: <Sliders className="h-4 w-4 mr-2" /> },
+    { name: 'Story Library', path: '/generate', icon: <Library className="h-4 w-4 mr-2" /> },
+    { name: 'About', path: '/about', icon: <Info className="h-4 w-4 mr-2" /> },
   ];
   
   return (
