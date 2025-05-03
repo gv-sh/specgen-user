@@ -18,17 +18,26 @@ function isPortAvailable(port) {
 
 // Function to find an available port
 async function findAvailablePort(startPort, maxAttempts = 10) {
-  // For user, we want to stick to port 3002 if possible
-  if (startPort !== 3002) {
-    startPort = 3002;
+  // Always try to use port 3002 first for user interface
+  const preferredPort = 3002;
+  
+  // First check if preferred port is available
+  if (await isPortAvailable(preferredPort)) {
+    console.log(`Preferred port ${preferredPort} is available.`);
+    return preferredPort;
   }
   
+  console.log(`Warning: Preferred port ${preferredPort} is not available. Trying alternative ports...`);
+  
+  // If preferred port is not available, try others
   for (let port = startPort; port < startPort + maxAttempts; port++) {
-    if (await isPortAvailable(port)) {
+    if (port !== preferredPort && await isPortAvailable(port)) {
+      console.log(`Using alternative port: ${port}`);
       return port;
     }
   }
-  throw new Error(`No available ports found between ${startPort} and ${startPort + maxAttempts - 1}`);
+  
+  throw new Error(`Error: No available ports found between ${startPort} and ${startPort + maxAttempts - 1}`);
 }
 
 // Start the React development server
@@ -36,10 +45,20 @@ async function startServer() {
   try {
     const port = await findAvailablePort(3002);
     
+    // Display clear message about ports being used
+    console.log('\n==================================================');
+    console.log(`🚀 Starting SpecGen User Interface on port: ${port}`);
+    console.log(`🔌 API Server expected at: http://localhost:3000`);
+    console.log('==================================================\n');
+    
     const reactScriptsStart = spawn('react-scripts', ['start'], {
       stdio: 'inherit',
       shell: true,
-      env: { ...process.env, PORT: port }
+      env: { 
+        ...process.env, 
+        PORT: port,
+        REACT_APP_API_URL: 'http://localhost:3000'
+      }
     });
 
     reactScriptsStart.on('error', (err) => {

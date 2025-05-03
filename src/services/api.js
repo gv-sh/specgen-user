@@ -4,7 +4,10 @@ import config from '../config';
 import { apiCache } from '../utils/performanceUtils';
 
 // Use environment variable for API URL with fallback to config
-const API_BASE_URL = process.env.REACT_APP_API_URL || `${config.API_URL}/api`;
+const API_BASE_URL = `${config.API_URL}/api`;
+
+// Log the actual API URL being used for debugging
+console.log('API Base URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -77,7 +80,7 @@ export const fetchParameters = async (categoryId) => {
  * @param {string} contentType - Type of content to generate ('fiction', 'image', or 'combined')
  * @returns {Promise<Object>} Generated content response
  */
-export const generateContent = async (parameterValues, categoryIds, contentType = 'combined') => {
+export const generateContent = async (parameterValues, categoryIds, contentType = 'combined', year = null, title = null) => {
   try {
     // Validate inputs
     if (!parameterValues || Object.keys(parameterValues).length === 0) {
@@ -92,6 +95,16 @@ export const generateContent = async (parameterValues, categoryIds, contentType 
       contentType
     };
 
+    // Add year to payload if provided
+    if (year) {
+      payload.year = parseInt(year, 10);
+    }
+
+    // Add title to payload if provided
+    if (title) {
+      payload.title = title;
+    }
+
     console.log('Generation payload:', JSON.stringify(payload, null, 2));
 
     // Make the API call
@@ -104,7 +117,9 @@ export const generateContent = async (parameterValues, categoryIds, contentType 
       metadata: response.data.metadata,
       parameterValues,
       timestamp: new Date().toISOString(),
-      id: `gen-${Date.now()}`
+      id: `gen-${Date.now()}`,
+      year: response.data.year || null,
+      title: response.data.title || null
     });
     
     return response.data;
