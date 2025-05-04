@@ -25,18 +25,18 @@ export const fetchCategories = async () => {
     // Check if we have a cached version first
     const cacheKey = 'categories';
     const cachedData = apiCache.get(cacheKey);
-    
+
     if (cachedData) {
       console.log('Using cached categories data');
       return cachedData;
     }
-    
+
     // If not in cache, make the API call
     const response = await api.get('/categories');
-    
+
     // Cache the response (valid for 5 minutes)
     apiCache.set(cacheKey, response.data, 5 * 60 * 1000);
-    
+
     return response.data;
   } catch (error) {
     console.error('Error fetching categories:', error);
@@ -54,18 +54,18 @@ export const fetchParameters = async (categoryId) => {
     // Check if we have a cached version first
     const cacheKey = `parameters_${categoryId}`;
     const cachedData = apiCache.get(cacheKey);
-    
+
     if (cachedData) {
       console.log(`Using cached parameters data for category ${categoryId}`);
       return cachedData;
     }
-    
+
     // If not in cache, make the API call
     const response = await api.get(`/parameters?categoryId=${categoryId}`);
-    
+
     // Cache the response (valid for 5 minutes)
     apiCache.set(cacheKey, response.data, 5 * 60 * 1000);
-    
+
     return response.data;
   } catch (error) {
     console.error(`Error fetching parameters for category ${categoryId}:`, error);
@@ -125,40 +125,29 @@ export const generateContent = async (parameterValues, categoryIds, contentType 
       year: response.data.year || year || null
     };
 
-    // ONLY save to local history if we're not getting an API-managed ID
-    // This prevents duplicate history entries
-    const existingStories = JSON.parse(localStorage.getItem('specgen-history') || '[]');
-    const alreadyExists = existingStories.some(s => 
-      s.content === response.data.content && 
-      s.title === (response.data.title || title || "Untitled Story")
-    );
-    
-    if (!response.data.id && !alreadyExists) {
-      saveToGenerationHistory(newStory);
-    }
+    // Save to local storage if needed
+    saveToGenerationHistory(newStory);
         
     return {
       ...response.data,
+      success: true,
       generatedStory: newStory
     };
   } catch (error) {
     console.error('Content generation error:', error);
     
-    // Handle different error types
+    // Handle errors appropriately
     if (error.response) {
-      // The request was made and the server responded with an error status
       return {
         success: false,
         error: error.response.data?.error || `Server error: ${error.response.status}`
       };
     } else if (error.request) {
-      // The request was made but no response was received
       return {
         success: false,
         error: 'No response from server. Please check your connection.'
       };
     } else {
-      // Something else caused the error
       return {
         success: false,
         error: error.message || 'Failed to generate content. Please try again.'
@@ -176,18 +165,18 @@ const saveToGenerationHistory = (generation) => {
     // Get existing history
     const historyJSON = localStorage.getItem('specgen-history');
     let history = historyJSON ? JSON.parse(historyJSON) : [];
-    
+
     // Add new generation at the beginning
     history = [generation, ...history];
-    
+
     // Keep only the last 100 generations (increased limit)
     if (history.length > 100) {
       history = history.slice(0, 100);
     }
-    
+
     // Save back to localStorage
     localStorage.setItem('specgen-history', JSON.stringify(history));
-    
+
     console.log('Saved new story to history:', generation.id);
   } catch (error) {
     console.error('Error saving to generation history:', error);
@@ -199,114 +188,53 @@ const saveToGenerationHistory = (generation) => {
  * @param {Object} filters - Optional filters for stories
  * @returns {Promise<Object>} Promise resolving to previous generations
  */
-/**
- * Fetch previous generations from history
- * @param {Object} filters - Optional filters for stories
- * @returns {Promise<Object>} Promise resolving to previous generations
- */
 export const fetchPreviousGenerations = async (filters = {}) => {
   try {
-    // Use the API endpoint instead of localStorage
+    // Make API call to fetch stories
     const response = await api.get('/content');
-    
-    // Get local stories
-    const localStories = loadLocalGenerations();
-    
+
     // If API call succeeded
-    let stories = [];
     if (response.data && response.data.success) {
-      stories = response.data.data || [];
-      
-      // Filter to only include stories that have both content and images
-      stories = stories.filter(story => story.content && (story.imageData || story.imageUrl));
-      
-      console.log(`Loaded ${stories.length} stories with both text and images from API`);
-    }
-    
-    // Combine with local stories
-    const combinedStories = [...stories];
-    
-    // Only add local stories that aren't already in the API response
-    localStories.forEach(localStory => {
-      // Check if this story exists in the API results
-      const exists = stories.some(apiStory => 
-        apiStory.id === localStory.id || 
-        (apiStory.title === localStory.title && 
-         apiStory.content === localStory.content)
-      );
-      
-      if (!exists) {
-        combinedStories.push(localStory);
+      let stories = response.data.data || [];
+
+      // Filter to only include stories with content
+      stories = stories.filter(story => story.content);
+
+      // Apply additional filters if provided
+      if (filters.year) {
+        stories = stories.filter(item =>
+          item.year === parseInt(filters.year, 10) ||
+          item.year?.toString() === filters.year
+        );
       }
-    });
-    
-    console.log(`Combined total: ${combinedStories.length} stories (API + local)`);
-    
-    // Apply additional filters if provided
-    let filteredStories = [...combinedStories];
-    
-    if (filters.year) {
-      filteredStories = filteredStories.filter(item => 
-        item.year === parseInt(filters.year, 10) || 
-        item.year?.toString() === filters.year
-      );
+
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        stories = stories.filter(item =>
+          (item.title && item.title.toLowerCase().includes(searchTerm)) ||
+          (item.content && item.content.toLowerCase().includes(searchTerm))
+        );
+      }
+
+      // Sort by created date (newest first by default)
+      if (filters.sort === 'oldest') {
+        stories.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      } else {
+        stories.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      }
+
+      return {
+        success: true,
+        data: stories
+      };
     }
-    
-    if (filters.search) {
-      const searchTerm = filters.search.toLowerCase();
-      filteredStories = filteredStories.filter(item => 
-        (item.title && item.title.toLowerCase().includes(searchTerm)) || 
-        (item.content && item.content.toLowerCase().includes(searchTerm))
-      );
-    }
-    
-    // Sort by created date (newest first by default)
-    if (filters.sort === 'oldest') {
-      filteredStories.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-    } else {
-      filteredStories.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    }
-    
-    return {
-      success: true,
-      data: filteredStories
-    };
+
+    // Fallback to local storage if API fails or returns no data
+    return fallbackToLocalStorage(filters);
   } catch (error) {
     console.error('Error fetching stories from API:', error);
     // Fallback to localStorage if API fails
-    return {
-      success: true,
-      data: loadLocalGenerations()
-    };
-  }
-};
-
-/**
- * Load story generations from local storage
- * @returns {Array} Array of locally stored stories
- */
-const loadLocalGenerations = () => {
-  try {
-    const historyJSON = localStorage.getItem('specgen-history');
-    const history = historyJSON ? JSON.parse(historyJSON) : [];
-    
-    // Process the data to ensure all fields are present
-    const processedHistory = history.map(item => ({
-      id: item.id || `gen-${Date.now() + Math.random()}`,
-      title: item.title || generateTitle(item.content),
-      content: item.content || '',
-      imageData: normalizeImageData(item.imageData),
-      createdAt: item.timestamp || item.createdAt || new Date().toISOString(),
-      year: item.year || null,
-      parameterValues: item.parameterValues || {},
-      metadata: item.metadata || {}
-    }));
-    
-    // Filter to ensure we only show stories with content
-    return processedHistory.filter(story => story.content);
-  } catch (error) {
-    console.error('Error loading local generations:', error);
-    return [];
+    return fallbackToLocalStorage(filters);
   }
 };
 
@@ -315,7 +243,7 @@ const fallbackToLocalStorage = (filters = {}) => {
   try {
     const historyJSON = localStorage.getItem('specgen-history');
     const history = historyJSON ? JSON.parse(historyJSON) : [];
-    
+
     // Process the data to ensure all fields are present
     const processedHistory = history.map(item => ({
       id: item.id || `gen-${Date.now() + Math.random()}`,
@@ -327,33 +255,33 @@ const fallbackToLocalStorage = (filters = {}) => {
       parameterValues: item.parameterValues || {},
       metadata: item.metadata || {}
     }));
-    
+
     console.log('Fallback: Using localStorage for stories');
-    
+
     // Apply filters
     let filteredHistory = [...processedHistory];
-    
+
     // Apply the same filters as in the main function
     if (filters.year) {
-      filteredHistory = filteredHistory.filter(item => 
+      filteredHistory = filteredHistory.filter(item =>
         item.year === parseInt(filters.year, 10)
       );
     }
-    
+
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
-      filteredHistory = filteredHistory.filter(item => 
-        (item.title && item.title.toLowerCase().includes(searchTerm)) || 
+      filteredHistory = filteredHistory.filter(item =>
+        (item.title && item.title.toLowerCase().includes(searchTerm)) ||
         (item.content && item.content.toLowerCase().includes(searchTerm))
       );
     }
-    
+
     if (filters.sort === 'oldest') {
       filteredHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     } else {
       filteredHistory.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
-    
+
     return {
       success: true,
       data: filteredHistory
@@ -375,7 +303,7 @@ const fallbackToLocalStorage = (filters = {}) => {
  */
 const normalizeImageData = (imageData) => {
   if (!imageData) return null;
-  
+
   if (typeof imageData === 'string') {
     if (imageData.startsWith('data:image')) {
       return imageData;
@@ -383,7 +311,7 @@ const normalizeImageData = (imageData) => {
       return `data:image/png;base64,${imageData}`;
     }
   }
-  
+
   return null;
 };
 
@@ -394,7 +322,7 @@ const normalizeImageData = (imageData) => {
  */
 const generateTitle = (content) => {
   if (!content) return 'Untitled Story';
-  
+
   // Look for **Title:** in the content
   if (content.includes('**Title:')) {
     const titleMatch = content.match(/\*\*Title:(.*?)\*\*/);
@@ -402,13 +330,13 @@ const generateTitle = (content) => {
       return titleMatch[1].trim();
     }
   }
-  
+
   // Take first sentence or first 40 characters
   const firstSentence = content.split(/[.!?]|\n/)[0].trim();
   if (firstSentence.length <= 40) {
     return firstSentence;
   }
-  
+
   return firstSentence.substring(0, 37) + '...';
 };
 
