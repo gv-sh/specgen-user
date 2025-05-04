@@ -1,12 +1,8 @@
 // src/pages/SelectedParameters.jsx
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Minus, Folder, Zap, Dices, RefreshCw, Trash2, Calendar } from 'lucide-react';
-import { Select } from '../components/ui/select';
-import { Slider } from '../components/ui/slider';
-import { Switch } from '../components/ui/switch';
-import { Checkbox } from '../components/ui/checkbox';
+import { Minus, Folder, Zap, Dices, RefreshCw, Trash2 } from 'lucide-react';
 import {
   Accordion,
   AccordionItem,
@@ -14,261 +10,9 @@ import {
   AccordionContent
 } from '../components/ui/accordion';
 import { cn } from '../lib/utils';
-
-// Parameter Value Input Component
-const ParameterValueInput = ({ parameter, value, onChange }) => {
-  switch (parameter.type) {
-    case 'Dropdown':
-      return (
-        <div className="relative w-full max-w-[400px]">
-          <Select
-            value={value || parameter.values[0]?.id || ''}
-            onChange={(e) => onChange(e.target.value)}
-            className="w-full h-9 rounded-md border bg-transparent px-3 py-1 text-sm appearance-none"
-          >
-            <option value="" disabled>
-              Select...
-            </option>
-            {parameter.values.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </Select>
-          {/* Custom dropdown arrow with proper spacing */}
-          <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4 opacity-70"
-            >
-              <path d="m6 9 6 6 6-6" />
-            </svg>
-          </div>
-        </div>
-      );
-
-    case 'Slider':
-      const config = parameter.config || {};
-      const min = config.min ?? 0;
-      const max = config.max ?? 100;
-      const step = config.step ?? 1;
-      const defaultValue = config.default ?? min;
-      const currentValue = value ?? defaultValue;
-      const minLabel = parameter.values?.[0]?.label;
-      const maxLabel = parameter.values?.[1]?.label;
-
-      return (
-        <div className="space-y-2 max-w-[400px]">
-          <div className="flex justify-between text-sm">
-            {minLabel ? (
-              <span className="text-xs">{minLabel}</span>
-            ) : (
-              <span className="text-xs text-muted-foreground">{min}</span>
-            )}
-            {maxLabel ? (
-              <span className="text-xs">{maxLabel}</span>
-            ) : (
-              <span className="text-xs text-muted-foreground">{max}</span>
-            )}
-          </div>
-
-          <div className="relative flex items-center h-6">
-            <Slider
-              min={min}
-              max={max}
-              step={step}
-              value={currentValue}
-              onValueChange={(newValue) => onChange(newValue)}
-              className="w-full"
-            />
-          </div>
-        </div>
-      );
-
-    case 'Toggle Switch':
-      return (
-        <div className="flex items-center justify-between">
-          <span className="text-sm">{value ? 'Enabled' : 'Disabled'}</span>
-          <Switch
-            checked={!!value}
-            onCheckedChange={(checked) => onChange(checked)}
-          />
-        </div>
-      );
-
-    case 'Checkbox':
-      return (
-        <div className="grid grid-cols-2 gap-2">
-          {parameter.values.map((option) => (
-            <div key={option.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={`checkbox-${parameter.id}-${option.id}`}
-                checked={(value || []).includes(option.id)}
-                onCheckedChange={(checked) => {
-                  const currentValue = value || [];
-                  const newValue = checked
-                    ? [...currentValue, option.id]
-                    : currentValue.filter((v) => v !== option.id);
-                  onChange(newValue);
-                }}
-              />
-              <label
-                htmlFor={`checkbox-${parameter.id}-${option.id}`}
-                className="text-sm"
-              >
-                {option.label}
-              </label>
-            </div>
-          ))}
-        </div>
-      );
-
-    case 'Radio':
-    case 'Radio Buttons':
-      return (
-        <div className="grid grid-cols-2 gap-2">
-          {parameter.values.map((option) => (
-            <div key={option.id} className="flex items-center space-x-2">
-              <input
-                type="radio"
-                id={`${parameter.id}-${option.id}`}
-                name={parameter.id}
-                value={option.id}
-                checked={value === option.id}
-                onChange={() => onChange(option.id)}
-                className="h-4 w-4"
-              />
-              <label
-                htmlFor={`${parameter.id}-${option.id}`}
-                className="text-sm"
-              >
-                {option.label}
-              </label>
-            </div>
-          ))}
-        </div>
-      );
-
-    default:
-      return <div>Unsupported parameter type: {parameter.type}</div>;
-  }
-};
-
-// Function to generate a random value for a parameter based on its type
-const randomizeParameterValue = (parameter) => {
-  switch (parameter.type) {
-    case 'Dropdown':
-    case 'Radio':
-    case 'Radio Buttons':
-      if (parameter.values?.length) {
-        const idx = Math.floor(Math.random() * parameter.values.length);
-        return parameter.values[idx].id;
-      }
-      return null;
-
-    case 'Slider': {
-      const config = parameter.config || {};
-      const min = config.min ?? 0;
-      const max = config.max ?? 100;
-      const step = config.step ?? 1;
-      const steps = Math.floor((max - min) / step);
-      const randomSteps = Math.floor(Math.random() * (steps + 1));
-      return min + randomSteps * step;
-    }
-
-    case 'Toggle Switch':
-      return Math.random() >= 0.5;
-
-    case 'Checkbox': {
-      if (parameter.values?.length) {
-        const result = [];
-        parameter.values.forEach((opt) => {
-          if (Math.random() >= 0.5) result.push(opt.id);
-        });
-        if (!result.length) {
-          const idx = Math.floor(Math.random() * parameter.values.length);
-          result.push(parameter.values[idx].id);
-        }
-        return result;
-      }
-      return [];
-    }
-
-    default:
-      return null;
-  }
-};
-
-// Year Input Component for selecting the story year
-const YearInput = ({ value, onChange }) => {
-  // Default year range from 2050 to 2150
-  const minYear = 2050;
-  const maxYear = 2150;
-  
-  // Generate random year in range
-  const generateRandomYear = () => {
-    const randomYear = Math.floor(Math.random() * (maxYear - minYear + 1)) + minYear;
-    onChange(randomYear);
-  };
-  
-  // Use current value or generate default
-  const currentYear = value || minYear;
-  
-  // Function to validate and handle year input
-  const handleYearChange = (e) => {
-    const inputYear = e.target.value;
-    const yearValue = parseInt(inputYear, 10);
-    
-    if (!isNaN(yearValue) && yearValue >= minYear && yearValue <= maxYear) {
-      onChange(yearValue);
-    }
-  };
-  
-  return (
-    <div className="space-y-2 p-3 bg-muted/40 rounded-md border border-input">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          <h3 className="text-sm font-medium">Story Year</h3>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={generateRandomYear}
-          className="h-6 px-2"
-          aria-label="Randomize year"
-          title="Randomize year"
-        >
-          <Dices className="h-3 w-3 mr-1" />
-          <span className="text-xs">Random</span>
-        </Button>
-      </div>
-      
-      <div className="relative w-full max-w-[400px]">
-        <input
-          type="number"
-          value={currentYear}
-          onChange={handleYearChange}
-          min={minYear}
-          max={maxYear}
-          placeholder="Enter year (2050-2150)"
-          className="w-full h-9 rounded-md border bg-transparent px-3 py-1 text-sm"
-        />
-        <div className="text-xs text-muted-foreground mt-1">
-          Enter a year between {minYear} and {maxYear} for your story
-        </div>
-      </div>
-    </div>
-  );
-};
+import ParameterValueInput from '../components/parameters/ParameterValueInput';
+import YearInput from '../components/parameters/YearInput';
+import { randomizeParameterValue } from '../utils/parameterUtils';
 
 const SelectedParameters = ({
   parameters,
@@ -277,10 +21,10 @@ const SelectedParameters = ({
   onNavigateToGenerate
 }) => {
   const [randomizing, setRandomizing] = useState(false);
-const [storyYear, setStoryYear] = useState(() => {
-  // Generate a random year between 2050 and 2150
-  return Math.floor(Math.random() * (2150 - 2050 + 1)) + 2050;
-});
+  const [storyYear, setStoryYear] = useState(() => {
+    // Generate a random year between 2050 and 2150
+    return Math.floor(Math.random() * (2150 - 2050 + 1)) + 2050;
+  });
   
   // Function to remove all parameters at once
   const handleRemoveAll = () => {
@@ -393,7 +137,7 @@ const [storyYear, setStoryYear] = useState(() => {
 
       <div className="flex-grow overflow-auto" style={{ height: "calc(100% - 96px)" }}>
         <div className="space-y-2">
-          {parametersByCategory.map((category, categoryIndex) => (
+          {parametersByCategory.map((category) => (
             <div 
               key={category.id}
               className="border border-input rounded-md overflow-hidden"
