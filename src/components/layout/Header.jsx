@@ -36,9 +36,9 @@ const Header = ({ onShowTour }) => {
             content="Anantabhavi: Infinite Imagination" 
             position="bottom"
           >
-            <a href="/" className="font-semibold text-lg">
+            <Link to="/" className="font-semibold text-lg">
               Anantabhavi
-            </a>
+            </Link>
           </Tooltip>
           
           <div className="ml-auto flex items-center">

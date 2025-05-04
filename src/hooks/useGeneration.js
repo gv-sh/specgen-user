@@ -18,6 +18,7 @@ export const useGeneration = (
   const [storyYear, setStoryYear] = useState(generateRandomYear());
   const [highlightedStoryId, setHighlightedStoryId] = useState(null);
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
+  const [lastGeneratedStoryId, setLastGeneratedStoryId] = useState(null);
 
   // Ref to prevent double loading
   const storiesLoaded = useRef(false);
@@ -30,7 +31,7 @@ export const useGeneration = (
     }
   }, []);
 
-  // In useGeneration.js - update loadStories function
+  // Load stories from API or local storage
   const loadStories = async () => {
     if (loading) return;
 
@@ -51,6 +52,7 @@ export const useGeneration = (
         if (cachedStories && cachedStories.length > 0) {
           setStories(cachedStories);
           setError(null); // Clear error on success
+          setLoading(false);
           return; // Exit early on success
         }
       }
@@ -79,6 +81,7 @@ export const useGeneration = (
           console.log('Falling back to cached stories data');
           setStories(cachedStories);
           setError(null); // Clear error if we have stories
+          setLoading(false);
           return;
         }
       }
@@ -99,6 +102,7 @@ export const useGeneration = (
     // Reset states
     setError(null);
     setGeneratedContent(null);
+    setLastGeneratedStoryId(null);
 
     // Use provided parameters or selected parameters
     const paramsToUse = providedParameters || selectedParameters;
@@ -168,9 +172,12 @@ export const useGeneration = (
           year: response.year || storyYear
         };
 
+        // Set the new story ID
+        newStoryId = newStory.id;
+        setLastGeneratedStoryId(newStoryId);
+
         // Update state with new story
         setActiveStory(newStory);
-        newStoryId = newStory.id;
 
         // Update stories array and cache
         const updatedStories = [newStory, ...stories];
@@ -255,6 +262,7 @@ export const useGeneration = (
     setStoryYear,
     highlightedStoryId,
     showRecoveryBanner,
+    lastGeneratedStoryId,
     handleGeneration,
     loadStories
   };

@@ -1,10 +1,13 @@
 // src/components/stories/StoryCard.jsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../ui/card';
 import { Calendar } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 const StoryCard = ({ story, isHighlighted, onClick }) => {
+  const navigate = useNavigate();
+  
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const options = { 
@@ -62,6 +65,15 @@ const StoryCard = ({ story, isHighlighted, onClick }) => {
     return "Untitled Story";
   };
   
+  // Handle click with custom handler or default navigation
+  const handleClick = () => {
+    if (onClick) {
+      onClick(story);
+    } else {
+      navigate(`/story?id=${story.id}`);
+    }
+  };
+  
   // Get image source
   const imageSource = getStoryImage(story);
 
@@ -71,7 +83,7 @@ const StoryCard = ({ story, isHighlighted, onClick }) => {
         "overflow-hidden hover:shadow-md transition-shadow cursor-pointer relative group",
         isHighlighted ? 'ring-2 ring-primary animate-pulse' : ''
       )}
-      onClick={onClick}
+      onClick={handleClick}
     >
       {imageSource && (
         <div className="h-48 w-full overflow-hidden">

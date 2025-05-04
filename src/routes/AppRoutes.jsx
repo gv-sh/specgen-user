@@ -4,6 +4,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ResponsiveLayout, { Column } from '../components/layout/ResponsiveLayout';
 import GuidedTour from '../components/GuidedTour';
 import StoryGenerator from '../components/stories/StoryGenerator';
+import GenerationControls from '../components/generation/GenerationControls';
 
 // Loading Spinner Component
 const LoadingSpinner = () => (
@@ -17,8 +18,33 @@ const Landing = lazy(() => import('../pages/Landing'));
 const Categories = lazy(() => import('../pages/Categories'));
 const Parameters = lazy(() => import('../pages/Parameters'));
 const SelectedParameters = lazy(() => import('../pages/SelectedParameters'));
-const Library = lazy(() => import('../pages/Generation')); // Using the Generation component as Library
+const Generation = lazy(() => import('../pages/Generation')); // Still using Generation for the generating route
 const About = lazy(() => import('../pages/About'));
+
+// Create simple components for Library and Story pages until we can properly implement the files
+const LibraryPage = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="bg-card rounded-md border shadow-sm h-full">
+      <Suspense fallback={<LoadingSpinner />}>
+        <Generation viewMode="library" />
+      </Suspense>
+    </div>
+  );
+};
+
+const StoryPage = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="bg-card rounded-md border shadow-sm h-full">
+      <Suspense fallback={<LoadingSpinner />}>
+        <Generation viewMode="story" />
+      </Suspense>
+    </div>
+  );
+};
 
 const AppRoutes = ({ 
   showTour,
@@ -63,7 +89,7 @@ const AppRoutes = ({
       sessionStorage.setItem('specgen-auto-generate', 'true');
       setGenerationInProgress(true);
     }
-    navigate('/library');
+    navigate('/generating');
   };
 
   const handleBackToHome = () => {
@@ -126,32 +152,48 @@ const AppRoutes = ({
         <Route path="/generating" element={
           <div className="bg-card rounded-md border shadow-sm h-full">
             <Suspense fallback={<LoadingSpinner />}>
-              <Library
+              <Generation
                 setGeneratedContent={setGeneratedContent}
                 generatedContent={generatedContent}
                 selectedParameters={selectedParameters}
                 setSelectedParameters={setSelectedParameters}
                 generationInProgress={true}
                 setGenerationInProgress={setGenerationInProgress}
-                onBackToHome={handleBackToHome}
-                loadingMode="generating" // Add a mode indicator
+                viewMode="generating"
               />
             </Suspense>
           </div>
         } />
 
-        {/* Library Page (formerly Generation) */}
-        <Route path="/library" element={
+        {/* Individual Story Page */}
+        <Route path="/story" element={
           <div className="bg-card rounded-md border shadow-sm h-full">
             <Suspense fallback={<LoadingSpinner />}>
-              <Library
+              <Generation
                 setGeneratedContent={setGeneratedContent}
                 generatedContent={generatedContent}
                 selectedParameters={selectedParameters}
                 setSelectedParameters={setSelectedParameters}
-                generationInProgress={false} // Force this to false for the library route
+                generationInProgress={false}
                 setGenerationInProgress={setGenerationInProgress}
-                onBackToHome={handleBackToHome}
+                viewMode="story"
+              />
+            </Suspense>
+          </div>
+        } />
+
+        {/* Library Page */}
+        <Route path="/library" element={
+          <div className="bg-card rounded-md border shadow-sm h-full">
+            <Suspense fallback={<LoadingSpinner />}>
+              <Generation
+                setGeneratedContent={setGeneratedContent}
+                generatedContent={generatedContent}
+                selectedParameters={selectedParameters}
+                setSelectedParameters={setSelectedParameters}
+                generationInProgress={false}
+                setGenerationInProgress={setGenerationInProgress}
+                viewMode="library"
               />
             </Suspense>
           </div>

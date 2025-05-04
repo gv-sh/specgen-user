@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../ui/button';
 import { Alert, AlertDescription } from '../ui/alert';
-import { PlusCircle, AlertTriangle } from 'lucide-react';
+import { PlusCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 import StoryCard from './StoryCard';
 import StoryFilters from './StoryFilters';
 import { EmptyLibrary, NoSearchResults } from './EmptyStates';
@@ -14,7 +14,8 @@ const StoryLibrary = ({
   onDeleteStory, 
   highlightedStoryId,
   loading,
-  error
+  error,
+  onReload // New prop for manual reload
 }) => {
   // State for filtering and search
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,6 +32,13 @@ const StoryLibrary = ({
   const clearFilters = () => {
     setSearchQuery('');
     setYearFilter('');
+  };
+
+  // Handle retry loading
+  const handleRetry = () => {
+    if (onReload && typeof onReload === 'function') {
+      onReload();
+    }
   };
   
   // Extract years from stories
@@ -101,8 +109,19 @@ const StoryLibrary = ({
       
       {error && (
         <Alert className="mb-6" variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertTriangle className="h-4 w-4 mr-2" />
+          <AlertDescription className="flex items-center justify-between w-full">
+            <span>{error}</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleRetry}
+              className="ml-4"
+            >
+              <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+              Retry
+            </Button>
+          </AlertDescription>
         </Alert>
       )}
       
