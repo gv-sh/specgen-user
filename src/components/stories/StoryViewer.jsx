@@ -2,7 +2,6 @@
 import React from 'react';
 import { Button } from '../ui/button';
 import { 
-  ChevronLeft, 
   Calendar, 
   Download, 
   Share, 
@@ -39,15 +38,6 @@ const StoryViewer = ({
     <div className="container max-w-6xl mx-auto h-full flex flex-col">
       {/* Header */}
       <header className="py-6 border-b">
-      <Button 
-        variant="ghost" 
-        onClick={onBackToLibrary} // Don't override this with your own implementation
-        className="mb-4"
-      >
-        <ChevronLeft className="h-4 w-4 mr-2" />
-        Back to Library
-      </Button>
-        
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold tracking-tight mb-2">{story.title}</h1>
@@ -81,7 +71,7 @@ const StoryViewer = ({
         </div>
       </header>
       
-      <div className="flex-1 overflow-auto py-8">
+      <div className="py-8">
         <div className="prose prose-lg max-w-3xl mx-auto">
           {story.imageData && (
             <div className="mb-8 not-prose">
@@ -124,15 +114,6 @@ const StoryViewer = ({
             >
               <Share className="h-4 w-4 mr-2" />
               Share
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={onEditStory}
-            >
-              <Pencil className="h-4 w-4 mr-2" />
-              Edit
             </Button>
           </div>
           

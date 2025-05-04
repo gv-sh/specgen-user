@@ -82,7 +82,7 @@ const StoryLibrary = ({
   }, [stories, yearFilter, searchQuery, sortOrder]);
 
   return (
-    <div className="container max-w-6xl mx-auto p-6 h-full">
+    <div className="container max-w-6xl mx-auto p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Your Stories</h1>
