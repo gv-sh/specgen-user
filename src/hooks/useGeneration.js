@@ -34,59 +34,77 @@ export const useGeneration = (
   // Load stories from API or local storage
   const loadStories = async () => {
     if (loading) return;
-
+  
     setLoading(true);
-    setError(null); // Reset error state at start
-
+    setError(null);
+  
     try {
-      // Check localStorage for cached data
-      const cachedStoriesJSON = localStorage.getItem('specgen-cached-stories');
-      const cachedTimestamp = localStorage.getItem('specgen-cached-timestamp');
-      const now = Date.now();
-      const cacheAge = cachedTimestamp ? now - parseInt(cachedTimestamp, 10) : Infinity;
-      const cacheValid = cacheAge < 5 * 60 * 1000; // 5 minutes cache validity
-
-      if (cachedStoriesJSON && cacheValid) {
-        console.log('Using cached stories data');
-        const cachedStories = JSON.parse(cachedStoriesJSON);
-        if (cachedStories && cachedStories.length > 0) {
-          setStories(cachedStories);
-          setError(null); // Clear error on success
-          setLoading(false);
-          return; // Exit early on success
-        }
-      }
-
-      // Fetch from API if cache invalid or empty
+      // Try to fetch from API first
       const response = await fetchPreviousGenerations();
+      
       if (response.success && response.data) {
         console.log(`Loaded ${response.data.length} stories from API`);
         setStories(response.data);
         setError(null);
-
-        // Update cache
-        localStorage.setItem('specgen-cached-stories', JSON.stringify(response.data));
-        localStorage.setItem('specgen-cached-timestamp', now.toString());
+        
+        // Store only minimal data in cache to avoid quota issues
+        try {
+          // Limit to fewer stories and strip large data
+          const minimalStories = response.data.slice(0, 5).map(story => ({
+            id: story.id,
+            title: story.title,
+            createdAt: story.createdAt,
+            year: story.year,
+            // Exclude content and imageData which take up most space
+            // Add a flag to indicate this is a minimal record
+            isMinimal: true
+          }));
+          
+          localStorage.setItem('specgen-cached-stories', JSON.stringify(minimalStories));
+          localStorage.setItem('specgen-cached-timestamp', Date.now().toString());
+        } catch (storageError) {
+          console.warn('Unable to cache stories due to storage limits');
+          // Clear other caches to make room
+          localStorage.removeItem('specgen-history');
+        }
       } else {
         throw new Error(response.error || 'Failed to load stories');
       }
     } catch (err) {
       console.error('Error fetching stories:', err);
-
-      // Try localStorage fallback even if cache expired
-      const cachedStoriesJSON = localStorage.getItem('specgen-cached-stories');
-      if (cachedStoriesJSON) {
-        const cachedStories = JSON.parse(cachedStoriesJSON);
-        if (cachedStories && cachedStories.length > 0) {
-          console.log('Falling back to cached stories data');
-          setStories(cachedStories);
-          setError(null); // Clear error if we have stories
-          setLoading(false);
-          return;
+      
+      // Try to load minimal data from cache as fallback
+      try {
+        const cachedStoriesJSON = localStorage.getItem('specgen-cached-stories');
+        if (cachedStoriesJSON) {
+          const cachedStories = JSON.parse(cachedStoriesJSON);
+          if (cachedStories && cachedStories.length > 0) {
+            console.log('Using cached minimal story data');
+            
+            // If stories are minimal, add placeholder content
+            const displayStories = cachedStories.map(story => {
+              if (story.isMinimal) {
+                return {
+                  ...story,
+                  content: "Content unavailable in offline mode. Please reconnect to view full content.",
+                  imageData: null
+                };
+              }
+              return story;
+            });
+            
+            setStories(displayStories);
+            setError(null);
+            setLoading(false);
+            return;
+          }
         }
+      } catch (cacheErr) {
+        // If we can't even read from cache, we're in trouble
+        console.error('Cache read error:', cacheErr);
       }
-
-      setError('Failed to load your story library');
+      
+      setError('Failed to load your story library. Storage quota may be exceeded.');
     } finally {
       setLoading(false);
     }

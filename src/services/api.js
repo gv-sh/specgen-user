@@ -169,15 +169,31 @@ const saveToGenerationHistory = (generation) => {
     // Add new generation at the beginning
     history = [generation, ...history];
 
-    // Keep only the last 100 generations (increased limit)
-    if (history.length > 100) {
-      history = history.slice(0, 100);
+    // Limit to 10 stories instead of 100
+    if (history.length > 10) {
+      history = history.slice(0, 10);
     }
 
-    // Save back to localStorage
-    localStorage.setItem('specgen-history', JSON.stringify(history));
+    // Remove imageData to save space
+    history = history.map(story => ({
+      ...story,
+      // Only store a reference to image, not the full base64 data
+      imageData: story.imageData ? 'stored-externally' : null
+    }));
 
-    console.log('Saved new story to history:', generation.id);
+    // Try to save, but catch quota errors
+    try {
+      localStorage.setItem('specgen-history', JSON.stringify(history));
+      console.log('Saved story to history:', generation.id);
+    } catch (storageError) {
+      if (storageError.name === 'QuotaExceededError') {
+        // Clear older items and try again with fewer items
+        localStorage.removeItem('specgen-cached-stories');
+        history = history.slice(0, 5);
+        localStorage.setItem('specgen-history', JSON.stringify(history));
+        console.warn('Storage quota nearly exceeded, reduced history size');
+      }
+    }
   } catch (error) {
     console.error('Error saving to generation history:', error);
   }
