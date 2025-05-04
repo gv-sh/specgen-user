@@ -39,14 +39,14 @@ const StoryViewer = ({
     <div className="container max-w-6xl mx-auto h-full flex flex-col">
       {/* Header */}
       <header className="py-6 border-b">
-        <Button 
-          variant="ghost" 
-          onClick={onBackToLibrary}
-          className="mb-4"
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Back to Library
-        </Button>
+      <Button 
+        variant="ghost" 
+        onClick={onBackToLibrary} // Don't override this with your own implementation
+        className="mb-4"
+      >
+        <ChevronLeft className="h-4 w-4 mr-2" />
+        Back to Library
+      </Button>
         
         <div className="flex items-center justify-between">
           <div>

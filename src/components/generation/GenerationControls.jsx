@@ -9,18 +9,16 @@ const GenerationControls = ({
   onBackToLibrary, 
   storyTitle 
 }) => {
-  // Render breadcrumbs for better navigation
   return (
     <nav className="flex mb-4" aria-label="Breadcrumb">
       <ol className="inline-flex items-center space-x-1 md:space-x-3">
-        {/* If we're viewing a story */}
         {(activeStory || generatedContent) ? (
           <>
             <li className="inline-flex items-center">
               <Button 
                 variant="link" 
                 className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground p-0 h-auto"
-                onClick={onBackToLibrary}
+                onClick={onBackToLibrary} // Make sure this calls the proper handler
               >
                 <BookOpen className="w-4 h-4 mr-2" />
                 Story Library

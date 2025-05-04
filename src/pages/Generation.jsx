@@ -46,6 +46,13 @@ const Generation = ({
     navigate('/parameters');
   };
 
+  const handleBackToLibrary = () => {
+    setActiveStory(null);
+    setGeneratedContent(null);
+    // If using React Router, you might need:
+    // navigate('/library', { replace: true });
+  };
+
   // Determine which view to show
   const renderContent = () => {
     // If we're loading and have no content yet
@@ -75,18 +82,12 @@ const Generation = ({
           <GenerationControls 
             activeStory={activeStory}
             generatedContent={generatedContent}
-            onBackToLibrary={() => {
-              setActiveStory(null);
-              setGeneratedContent(null);
-            }}
+            onBackToLibrary={handleBackToLibrary}
             storyTitle={storyTitle}
           />
           <StoryViewer
             story={storyToView}
-            onBackToLibrary={() => {
-              setActiveStory(null);
-              setGeneratedContent(null);
-            }}
+            onBackToLibrary={handleBackToLibrary}
             onRegenerateStory={handleGeneration}
             onCreateNew={handleCreateNew}
             onEditStory={onBackToHome}
