@@ -10,7 +10,7 @@ const GenerationControls = ({
   storyTitle 
 }) => {
   return (
-    <nav className="flex mb-4" aria-label="Breadcrumb">
+    <nav className="flex mb-4 px-6 pt-6" aria-label="Breadcrumb">
       <ol className="inline-flex items-center space-x-1 md:space-x-3">
         {(activeStory || generatedContent) ? (
           <>
@@ -18,7 +18,7 @@ const GenerationControls = ({
               <Button 
                 variant="link" 
                 className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground p-0 h-auto"
-                onClick={onBackToLibrary} // Make sure this calls the proper handler
+                onClick={onBackToLibrary}
               >
                 <BookOpen className="w-4 h-4 mr-2" />
                 Story Library
