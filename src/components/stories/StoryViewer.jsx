@@ -193,7 +193,7 @@ const StoryViewer = ({
               return null;
             }
             return (
-              <p key={index}>{paragraph}</p>
+              <p key={index} className="mb-4">{paragraph}</p>
             );
           })}
         </div>

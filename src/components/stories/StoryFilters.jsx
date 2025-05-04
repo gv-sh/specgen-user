@@ -46,7 +46,7 @@ const StoryFilters = ({
           <select
             value={yearFilter}
             onChange={(e) => onYearFilterChange(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-3 pr-9 text-sm"
+            className="h-9 w-32 rounded-md border border-input bg-background px-3 pr-9 text-sm"
           >
             <option value="">All Years</option>
             {allYears.map(year => (
