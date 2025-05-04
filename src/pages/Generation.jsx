@@ -1,15 +1,63 @@
 // src/pages/Generation.jsx
-import React from 'react';
-import { Alert, AlertDescription } from '../components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-
-// Import the new components
 import StoryLibrary from '../components/stories/StoryLibrary';
 import StoryViewer from '../components/stories/StoryViewer';
 import StoryGenerator from '../components/stories/StoryGenerator';
 import GenerationControls from '../components/generation/GenerationControls';
 import { useGeneration } from '../hooks/useGeneration';
+
+// Separate view components
+const GeneratingView = ({ loading, error, showRecoveryBanner, onGenerationComplete, handleBackToLibrary }) => (
+  <>
+    <GenerationControls
+      activeStory={null}
+      onBackToLibrary={handleBackToLibrary}
+      storyTitle="Generating..."
+    />
+    <StoryGenerator
+      loading={loading}
+      error={error}
+      showRecoveryBanner={showRecoveryBanner}
+      onGenerationComplete={onGenerationComplete}
+    />
+  </>
+);
+
+const StoryView = ({ activeStory, generatedContent, storyTitle, handleBackToLibrary, handleGeneration, handleCreateNew, loading }) => (
+  <>
+    <GenerationControls
+      activeStory={activeStory}
+      generatedContent={generatedContent}
+      onBackToLibrary={handleBackToLibrary}
+      storyTitle={activeStory?.title || storyTitle}
+    />
+    <StoryViewer
+      story={activeStory}
+      onBackToLibrary={handleBackToLibrary}
+      onRegenerateStory={handleGeneration}
+      onCreateNew={handleCreateNew}
+      loading={loading}
+    />
+  </>
+);
+
+const LibraryView = ({ stories, setActiveStory, handleCreateNew, highlightedStoryId, loading, error, storyTitle }) => (
+  <>
+    <GenerationControls
+      onBackToLibrary={() => {}}
+      storyTitle={storyTitle}
+    />
+    <StoryLibrary
+      stories={stories}
+      onStorySelect={setActiveStory}
+      onCreateNew={handleCreateNew}
+      highlightedStoryId={highlightedStoryId}
+      loading={loading}
+      error={error}
+    />
+  </>
+);
 
 const Generation = ({
   setGeneratedContent,
@@ -17,13 +65,11 @@ const Generation = ({
   selectedParameters,
   setSelectedParameters,
   generationInProgress,
-  setGenerationInProgress,
-  onBackToHome
+  setGenerationInProgress
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Use the extracted generation hook
   const {
     loading,
     error,
@@ -33,121 +79,79 @@ const Generation = ({
     storyTitle,
     showRecoveryBanner,
     highlightedStoryId,
-    handleGeneration,
-    currentGeneratedStory
+    handleGeneration
   } = useGeneration(
     selectedParameters,
     setSelectedParameters,
     setGenerationInProgress
   );
 
-  // Navigate to parameters page to create a new story
-  const handleCreateNew = () => {
-    navigate('/parameters');
-  };
-
+  const handleCreateNew = () => navigate('/parameters');
+  
   const handleBackToLibrary = () => {
     setActiveStory(null);
     setGeneratedContent(null);
-    // If using React Router, you might need:
-    // navigate('/library', { replace: true });
+  };
+
+  // Watch for generation completion
+  useEffect(() => {
+    // If we just completed generation and have an active story but still on generating route
+    if (!loading && activeStory && location.pathname === '/generating') {
+      // Navigate to library so we can see the story
+      navigate('/library');
+    }
+  }, [loading, activeStory, location.pathname, navigate]);
+
+  // Handle generation completion
+  const onGenerationComplete = () => {
+    setGenerationInProgress(false);
+    // The navigate happens in the useEffect above when loading completes
   };
 
   // Determine which view to show
-  const renderContent = () => {
+  const isGeneratingRoute = location.pathname === '/generating';
 
-    // Check the current path to determine if we're on the generating route
-    const isGeneratingRoute = window.location.pathname === '/generating';
-
-    // If we're generating a story
-    if (isGeneratingRoute || (generationInProgress && !activeStory)) {
-      return (
-        <>
-          <GenerationControls
-            activeStory={null}
-            generatedContent={null}
-            onBackToLibrary={() => {
-              if (!loading) {
-                handleBackToLibrary();
-              }
-            }}
-            storyTitle="Generating..."
-          />
-          <StoryGenerator
-            loading={loading}
-            error={error}
-            showRecoveryBanner={showRecoveryBanner}
-            onGenerationComplete={() => {
-              // When generation is complete, don't navigate - just set state
-              // The active story is already set in the hook
-            }}
-          />
-        </>
-      );
-    }
-    // Only show the generator UI when on the generating route OR explicitly generating
-    if (isGeneratingRoute || (generationInProgress && loading && !activeStory && !generatedContent)) {
-      return (
-        <>
-          <GenerationControls
-            activeStory={activeStory}
-            generatedContent={generatedContent}
-            onBackToLibrary={handleBackToLibrary}
-            storyTitle={storyTitle}
-          />
-          <StoryGenerator
-            loading={loading}
-            error={error}
-            showRecoveryBanner={showRecoveryBanner}
-          />
-        </>
-      );
-    }
-    // If we're viewing a story
-    if (activeStory || currentGeneratedStory) {
-      const storyToView = activeStory || currentGeneratedStory;
-      return (
-        <>
-          <GenerationControls
-            activeStory={activeStory}
-            generatedContent={generatedContent}
-            onBackToLibrary={handleBackToLibrary}
-            storyTitle={storyTitle}
-          />
-          <StoryViewer
-            story={storyToView}
-            onBackToLibrary={handleBackToLibrary}
-            onRegenerateStory={handleGeneration}
-            onCreateNew={handleCreateNew}
-            loading={loading}
-          />
-        </>
-      );
-    }
-    // Default: show the library
+  if (isGeneratingRoute || generationInProgress) {
     return (
-      <>
-        <GenerationControls
-          activeStory={activeStory}
-          generatedContent={generatedContent}
-          onBackToLibrary={() => setActiveStory(null)}
-          storyTitle={storyTitle}
-        />
-        <StoryLibrary
-          stories={stories}
-          onStorySelect={setActiveStory}
-          onCreateNew={handleCreateNew}
-          highlightedStoryId={highlightedStoryId}
+      <div className="bg-card rounded-md border shadow-sm h-full overflow-auto">
+        <GeneratingView
           loading={loading}
           error={error}
+          showRecoveryBanner={showRecoveryBanner}
+          onGenerationComplete={onGenerationComplete}
+          handleBackToLibrary={handleBackToLibrary}
         />
-      </>
+      </div>
     );
-  };
+  }
+
+  if (activeStory) {
+    return (
+      <div className="bg-card rounded-md border shadow-sm h-full overflow-auto">
+        <StoryView
+          activeStory={activeStory}
+          generatedContent={generatedContent}
+          storyTitle={storyTitle}
+          handleBackToLibrary={handleBackToLibrary}
+          handleGeneration={handleGeneration}
+          handleCreateNew={handleCreateNew}
+          loading={loading}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card rounded-md border shadow-sm h-full overflow-auto">
-      {renderContent()}
+      <LibraryView
+        stories={stories}
+        setActiveStory={setActiveStory}
+        handleCreateNew={handleCreateNew}
+        highlightedStoryId={highlightedStoryId}
+        loading={loading}
+        error={error}
+        storyTitle={storyTitle}
+      />
     </div>
   );
 };

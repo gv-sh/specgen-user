@@ -1,5 +1,5 @@
 // src/hooks/useGeneration.js
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { generateContent, fetchPreviousGenerations } from '../services/api';
 import { generateRandomYear } from '../utils/parameterUtils';
 
@@ -17,26 +17,59 @@ export const useGeneration = (
   const [storyTitle, setStoryTitle] = useState("Untitled Story");
   const [storyYear, setStoryYear] = useState(generateRandomYear());
   const [highlightedStoryId, setHighlightedStoryId] = useState(null);
+  const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
+  
+  // Ref to prevent double loading
+  const storiesLoaded = useRef(false);
   
   // Load stories only once when component mounts
   useEffect(() => {
-    loadStories();
+    if (!storiesLoaded.current) {
+      loadStories();
+      storiesLoaded.current = true;
+    }
   }, []);
   
-  // Load stories function
+  // Load stories function with caching
   const loadStories = async () => {
     if (loading) return;
     
     setLoading(true);
     try {
-      const response = await fetchPreviousGenerations();
-      if (response.success && response.data) {
-        console.log(`Loaded ${response.data.length} stories`);
-        setStories(response.data);
+      // Check localStorage for cached data
+      const cachedStoriesJSON = localStorage.getItem('specgen-cached-stories');
+      const cachedTimestamp = localStorage.getItem('specgen-cached-timestamp');
+      const now = Date.now();
+      const cacheAge = cachedTimestamp ? now - parseInt(cachedTimestamp, 10) : Infinity;
+      const cacheValid = cacheAge < 5 * 60 * 1000; // 5 minutes cache validity
+      
+      if (cachedStoriesJSON && cacheValid) {
+        console.log('Using cached stories data');
+        const cachedStories = JSON.parse(cachedStoriesJSON);
+        setStories(cachedStories);
+      } else {
+        // Fetch from API if cache invalid
+        const response = await fetchPreviousGenerations();
+        if (response.success && response.data) {
+          console.log(`Loaded ${response.data.length} stories from API`);
+          setStories(response.data);
+          
+          // Update cache
+          localStorage.setItem('specgen-cached-stories', JSON.stringify(response.data));
+          localStorage.setItem('specgen-cached-timestamp', now.toString());
+        }
       }
     } catch (err) {
       console.error('Error fetching stories:', err);
-      setError('Failed to load your story library');
+      
+      // Try localStorage fallback even if cache expired
+      const cachedStoriesJSON = localStorage.getItem('specgen-cached-stories');
+      if (cachedStoriesJSON) {
+        console.log('Falling back to cached stories data');
+        setStories(JSON.parse(cachedStoriesJSON));
+      } else {
+        setError('Failed to load your story library');
+      }
     } finally {
       setLoading(false);
     }
@@ -125,6 +158,12 @@ export const useGeneration = (
         setActiveStory(newStory);
         newStoryId = newStory.id;
         
+        // Update stories array and cache
+        const updatedStories = [newStory, ...stories];
+        setStories(updatedStories);
+        localStorage.setItem('specgen-cached-stories', JSON.stringify(updatedStories));
+        localStorage.setItem('specgen-cached-timestamp', Date.now().toString());
+        
       } else {
         setError(response.error || 'Generation failed');
       }
@@ -141,11 +180,11 @@ export const useGeneration = (
       
       return newStoryId;
     }
-  }, [storyYear, storyTitle, selectedParameters, setGenerationInProgress, loading]);
+  }, [storyYear, storyTitle, selectedParameters, setGenerationInProgress, loading, stories]);
 
   // Controlled generation for the "generating" route
   useEffect(() => {
-    // IMPORTANT: Only execute this logic on the specific generating route
+    // Only execute this logic on the specific generating route
     if (window.location.pathname !== '/generating') {
       return;
     }
@@ -173,6 +212,7 @@ export const useGeneration = (
           
           // Start generation
           if (parsedParams.length > 0) {
+            setShowRecoveryBanner(true);
             setGenerationInProgress(true);
             handleGeneration(parsedParams);
           }
@@ -200,6 +240,7 @@ export const useGeneration = (
     storyYear,
     setStoryYear,
     highlightedStoryId,
+    showRecoveryBanner,
     handleGeneration,
     loadStories
   };
