@@ -1,35 +1,4 @@
-// Utility functions for exporting generated content
-
-/**
- * Copy text content to clipboard
- * @param {string} text - Text to copy
- * @returns {Promise<boolean>} - Success status
- */
-export const copyToClipboard = async (text) => {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch (err) {
-    console.error('Failed to copy text: ', err);
-    // Fallback method
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    textArea.style.position = 'fixed';
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    
-    try {
-      const successful = document.execCommand('copy');
-      document.body.removeChild(textArea);
-      return successful;
-    } catch (err) {
-      console.error('Fallback copy failed: ', err);
-      document.body.removeChild(textArea);
-      return false;
-    }
-  }
-};
+// Updated exportUtils.js
 
 /**
  * Download text content as a file
@@ -70,4 +39,50 @@ export const downloadImage = (dataUrl, filename) => {
   setTimeout(() => {
     document.body.removeChild(link);
   }, 100);
+};
+
+/**
+ * Share content using Web Share API
+ * @param {Object} shareData - Data to share
+ */
+export const shareContent = async (shareData) => {
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+      return true;
+    } catch (err) {
+      console.error('Error sharing:', err);
+      return false;
+    }
+  } else {
+    console.warn('Web Share API not supported');
+    return false;
+  }
+};
+
+export const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    // Could add notification that content was copied
+    return true;
+  } catch (err) {
+    console.error('Failed to copy text: ', err);
+    // Fallback method
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      return successful;
+    } catch (fallbackErr) {
+      console.error('Fallback copy failed: ', fallbackErr);
+      document.body.removeChild(textArea);
+      return false;
+    }
+  }
 };

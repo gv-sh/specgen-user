@@ -26,7 +26,15 @@ const GeneratingView = ({ loading, error, showRecoveryBanner, onGenerationComple
   </>
 );
 
-const StoryView = ({ activeStory, generatedContent, storyTitle, handleBackToLibrary, handleGeneration, handleCreateNew, loading }) => (
+const StoryView = ({ 
+  activeStory, 
+  generatedContent, 
+  storyTitle, 
+  handleBackToLibrary, 
+  regenerateStory,
+  handleCreateNew, 
+  loading 
+}) => (
   <>
     <GenerationControls
       activeStory={activeStory}
@@ -37,7 +45,7 @@ const StoryView = ({ activeStory, generatedContent, storyTitle, handleBackToLibr
     <StoryViewer
       story={activeStory}
       onBackToLibrary={handleBackToLibrary}
-      onRegenerateStory={handleGeneration}
+      onRegenerateStory={() => regenerateStory(activeStory)}
       onCreateNew={handleCreateNew}
       loading={loading}
     />
@@ -68,7 +76,7 @@ const Generation = ({
   setSelectedParameters,
   generationInProgress,
   setGenerationInProgress,
-  viewMode = null // Default view mode
+  viewMode = null
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -84,7 +92,8 @@ const Generation = ({
     storyTitle,
     showRecoveryBanner,
     highlightedStoryId,
-    handleGeneration
+    handleGeneration,
+    regenerateStory
   } = useGeneration(
     selectedParameters,
     setSelectedParameters,
@@ -133,7 +142,7 @@ const Generation = ({
     // The navigate happens in the useEffect above when loading completes
   };
 
-  // Determine which view to show based on viewMode prop or URL
+  // Determine which view to show
   const determineViewMode = () => {
     if (viewMode === 'generating' || generationInProgress || location.pathname === '/generating') {
       return 'generating';
@@ -224,7 +233,7 @@ const Generation = ({
           generatedContent={generatedContent}
           storyTitle={storyTitle}
           handleBackToLibrary={handleBackToLibrary}
-          handleGeneration={handleGeneration}
+          regenerateStory={regenerateStory}
           handleCreateNew={handleCreateNew}
           loading={loading}
         />

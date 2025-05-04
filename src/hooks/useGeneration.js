@@ -31,15 +31,15 @@ export const useGeneration = (
     }
   }, []);
 
-  // Load stories from API or local storage
+  // Load stories from API or storage
   const loadStories = async () => {
     if (loading) return;
-  
+
     setLoading(true);
     setError(null);
-  
+
     try {
-      // Try to fetch from API first
+      // Try API first
       const response = await fetchPreviousGenerations();
       
       if (response.success && response.data) {
@@ -47,23 +47,24 @@ export const useGeneration = (
         setStories(response.data);
         setError(null);
         
-        // Store only minimal data in cache to avoid quota issues
+        // Store minimal data in cache to avoid quota issues
         try {
-          // Limit to fewer stories and strip large data
+          // Limit to 5 stories, strip large data
           const minimalStories = response.data.slice(0, 5).map(story => ({
             id: story.id,
             title: story.title,
             createdAt: story.createdAt,
             year: story.year,
-            // Exclude content and imageData which take up most space
-            // Add a flag to indicate this is a minimal record
+            // Store parameterValues for regeneration
+            parameterValues: story.parameterValues,
+            // Exclude content and imageData
             isMinimal: true
           }));
           
           localStorage.setItem('specgen-cached-stories', JSON.stringify(minimalStories));
           localStorage.setItem('specgen-cached-timestamp', Date.now().toString());
         } catch (storageError) {
-          console.warn('Unable to cache stories due to storage limits');
+          console.warn('Storage error:', storageError.message);
           // Clear other caches to make room
           localStorage.removeItem('specgen-history');
         }
@@ -73,15 +74,15 @@ export const useGeneration = (
     } catch (err) {
       console.error('Error fetching stories:', err);
       
-      // Try to load minimal data from cache as fallback
+      // Try localStorage fallback
       try {
         const cachedStoriesJSON = localStorage.getItem('specgen-cached-stories');
         if (cachedStoriesJSON) {
           const cachedStories = JSON.parse(cachedStoriesJSON);
           if (cachedStories && cachedStories.length > 0) {
-            console.log('Using cached minimal story data');
+            console.log('Using cached story data');
             
-            // If stories are minimal, add placeholder content
+            // Add placeholder content for minimal stories
             const displayStories = cachedStories.map(story => {
               if (story.isMinimal) {
                 return {
@@ -100,57 +101,56 @@ export const useGeneration = (
           }
         }
       } catch (cacheErr) {
-        // If we can't even read from cache, we're in trouble
-        console.error('Cache read error:', cacheErr);
+        console.error('Cache error:', cacheErr);
       }
       
-      setError('Failed to load your story library. Storage quota may be exceeded.');
+      setError('Failed to load story library. Storage quota may be exceeded.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Single generation function
+  // Handle generation with proper parameter handling
   const handleGeneration = useCallback(async (providedParameters = null) => {
-    // Prevent multiple generations
     if (loading) return null;
 
     let newStoryId = null;
-
-    // Reset states
     setError(null);
     setGeneratedContent(null);
     setLastGeneratedStoryId(null);
 
-    // Use provided parameters or selected parameters
+    // Handle both array and object formats for parameters
     const paramsToUse = providedParameters || selectedParameters;
+    let parameterValues = {};
 
-    // Validate parameters
-    if (!paramsToUse || paramsToUse.length === 0) {
-      setError('Please select at least one parameter');
-      return null;
-    }
-
-    // Check for parameters with missing values
-    const missingValueParams = paramsToUse.filter(p => p.value === undefined || p.value === null);
-    if (missingValueParams.length > 0) {
-      setError(`Please set values for all selected parameters.`);
-      return null;
-    }
-
-    try {
-      setLoading(true);
-
-      // Format parameters for API
-      const parameterValues = {};
+    // Check parameter type and format appropriately
+    if (Array.isArray(paramsToUse)) {
+      // Format is array of parameter objects - check for missing values
+      const missingValueParams = paramsToUse.filter(p => p.value === undefined || p.value === null);
+      if (missingValueParams.length > 0) {
+        setError(`Please set values for all selected parameters.`);
+        return null;
+      }
+      
+      // Format for API
       paramsToUse.forEach(param => {
         if (!parameterValues[param.categoryId]) {
           parameterValues[param.categoryId] = {};
         }
         parameterValues[param.categoryId][param.id] = param.value;
       });
+    } else if (typeof paramsToUse === 'object' && paramsToUse !== null) {
+      // Format is already the nested object structure
+      parameterValues = paramsToUse;
+    } else {
+      setError('Invalid parameter format');
+      return null;
+    }
 
-      // Make the API call
+    try {
+      setLoading(true);
+
+      // Make API call
       const response = await generateContent(
         parameterValues,
         Object.keys(parameterValues),
@@ -159,7 +159,6 @@ export const useGeneration = (
         null
       );
 
-      // Handle successful generation
       if (response.success) {
         if (response.content) {
           setGeneratedContent(response.content);
@@ -190,19 +189,30 @@ export const useGeneration = (
           year: response.year || storyYear
         };
 
-        // Set the new story ID
         newStoryId = newStory.id;
         setLastGeneratedStoryId(newStoryId);
-
-        // Update state with new story
         setActiveStory(newStory);
 
-        // Update stories array and cache
-        const updatedStories = [newStory, ...stories];
-        setStories(updatedStories);
-        localStorage.setItem('specgen-cached-stories', JSON.stringify(updatedStories));
-        localStorage.setItem('specgen-cached-timestamp', Date.now().toString());
-
+        // Update stories array with minimal cache
+        try {
+          const updatedStories = [newStory, ...stories];
+          setStories(updatedStories);
+          
+          // Create minimal version for storage
+          const minimalStories = updatedStories.slice(0, 5).map(s => ({
+            id: s.id,
+            title: s.title,
+            createdAt: s.createdAt,
+            year: s.year,
+            parameterValues: s.parameterValues,
+            isMinimal: true
+          }));
+          
+          localStorage.setItem('specgen-cached-stories', JSON.stringify(minimalStories));
+          localStorage.setItem('specgen-cached-timestamp', Date.now().toString());
+        } catch (storageError) {
+          console.warn('Storage error during cache update:', storageError.message);
+        }
       } else {
         setError(response.error || 'Generation failed');
       }
@@ -212,53 +222,112 @@ export const useGeneration = (
     } finally {
       setLoading(false);
       setGenerationInProgress(false);
-
-      // Clear generation flags
       sessionStorage.removeItem('specgen-auto-generate');
       sessionStorage.removeItem('specgen-generating');
-
       return newStoryId;
     }
   }, [storyYear, storyTitle, selectedParameters, setGenerationInProgress, loading, stories]);
 
-  // Controlled generation for the "generating" route
-  useEffect(() => {
-    // Only execute this logic on the specific generating route
-    if (window.location.pathname !== '/generating') {
-      return;
+  // Handle regeneration of a story
+  const regenerateStory = useCallback(async (storyToRegenerate) => {
+    if (!storyToRegenerate || loading) return null;
+    
+    try {
+      setLoading(true);
+      
+      // Use the parameterValues directly - they're already in the right format
+      const parameterValues = storyToRegenerate.parameterValues;
+      
+      // Set year to match original story
+      const yearToUse = storyToRegenerate.year || storyYear;
+      setStoryYear(yearToUse);
+      
+      // Generate with existing parameters
+      const response = await generateContent(
+        parameterValues,
+        Object.keys(parameterValues),
+        'combined',
+        yearToUse,
+        storyToRegenerate.title
+      );
+      
+      if (response.success) {
+        // Update story with new content
+        const updatedStory = {
+          ...storyToRegenerate,
+          content: response.content,
+          imageData: response.imageData?.startsWith('data:image')
+            ? response.imageData
+            : response.imageData ? `data:image/png;base64,${response.imageData}` : null,
+          updatedAt: new Date().toISOString()
+        };
+        
+        setActiveStory(updatedStory);
+        
+        // Update in stories array
+        const updatedStories = stories.map(story => 
+          story.id === storyToRegenerate.id ? updatedStory : story
+        );
+        setStories(updatedStories);
+        
+        // Update cache
+        try {
+          const minimalStories = updatedStories.slice(0, 5).map(s => ({
+            id: s.id,
+            title: s.title,
+            createdAt: s.createdAt,
+            year: s.year,
+            parameterValues: s.parameterValues,
+            isMinimal: true
+          }));
+          
+          localStorage.setItem('specgen-cached-stories', JSON.stringify(minimalStories));
+          localStorage.setItem('specgen-cached-timestamp', Date.now().toString());
+        } catch (storageError) {
+          console.warn('Storage error during regeneration:', storageError.message);
+        }
+        
+        return updatedStory.id;
+      } else {
+        setError(response.error || 'Regeneration failed');
+        return null;
+      }
+    } catch (err) {
+      console.error('Regeneration error:', err);
+      setError(err.message || 'Failed to regenerate content');
+      return null;
+    } finally {
+      setLoading(false);
     }
+  }, [loading, stories, storyYear]);
+
+  // Handle auto-generation logic
+  useEffect(() => {
+    if (window.location.pathname !== '/generating') return;
 
     const autoGenerate = sessionStorage.getItem('specgen-auto-generate');
     const isGenerating = sessionStorage.getItem('specgen-generating');
 
-    // Only generate if explicitly requested AND not already generating
     if (autoGenerate === 'true' && !isGenerating && !loading) {
-      // Set generating flag
       sessionStorage.setItem('specgen-generating', 'true');
 
       try {
-        // Get parameters from session storage
         const paramsString = sessionStorage.getItem('specgen-parameters');
-
         if (paramsString) {
           const parsedParams = JSON.parse(paramsString);
-
-          // Get year
           const yearString = sessionStorage.getItem('specgen-story-year');
           if (yearString) {
             setStoryYear(parseInt(yearString, 10));
           }
 
-          // Start generation
-          if (parsedParams.length > 0) {
+          if (parsedParams.length > 0 || (typeof parsedParams === 'object' && Object.keys(parsedParams).length > 0)) {
             setShowRecoveryBanner(true);
             setGenerationInProgress(true);
             handleGeneration(parsedParams);
           }
         }
       } catch (error) {
-        console.error('Error during generation:', error);
-        // Clear flags
+        console.error('Auto-generation error:', error);
         sessionStorage.removeItem('specgen-parameters');
         sessionStorage.removeItem('specgen-auto-generate');
         sessionStorage.removeItem('specgen-generating');
@@ -282,6 +351,7 @@ export const useGeneration = (
     showRecoveryBanner,
     lastGeneratedStoryId,
     handleGeneration,
+    regenerateStory,
     loadStories
   };
 };
