@@ -68,8 +68,6 @@ const StoryViewer = ({
             <h1 className="text-4xl font-bold tracking-tight mb-2">{story.title}</h1>
             <div className="flex items-center text-muted-foreground">
               <Calendar className="h-4 w-4 mr-2" />
-              <span>{formatDate(story.createdAt)}</span>
-              <span className="mx-2">•</span>
               <span>Year {story.year}</span>
             </div>
           </div>
@@ -149,8 +147,8 @@ const StoryViewer = ({
           
           {/* Collection info */}
           <div className="text-sm text-muted-foreground">
-            <span>From Anantabhavi •</span>
-            <span className="text-primary ml-1">Speculative Fiction</span>
+            <span>Generated on </span>
+            <span>{formatDate(story.createdAt)}</span>
           </div>
         </div>
       </footer>
