@@ -5,7 +5,6 @@ import {
   Calendar, 
   Download, 
   Share, 
-  Pencil, 
   RefreshCw, 
   PlusCircle
 } from 'lucide-react';
@@ -16,7 +15,6 @@ const StoryViewer = ({
   onBackToLibrary, 
   onRegenerateStory, 
   onCreateNew, 
-  onEditStory,
   loading
 }) => {
   // Parse content into paragraphs
@@ -33,6 +31,33 @@ const StoryViewer = ({
     };
     return date.toLocaleDateString('en-US', options);
   };
+  
+  // Enhanced image handling function
+  const getStoryImage = (story) => {
+    if (!story) return null;
+    
+    // Handle base64 image data
+    if (story.imageData) {
+      if (typeof story.imageData === 'string') {
+        // If it already starts with data:image, it's already properly formatted
+        if (story.imageData.startsWith('data:image')) {
+          return story.imageData;
+        } 
+        // Otherwise, assume it's raw base64 and add proper prefix
+        return `data:image/png;base64,${story.imageData}`;
+      }
+    }
+    
+    // Handle image URL if that's what the API returns
+    if (story.imageUrl) {
+      return story.imageUrl;
+    }
+    
+    return null;
+  };
+  
+  // Get the image source
+  const imageSource = getStoryImage(story);
   
   return (
     <div className="container max-w-6xl mx-auto h-full flex flex-col">
@@ -73,12 +98,17 @@ const StoryViewer = ({
       
       <div className="py-8">
         <div className="prose prose-lg max-w-3xl mx-auto">
-          {story.imageData && (
+          {imageSource && (
             <div className="mb-8 not-prose">
               <img 
-                src={story.imageData} 
+                src={imageSource} 
                 alt={story.title} 
-                className="w-full h-auto rounded-lg shadow-md" 
+                className="w-full h-auto rounded-lg shadow-md"
+                onError={(e) => {
+                  console.error("Story image failed to load:", imageSource);
+                  e.target.onerror = null;
+                  e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
+                }}
               />
             </div>
           )}

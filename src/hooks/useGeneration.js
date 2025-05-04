@@ -1,4 +1,4 @@
-// src/hooks/useGeneration.js
+// src/hooks/useGeneration.js - Updated to better handle API integration
 import { useState, useCallback, useEffect } from 'react';
 import { generateContent, fetchPreviousGenerations } from '../services/api';
 import { generateRandomYear } from '../utils/parameterUtils';
@@ -25,15 +25,24 @@ export const useGeneration = (
   // Load stories
   useEffect(() => {
     const loadStories = async () => {
+      setLoading(true);
       try {
         const response = await fetchPreviousGenerations();
         
         if (response.success && response.data) {
-          setStories(response.data);
+          // Filter to only show stories with both content and images
+          const storiesWithBoth = response.data.filter(
+            story => story.content && (story.imageData || story.imageUrl)
+          );
+          
+          console.log(`Loaded ${storiesWithBoth.length} stories with both content and images`);
+          setStories(storiesWithBoth);
         }
       } catch (err) {
         console.error('Error fetching stories:', err);
         setError('Failed to load your story library');
+      } finally {
+        setLoading(false);
       }
     };
     
@@ -126,7 +135,11 @@ export const useGeneration = (
 
         // Set generated image with proper formatting
         if (response.imageData) {
-          setGeneratedImage(`data:image/png;base64,${response.imageData}`);
+          // Ensure correct format with data:image prefix
+          const imageData = response.imageData.startsWith('data:image') 
+            ? response.imageData 
+            : `data:image/png;base64,${response.imageData}`;
+          setGeneratedImage(imageData);
         }
 
         // Set metadata
@@ -140,17 +153,23 @@ export const useGeneration = (
           title: response.title || storyTitle || "Untitled Story",
           createdAt: new Date().toISOString(),
           content: response.content,
-          imageData: response.imageData ? `data:image/png;base64,${response.imageData}` : null,
+          imageData: response.imageData?.startsWith('data:image') 
+            ? response.imageData 
+            : response.imageData ? `data:image/png;base64,${response.imageData}` : null,
           parameterValues,
           metadata: response.metadata,
           year: response.year || yearToUse
         };
         
-        // Add to stories and reload from localStorage
+        // Reload all stories after generation
         setTimeout(() => {
           fetchPreviousGenerations().then(result => {
             if (result.success) {
-              setStories(result.data);
+              // Filter to ensure we only show stories with both text and images
+              const storiesWithBoth = result.data.filter(
+                story => story.content && (story.imageData || story.imageUrl)
+              );
+              setStories(storiesWithBoth);
             }
           });
         }, 500);

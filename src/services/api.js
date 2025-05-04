@@ -189,8 +189,62 @@ const saveToGenerationHistory = (generation) => {
  */
 export const fetchPreviousGenerations = async (filters = {}) => {
   try {
-    // In a real app, this would be an API call
-    // For now, we'll use localStorage
+    // Use the API endpoint instead of localStorage
+    const response = await api.get('/content');
+    
+    // If API call succeeded
+    if (response.data && response.data.success) {
+      let stories = response.data.data || [];
+      
+      // Filter to only include stories that have both content and images
+      stories = stories.filter(story => story.content && (story.imageData || story.imageUrl));
+      
+      console.log(`Loaded ${stories.length} stories with both text and images`);
+      
+      // Apply additional filters if provided
+      let filteredStories = [...stories];
+      
+      if (filters.year) {
+        filteredStories = filteredStories.filter(item => 
+          item.year === parseInt(filters.year, 10) || 
+          item.year?.toString() === filters.year
+        );
+      }
+      
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        filteredStories = filteredStories.filter(item => 
+          (item.title && item.title.toLowerCase().includes(searchTerm)) || 
+          (item.content && item.content.toLowerCase().includes(searchTerm))
+        );
+      }
+      
+      // Sort by created date (newest first by default)
+      if (filters.sort === 'oldest') {
+        filteredStories.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      } else {
+        filteredStories.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      }
+      
+      return {
+        success: true,
+        data: filteredStories
+      };
+    } else {
+      console.warn('API response was not in expected format:', response.data);
+      // Fallback to localStorage if API fails
+      return fallbackToLocalStorage(filters);
+    }
+  } catch (error) {
+    console.error('Error fetching stories from API:', error);
+    // Fallback to localStorage if API fails
+    return fallbackToLocalStorage(filters);
+  }
+};
+
+// Fallback function for backward compatibility
+const fallbackToLocalStorage = (filters = {}) => {
+  try {
     const historyJSON = localStorage.getItem('specgen-history');
     const history = historyJSON ? JSON.parse(historyJSON) : [];
     
@@ -206,17 +260,18 @@ export const fetchPreviousGenerations = async (filters = {}) => {
       metadata: item.metadata || {}
     }));
     
-    // Apply filters if provided
+    console.log('Fallback: Using localStorage for stories');
+    
+    // Apply filters
     let filteredHistory = [...processedHistory];
     
-    // Year filter
+    // Apply the same filters as in the main function
     if (filters.year) {
       filteredHistory = filteredHistory.filter(item => 
         item.year === parseInt(filters.year, 10)
       );
     }
     
-    // Text search
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       filteredHistory = filteredHistory.filter(item => 
@@ -225,25 +280,21 @@ export const fetchPreviousGenerations = async (filters = {}) => {
       );
     }
     
-    // Sort
     if (filters.sort === 'oldest') {
       filteredHistory.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     } else {
-      // Default: newest first
       filteredHistory.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
-    
-    console.log(`Loaded ${filteredHistory.length} stories from history`);
     
     return {
       success: true,
       data: filteredHistory
     };
   } catch (error) {
-    console.error('Error fetching generation history:', error);
+    console.error('Error in localStorage fallback:', error);
     return {
       success: false,
-      error: 'Failed to fetch generation history',
+      error: 'Failed to fetch stories',
       data: []
     };
   }
