@@ -23,20 +23,17 @@ export const useGeneration = (
   const [recoveryAttempted, setRecoveryAttempted] = useState(false);
 
   // Load stories
+  // In useGeneration.js, modify the recovery effect
   useEffect(() => {
+
     const loadStories = async () => {
       setLoading(true);
       try {
         const response = await fetchPreviousGenerations();
         
         if (response.success && response.data) {
-          // Filter to only show stories with both content and images
-          const storiesWithBoth = response.data.filter(
-            story => story.content && (story.imageData || story.imageUrl)
-          );
-          
-          console.log(`Loaded ${storiesWithBoth.length} stories with both content and images`);
-          setStories(storiesWithBoth);
+          console.log(`Loaded ${response.data.length} stories`);
+          setStories(response.data);
         }
       } catch (err) {
         console.error('Error fetching stories:', err);
@@ -47,7 +44,60 @@ export const useGeneration = (
     };
     
     loadStories();
-  }, []);
+    
+    // Don't attempt recovery if we've already tried or if we have content
+    if (recoveryAttempted || activeStory || generatedContent) {
+      return;
+    }
+
+    // Check if we have saved parameters to recover generation
+    const savedParams = sessionStorage.getItem('specgen-parameters');
+    const autoGenerate = sessionStorage.getItem('specgen-auto-generate');
+    const wasGenerating = sessionStorage.getItem('specgen-generating');
+
+    // Only generate if explicitly requested AND not already generating
+    if (savedParams && autoGenerate === 'true' && !wasGenerating && !loading) {
+      try {
+        // Parse the parameters
+        const parsedParams = JSON.parse(savedParams);
+
+        // Check if we need to restore parameters
+        if (selectedParameters.length === 0 && parsedParams.length > 0) {
+          setSelectedParameters(parsedParams);
+          setShowRecoveryBanner(true);
+        }
+
+        // Clear the auto-generate flag BEFORE starting generation to prevent loops
+        sessionStorage.removeItem('specgen-auto-generate');
+
+        // Set generation lock
+        sessionStorage.setItem('specgen-generating', 'true');
+
+        // Trigger generation with the recovered parameters
+        if (!loading && !generatedContent && parsedParams.length > 0) {
+          setLoading(true);
+          handleGeneration(parsedParams).then(() => {
+            setShowRecoveryBanner(false);
+            setGenerationInProgress(false);
+            // Clear generating flag
+            sessionStorage.removeItem('specgen-generating');
+          });
+        }
+      } catch (error) {
+        console.error('Error recovering parameters:', error);
+        // Clear all flags to prevent repeated errors
+        sessionStorage.removeItem('specgen-parameters');
+        sessionStorage.removeItem('specgen-auto-generate');
+        sessionStorage.removeItem('specgen-generating');
+      }
+    } else {
+      // If not auto-generating, still clear the flag to prevent future unwanted generations
+      sessionStorage.removeItem('specgen-auto-generate');
+    }
+
+    // Mark recovery as attempted
+    setRecoveryAttempted(true);
+  }, [recoveryAttempted, activeStory, generatedContent, loading]);
 
   // Handle generation
   const handleGeneration = useCallback(async (providedParameters = null) => {
@@ -58,10 +108,10 @@ export const useGeneration = (
     setGeneratedImage('');
     setMetadata(null);
     setActiveStory(null);
-    
+
     // Use provided parameters or selected parameters
     const paramsToUse = providedParameters || selectedParameters;
-    
+
     // Use the current storyYear or generate a new random year if none exists
     let yearToUse;
     if (storyYear && storyYear.trim() !== '') {
@@ -94,20 +144,20 @@ export const useGeneration = (
 
       // Prepare parameters for API
       const parameterValues = {};
-      
+
       // Group parameters by category
       paramsToUse.forEach(param => {
         if (!parameterValues[param.categoryId]) {
           parameterValues[param.categoryId] = {};
         }
-        
+
         parameterValues[param.categoryId][param.id] = param.value;
       });
 
       // Call generation API with year parameter
       const response = await generateContent(
-        parameterValues, 
-        Object.keys(parameterValues), 
+        parameterValues,
+        Object.keys(parameterValues),
         'combined', // Default to combined for both fiction and image
         yearToUse,  // Pass the year parameter
         null        // No custom title for now
@@ -118,7 +168,7 @@ export const useGeneration = (
         // Set generated content
         if (response.content) {
           setGeneratedContent(response.content);
-          
+
           // Extract title from content or use default
           let extractedTitle = "Untitled Story";
           const contentLines = response.content.split('\n');
@@ -136,8 +186,8 @@ export const useGeneration = (
         // Set generated image with proper formatting
         if (response.imageData) {
           // Ensure correct format with data:image prefix
-          const imageData = response.imageData.startsWith('data:image') 
-            ? response.imageData 
+          const imageData = response.imageData.startsWith('data:image')
+            ? response.imageData
             : `data:image/png;base64,${response.imageData}`;
           setGeneratedImage(imageData);
         }
@@ -146,21 +196,21 @@ export const useGeneration = (
         if (response.metadata) {
           setMetadata(response.metadata);
         }
-        
+
         // Use the story object returned from the API
         const newStory = response.generatedStory || {
           id: `story-${Date.now()}`,
           title: response.title || storyTitle || "Untitled Story",
           createdAt: new Date().toISOString(),
           content: response.content,
-          imageData: response.imageData?.startsWith('data:image') 
-            ? response.imageData 
+          imageData: response.imageData?.startsWith('data:image')
+            ? response.imageData
             : response.imageData ? `data:image/png;base64,${response.imageData}` : null,
           parameterValues,
           metadata: response.metadata,
           year: response.year || yearToUse
         };
-        
+
         // Reload all stories after generation
         setTimeout(() => {
           fetchPreviousGenerations().then(result => {
@@ -173,9 +223,9 @@ export const useGeneration = (
             }
           });
         }, 500);
-        
+
         setActiveStory(newStory);
-        
+
         // Return the ID of the new story for highlighting
         newStoryId = newStory.id;
       } else {
@@ -184,7 +234,7 @@ export const useGeneration = (
       }
     } catch (err) {
       console.error('Generation error:', err);
-      
+
       // Handle different error types
       if (err.response) {
         setError(err.response.data?.error || `Server error: ${err.response.status}`);
@@ -224,18 +274,18 @@ export const useGeneration = (
     // Check if we have saved parameters to recover generation
     const savedParams = sessionStorage.getItem('specgen-parameters');
     const autoGenerate = sessionStorage.getItem('specgen-auto-generate');
-    
+
     if (savedParams && autoGenerate === 'true' && !loading) {
       try {
         // Parse the parameters
         const parsedParams = JSON.parse(savedParams);
-        
+
         // Check if we need to restore parameters
         if (selectedParameters.length === 0 && parsedParams.length > 0) {
           setSelectedParameters(parsedParams);
           setShowRecoveryBanner(true);
         }
-        
+
         // Trigger generation with the recovered parameters
         if (!loading && !generatedContent && parsedParams.length > 0) {
           // Clear the auto-generate flag
@@ -255,7 +305,7 @@ export const useGeneration = (
         sessionStorage.removeItem('specgen-auto-generate');
       }
     }
-    
+
     // Mark recovery as attempted
     setRecoveryAttempted(true);
   }, [recoveryAttempted, activeStory, generatedContent, loading, selectedParameters, setSelectedParameters, setGenerationInProgress, handleGeneration]);

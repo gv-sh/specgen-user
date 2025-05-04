@@ -3,6 +3,7 @@ import React, { Suspense, lazy, useState } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ResponsiveLayout, { Column } from '../components/layout/ResponsiveLayout';
 import GuidedTour from '../components/GuidedTour';
+import StoryGenerator from '../components/stories/StoryGenerator';
 
 // Loading Spinner Component
 const LoadingSpinner = () => (
@@ -120,6 +121,23 @@ const AppRoutes = ({
               </Suspense>
             </Column>
           </ResponsiveLayout>
+        } />
+
+        <Route path="/generating" element={
+          <div className="bg-card rounded-md border shadow-sm h-full">
+            <Suspense fallback={<LoadingSpinner />}>
+              <Library
+                setGeneratedContent={setGeneratedContent}
+                generatedContent={generatedContent}
+                selectedParameters={selectedParameters}
+                setSelectedParameters={setSelectedParameters}
+                generationInProgress={true}
+                setGenerationInProgress={setGenerationInProgress}
+                onBackToHome={handleBackToHome}
+                loadingMode="generating" // Add a mode indicator
+              />
+            </Suspense>
+          </div>
         } />
 
         {/* Library Page (formerly Generation) */}

@@ -13,6 +13,7 @@ import { cn } from '../lib/utils';
 import ParameterValueInput from '../components/parameters/ParameterValueInput';
 import YearInput from '../components/parameters/YearInput';
 import { randomizeParameterValue } from '../utils/parameterUtils';
+import { useNavigate } from 'react-router-dom';
 
 const SelectedParameters = ({
   parameters,
@@ -20,6 +21,7 @@ const SelectedParameters = ({
   onUpdateParameterValue,
   onNavigateToGenerate
 }) => {
+  const navigate = useNavigate();
   const [randomizing, setRandomizing] = useState(false);
   const [storyYear, setStoryYear] = useState(() => {
     // Generate a random year between 2050 and 2150
@@ -76,6 +78,19 @@ const SelectedParameters = ({
     }, 300);
   };
 
+  const handleGenerateClick = () => {
+    // Clear any existing generation flags first
+    sessionStorage.removeItem('specgen-generating');
+    
+    // Set new parameters
+    sessionStorage.setItem('specgen-parameters', JSON.stringify(parameters));
+    sessionStorage.setItem('specgen-story-year', storyYear.toString());
+    sessionStorage.setItem('specgen-auto-generate', 'true');
+    
+    // Navigate to generating route
+    navigate('/generating');
+  };
+  
   useEffect(() => {
     parameters
       .filter((p) => p.value == null)
@@ -232,23 +247,17 @@ const SelectedParameters = ({
       </div>
       
       <div className="sticky bottom-0 py-3 border-t border-input bg-card z-10 mt-auto">
-        <Button
-          variant="default"
-          onClick={() => {
-            // Pass the storyYear when navigating to library
-            sessionStorage.setItem('specgen-story-year', storyYear.toString());
-            // Also set a flag to indicate we should generate content on library page load
-            sessionStorage.setItem('specgen-auto-generate', 'true');
-            onNavigateToGenerate();
-          }}
-          disabled={!areAllConfigured}
-          className="w-full"
-        >
-          <Zap className="h-3.5 w-3.5 mr-2" />
-          {!areAllConfigured
-            ? 'Configure All Parameters First'
-            : 'Generate Content'}
-        </Button>
+      <Button
+        variant="default"
+        onClick={handleGenerateClick}
+        disabled={!areAllConfigured}
+        className="w-full"
+      >
+        <Zap className="h-3.5 w-3.5 mr-2" />
+        {!areAllConfigured
+          ? 'Configure All Parameters First'
+          : 'Generate Content'}
+      </Button>
       </div>
     </div>
   );
