@@ -19,7 +19,7 @@ const StoryLibrary = ({
   // State for filtering and search
   const [searchQuery, setSearchQuery] = useState('');
   const [yearFilter, setYearFilter] = useState('');
-  const [sortOrder, setSortOrder] = useState('newest'); // 'newest' or 'oldest'
+  const [sortOrder, setSortOrder] = useState('newest');
   const [allYears, setAllYears] = useState([]);
   
   // Handle search filter changes
@@ -33,28 +33,21 @@ const StoryLibrary = ({
     setYearFilter('');
   };
   
-  // Extract all available years from stories
-  const extractAvailableYears = (storyList = []) => {
+  // Extract years from stories
+  useEffect(() => {
     const years = new Set();
-    storyList.forEach(story => {
+    stories?.forEach(story => {
       if (story.year) {
         years.add(parseInt(story.year, 10));
       }
     });
-    return [...years].sort((a, b) => a - b);
-  };
-  
-  // Effect to set available years when stories change
-  useEffect(() => {
-    const years = extractAvailableYears(stories);
-    setAllYears(years);
+    setAllYears([...years].sort((a, b) => a - b));
   }, [stories]);
   
   // Filtered stories based on search and year filter
   const filteredStories = useMemo(() => {
     let filtered = [...(stories || [])];
     
-    // Apply year filter
     if (yearFilter) {
       filtered = filtered.filter(story => 
         story.year === parseInt(yearFilter, 10) || 
@@ -62,7 +55,6 @@ const StoryLibrary = ({
       );
     }
     
-    // Apply search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(story => 
@@ -71,7 +63,6 @@ const StoryLibrary = ({
       );
     }
     
-    // Apply sort order
     if (sortOrder === 'newest') {
       filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } else {
@@ -98,6 +89,16 @@ const StoryLibrary = ({
         </Button>
       </div>
       
+      {/* Loading indicator for stories */}
+      {loading && !stories?.length && (
+        <div className="my-8">
+          <p className="text-center text-sm text-muted-foreground mb-2">Loading your stories...</p>
+          <div className="w-full bg-muted rounded-full h-2 mb-4 mx-auto max-w-md">
+            <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+          </div>
+        </div>
+      )}
+      
       {error && (
         <Alert className="mb-6" variant="destructive">
           <AlertTriangle className="h-4 w-4" />
@@ -118,11 +119,11 @@ const StoryLibrary = ({
         />
       )}
       
-      {!stories || stories.length === 0 ? (
+      {!loading && (!stories || stories.length === 0) ? (
         <EmptyLibrary onCreateNew={onCreateNew} />
-      ) : filteredStories.length === 0 ? (
+      ) : !loading && filteredStories.length === 0 ? (
         <NoSearchResults onClearFilters={clearFilters} />
-      ) : (
+      ) : !loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredStories.map((story) => (
             <StoryCard 

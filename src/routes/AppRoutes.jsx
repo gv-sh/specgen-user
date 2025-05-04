@@ -149,7 +149,7 @@ const AppRoutes = ({
                 generatedContent={generatedContent}
                 selectedParameters={selectedParameters}
                 setSelectedParameters={setSelectedParameters}
-                generationInProgress={generationInProgress}
+                generationInProgress={false} // Force this to false for the library route
                 setGenerationInProgress={setGenerationInProgress}
                 onBackToHome={handleBackToHome}
               />

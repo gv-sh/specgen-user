@@ -11,18 +11,18 @@ import StoryGenerator from '../components/stories/StoryGenerator';
 import GenerationControls from '../components/generation/GenerationControls';
 import { useGeneration } from '../hooks/useGeneration';
 
-const Generation = ({ 
-  setGeneratedContent, 
-  generatedContent, 
-  selectedParameters, 
+const Generation = ({
+  setGeneratedContent,
+  generatedContent,
+  selectedParameters,
   setSelectedParameters,
   generationInProgress,
   setGenerationInProgress,
-  onBackToHome 
+  onBackToHome
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Use the extracted generation hook
   const {
     loading,
@@ -55,31 +55,34 @@ const Generation = ({
 
   // Determine which view to show
   const renderContent = () => {
-    // If we're loading and have no content yet
-    if (loading && !activeStory && !generatedContent) {
+
+    // Check the current path to determine if we're on the generating route
+    const isGeneratingRoute = window.location.pathname === '/generating';
+
+    // Only show the generator UI when on the generating route OR explicitly generating
+    if (isGeneratingRoute || (generationInProgress && loading && !activeStory && !generatedContent)) {
       return (
         <>
-          <GenerationControls 
+          <GenerationControls
             activeStory={activeStory}
             generatedContent={generatedContent}
-            onBackToLibrary={() => setActiveStory(null)}
+            onBackToLibrary={handleBackToLibrary}
             storyTitle={storyTitle}
           />
-          <StoryGenerator 
-            loading={loading} 
+          <StoryGenerator
+            loading={loading}
             error={error}
             showRecoveryBanner={showRecoveryBanner}
           />
         </>
       );
     }
-    
     // If we're viewing a story
     if (activeStory || currentGeneratedStory) {
       const storyToView = activeStory || currentGeneratedStory;
       return (
         <>
-          <GenerationControls 
+          <GenerationControls
             activeStory={activeStory}
             generatedContent={generatedContent}
             onBackToLibrary={handleBackToLibrary}
@@ -96,7 +99,7 @@ const Generation = ({
         </>
       );
     }
-    
+
     // Default: show the library
     return (
       <>
@@ -110,21 +113,10 @@ const Generation = ({
           stories={stories}
           onStorySelect={setActiveStory}
           onCreateNew={handleCreateNew}
-          onDeleteStory={() => {}} // Empty function as delete is removed
           highlightedStoryId={highlightedStoryId}
           loading={loading}
           error={error}
         />
-        
-        {/* Recovery Banner */}
-        {showRecoveryBanner && (
-          <Alert className="fixed bottom-16 left-1/2 transform -translate-x-1/2 z-50 max-w-md">
-            <AlertTriangle className="h-4 w-4 mr-2" />
-            <AlertDescription>
-              Resuming your story generation. Your parameters have been restored.
-            </AlertDescription>
-          </Alert>
-        )}
       </>
     );
   };

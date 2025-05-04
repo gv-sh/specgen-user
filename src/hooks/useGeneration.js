@@ -147,8 +147,10 @@ export const useGeneration = (
 
   // Controlled generation for the "generating" route
   useEffect(() => {
-    // Only run this if we're on the generating route and there's a pending generation
-    if (window.location.pathname !== '/generating') return;
+    // IMPORTANT: Only execute this logic on the specific generating route
+    if (window.location.pathname !== '/generating') {
+      return;
+    }
     
     const autoGenerate = sessionStorage.getItem('specgen-auto-generate');
     const isGenerating = sessionStorage.getItem('specgen-generating');
@@ -186,7 +188,7 @@ export const useGeneration = (
         setGenerationInProgress(false);
       }
     }
-  }, [handleGeneration, loading, setGenerationInProgress]);
+  }, [handleGeneration, loading, setGenerationInProgress]);  
 
   return {
     loading,
