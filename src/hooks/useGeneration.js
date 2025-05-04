@@ -125,8 +125,6 @@ export const useGeneration = (
         setActiveStory(newStory);
         newStoryId = newStory.id;
         
-        // Refresh stories list
-        setTimeout(loadStories, 500);
       } else {
         setError(response.error || 'Generation failed');
       }

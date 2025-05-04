@@ -1,6 +1,5 @@
 // src/components/stories/StoryGenerator.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { RefreshCw, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '../ui/alert';
 
@@ -8,40 +7,33 @@ const StoryGenerator = ({
   loading,
   error,
   showRecoveryBanner,
-  setGenerationInProgress
+  onGenerationComplete
 }) => {
-  const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
   const [generationError, setGenerationError] = useState(null);
 
   useEffect(() => {
     let progressInterval = null;
 
-    // Show progress animation
-    progressInterval = setInterval(() => {
-      setProgress(prev => {
-        if (prev >= 95) return 95;
-        return prev + 5;
-      });
-    }, 500);
+    if (loading) {
+      // Animate progress while loading
+      progressInterval = setInterval(() => {
+        setProgress(prev => Math.min(prev + 2, 95));
+      }, 500);
+    } else if (progress < 100) {
+      // Complete progress when loading ends
+      setProgress(100);
+      
+      // Signal completion after a brief delay to show 100%
+      setTimeout(() => {
+        if (onGenerationComplete) onGenerationComplete();
+      }, 500);
+    }
 
-    // Clean up
     return () => {
       if (progressInterval) clearInterval(progressInterval);
     };
-  }, []);
-
-  // When loading stops, set progress to 100% and redirect
-  useEffect(() => {
-    if (!loading && progress < 100) {
-      setProgress(100);
-      
-      // Redirect to library after completion
-      setTimeout(() => {
-        navigate('/library');
-      }, 500);
-    }
-  }, [loading, progress, navigate]);
+  }, [loading, progress, onGenerationComplete]);
 
   return (
     <div className="container max-w-6xl mx-auto h-full">
@@ -61,6 +53,12 @@ const StoryGenerator = ({
               className="bg-primary h-2.5 rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             ></div>
+          </div>
+          
+          {/* Warning message */}
+          <div className="text-sm text-amber-600 dark:text-amber-400 mt-6 mb-4 max-w-md mx-auto p-3 border border-amber-200 dark:border-amber-900 rounded-md bg-amber-50 dark:bg-amber-950/30">
+            <AlertTriangle className="h-4 w-4 inline-block mr-2" />
+            Please don't close this window or navigate away until generation is complete.
           </div>
 
           {/* Error message if any */}

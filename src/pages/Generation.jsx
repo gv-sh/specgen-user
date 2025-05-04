@@ -59,6 +59,32 @@ const Generation = ({
     // Check the current path to determine if we're on the generating route
     const isGeneratingRoute = window.location.pathname === '/generating';
 
+    // If we're generating a story
+    if (isGeneratingRoute || (generationInProgress && !activeStory)) {
+      return (
+        <>
+          <GenerationControls
+            activeStory={null}
+            generatedContent={null}
+            onBackToLibrary={() => {
+              if (!loading) {
+                handleBackToLibrary();
+              }
+            }}
+            storyTitle="Generating..."
+          />
+          <StoryGenerator
+            loading={loading}
+            error={error}
+            showRecoveryBanner={showRecoveryBanner}
+            onGenerationComplete={() => {
+              // When generation is complete, don't navigate - just set state
+              // The active story is already set in the hook
+            }}
+          />
+        </>
+      );
+    }
     // Only show the generator UI when on the generating route OR explicitly generating
     if (isGeneratingRoute || (generationInProgress && loading && !activeStory && !generatedContent)) {
       return (
@@ -93,17 +119,15 @@ const Generation = ({
             onBackToLibrary={handleBackToLibrary}
             onRegenerateStory={handleGeneration}
             onCreateNew={handleCreateNew}
-            onEditStory={onBackToHome}
             loading={loading}
           />
         </>
       );
     }
-
     // Default: show the library
     return (
       <>
-        <GenerationControls 
+        <GenerationControls
           activeStory={activeStory}
           generatedContent={generatedContent}
           onBackToLibrary={() => setActiveStory(null)}
