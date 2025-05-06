@@ -234,6 +234,7 @@ export const useGeneration = (
     
     try {
       setLoading(true);
+      setGenerationInProgress(true); // Set generation in progress to show loading UI
       
       // Use the parameterValues directly - they're already in the right format
       const parameterValues = storyToRegenerate.parameterValues;
@@ -241,6 +242,9 @@ export const useGeneration = (
       // Set year to match original story
       const yearToUse = storyToRegenerate.year || storyYear;
       setStoryYear(yearToUse);
+      
+      // Store the story ID we're regenerating for navigation after completion
+      sessionStorage.setItem('specgen-regenerating-story-id', storyToRegenerate.id);
       
       // Generate with existing parameters
       const response = await generateContent(
@@ -252,10 +256,12 @@ export const useGeneration = (
       );
       
       if (response.success) {
-        // Update story with new content
+        // Update story with new content and update title if provided in response
         const updatedStory = {
           ...storyToRegenerate,
           content: response.content,
+          // Update title if a new one is provided in the response
+          title: response.title || storyToRegenerate.title,
           imageData: response.imageData?.startsWith('data:image')
             ? response.imageData
             : response.imageData ? `data:image/png;base64,${response.imageData}` : null,
@@ -298,6 +304,7 @@ export const useGeneration = (
       return null;
     } finally {
       setLoading(false);
+      setGenerationInProgress(false);
     }
   }, [loading, stories, storyYear]);
 

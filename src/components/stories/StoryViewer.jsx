@@ -9,6 +9,7 @@ import {
   PlusCircle
 } from 'lucide-react';
 import { downloadTextFile, downloadImage } from '../../utils/exportUtils';
+import { useNavigate } from 'react-router-dom';
 
 const StoryViewer = ({ 
   story, 
@@ -17,6 +18,16 @@ const StoryViewer = ({
   onCreateNew, 
   loading
 }) => {
+  const navigate = useNavigate();
+  
+  // Handle regenerate button click
+  const handleRegenerateClick = () => {
+    // Navigate to the generating page first
+    navigate('/generating');
+    
+    // Then call the regeneration function
+    onRegenerateStory();
+  };
   // Parse content into paragraphs
   const contentParagraphs = story.content ? 
     story.content.split('\n\n').filter(p => p.trim()) : [];
@@ -152,7 +163,7 @@ const StoryViewer = ({
             <Button 
               variant="outline" 
               size="sm"
-              onClick={onRegenerateStory}
+              onClick={handleRegenerateClick}
               disabled={loading}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />

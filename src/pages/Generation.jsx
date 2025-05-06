@@ -134,6 +134,14 @@ const Generation = ({
   useEffect(() => {
     // If we just completed generation and have an active story but still on generating route
     if (!loading && activeStory && (location.pathname === '/generating' || viewMode === 'generating')) {
+      // Check if we're regenerating a story
+      const regeneratingStoryId = sessionStorage.getItem('specgen-regenerating-story-id');
+      
+      if (regeneratingStoryId && regeneratingStoryId === activeStory.id) {
+        // Clear the regenerating flag
+        sessionStorage.removeItem('specgen-regenerating-story-id');
+      }
+      
       // Navigate to story page instead of library
       navigate(`/story?id=${activeStory.id}`);
     }
