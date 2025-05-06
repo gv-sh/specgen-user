@@ -100,7 +100,10 @@ const Generation = ({
     setGenerationInProgress
   );
 
-  const handleCreateNew = () => navigate('/parameters');
+  const handleCreateNew = () => {
+    setSelectedParameters([]);
+    navigate('/parameters');
+  };
   
   const handleBackToLibrary = () => {
     setActiveStory(null);
