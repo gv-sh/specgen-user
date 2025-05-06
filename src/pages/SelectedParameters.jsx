@@ -291,27 +291,36 @@ const SelectedParameters = ({
           ))}
         </div>
       </div>
-
-      {/* Year Selection */}
-      <div className="m-3">
-        <YearInput 
-          value={storyYear} 
-          onChange={setStoryYear} 
-        />
-      </div>
       
       <div className="sticky bottom-0 p-3 border-t border-input bg-card z-10 mt-auto">
-      <Button
-        variant="default"
-        onClick={handleGenerateClick}
-        disabled={!areAllConfigured}
-        className="w-full"
-      >
-        <Zap className="h-3.5 w-3.5 mr-2" />
-        {!areAllConfigured
-          ? 'Configure All Parameters First'
-          : 'Generate Content'}
-      </Button>
+        <div className="flex gap-3 items-center">
+          <div className="w-1/3">
+            <div className="flex items-center h-10 text-sm">
+              <span className="mr-2 whitespace-nowrap text-xs font-medium">Story Year:</span>
+              <input
+                type="number"
+                min="2050"
+                max="2150"
+                value={storyYear}
+                onChange={(e) => setStoryYear(parseInt(e.target.value, 10))}
+                className="w-full h-8 px-2 py-1 border border-input rounded-md text-sm"
+              />
+            </div>
+          </div>
+          <Button
+            variant="default"
+            onClick={handleGenerateClick}
+            disabled={!areAllConfigured}
+            className="whitespace-nowrap h-10 flex-1"
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            <span className="font-medium">
+              {!areAllConfigured
+                ? 'Configure All Parameters'
+                : 'Generate Content'}
+            </span>
+          </Button>
+        </div>
       </div>
     </div>
   );
