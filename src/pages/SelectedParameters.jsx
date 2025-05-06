@@ -26,8 +26,8 @@ const SelectedParameters = ({
   const [randomizing, setRandomizing] = useState(false);
   const [newParameters, setNewParameters] = useState(new Set());
   const [storyYear, setStoryYear] = useState(() => {
-    // Generate a random year between 2050 and 2150
-    return Math.floor(Math.random() * (2150 - 2050 + 1)) + 2050;
+    // Generate a random year between 2026 and 2126
+    return Math.floor(Math.random() * (2126 - 2026 + 1)) + 2026;
   });
 
   // Track newly added parameters
@@ -322,24 +322,25 @@ const SelectedParameters = ({
       
       <div className="sticky bottom-0 p-3 border-t border-input bg-card z-10 mt-auto">
         <div className="flex gap-3 items-center">
-          <div className="w-1/3">
-            <div className="flex items-center h-10 text-sm">
-              <span className="mr-2 whitespace-nowrap text-xs font-medium">Story Year:</span>
-              <input
-                type="number"
-                min="2050"
-                max="2150"
-                value={storyYear}
-                onChange={(e) => setStoryYear(parseInt(e.target.value, 10))}
-                className="w-full h-8 px-2 py-1 border border-input rounded-md text-sm"
-              />
+          <div className="w-2/3 flex flex-col justify-center">
+            <div className="flex justify-between mb-1">
+              <span className="text-sm font-medium">Story Year: {storyYear}</span>
+              <span className="text-xs text-muted-foreground">2026-2126</span>
             </div>
+            <input
+              type="range"
+              min="2026"
+              max="2126"
+              value={storyYear}
+              onChange={(e) => setStoryYear(parseInt(e.target.value, 10))}
+              className="w-full h-2 bg-muted rounded-md appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
+            />
           </div>
           <Button
             variant="default"
             onClick={handleGenerateClick}
             disabled={!areAllConfigured}
-            className="whitespace-nowrap h-10 flex-1"
+            className="whitespace-nowrap h-10 w-1/3"
           >
             <Zap className="h-4 w-4 mr-2" />
             <span className="font-medium">
