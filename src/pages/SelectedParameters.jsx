@@ -200,16 +200,19 @@ const SelectedParameters = ({
             )}
             <Button
               variant="ghost"
-              size="icon"
+              size="sm"
               onClick={() => handleRandomize('all')}
               className={cn(
-                "h-7 w-7",
-                randomizing ? "animate-spin" : ""
+                "h-7 px-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md flex items-center gap-1.5",
+                "border border-purple-300 hover:border-purple-200 rounded-md transition-all duration-200",
+                "hover:shadow-lg hover:brightness-110 hover:-translate-y-px animate-shimmer",
+                randomizing ? "animate-pulse" : ""
               )}
               aria-label="Randomize all parameters"
               title="Randomize all parameters"
             >
-              <Dices className="h-3.5 w-3.5" />
+              <Dices className={cn("h-3.5 w-3.5", randomizing ? "animate-spin" : "")} />
+              <span className="text-xs font-medium">Randomize</span>
             </Button>
             <Button
               variant="ghost"
@@ -272,7 +275,7 @@ const SelectedParameters = ({
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleRandomize('parameter', null, parameter.id)}
-                                  className="h-6 w-6"
+                                  className="h-6 w-6 text-purple-500 hover:text-purple-600 hover:bg-purple-100/50"
                                   aria-label={`Randomize ${parameter.name}`}
                                   title={`Randomize ${parameter.name}`}
                                 >
