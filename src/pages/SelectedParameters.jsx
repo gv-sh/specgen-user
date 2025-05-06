@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Trash2, Folder, Zap, Dices } from 'lucide-react';
+import { Trash2, Folder, Zap, Dices, HelpCircle } from 'lucide-react';
 import {
   Accordion,
   AccordionItem,
@@ -19,7 +19,8 @@ const SelectedParameters = ({
   parameters,
   onRemoveParameter,
   onUpdateParameterValue,
-  onNavigateToGenerate
+  onNavigateToGenerate,
+  onShowTour
 }) => {
   const navigate = useNavigate();
   const [randomizing, setRandomizing] = useState(false);
@@ -157,10 +158,21 @@ const SelectedParameters = ({
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-md">
             <p className="text-sm font-medium mb-2">No parameters selected yet.</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mb-4">
               Browse the genres on the left, then add parameters from each genre
               to customize your story.
             </p>
+            {onShowTour && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={onShowTour}
+                className="mx-auto flex items-center gap-2"
+              >
+                <HelpCircle className="h-4 w-4" />
+                Take a Tour
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -173,6 +185,19 @@ const SelectedParameters = ({
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-medium text-foreground">Selected Parameters</h2>
           <div className="flex items-center gap-2">
+            {onShowTour && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onShowTour}
+                className="h-7 px-2 flex items-center gap-1.5"
+                aria-label="Take a guided tour"
+                title="Take a guided tour"
+              >
+                <HelpCircle className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-medium">Guided Tour</span>
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"

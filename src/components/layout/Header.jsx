@@ -88,20 +88,6 @@ const Header = ({ onShowTour }) => {
                   {item.name}
                 </Link>
               ))}
-              
-              {/* Conditionally render Tour option ONLY on Parameters page */}
-              {isParametersPage && onShowTour && (
-                <button
-                  onClick={() => {
-                    onShowTour();
-                    closeMenu();
-                  }}
-                  className="flex items-center w-full p-2 rounded-md text-sm text-muted-foreground hover:bg-accent/50"
-                >
-                  <HelpCircle className="h-4 w-4 mr-2" />
-                  Tour
-                </button>
-              )}
             </div>
           </div>
         </div>
