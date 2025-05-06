@@ -5,6 +5,7 @@ import ResponsiveLayout, { Column } from '../components/layout/ResponsiveLayout'
 import GuidedTour from '../components/GuidedTour';
 import StoryGenerator from '../components/stories/StoryGenerator';
 import GenerationControls from '../components/generation/GenerationControls';
+import { randomizeParameterValue } from '../utils/parameterUtils';
 
 // Loading Spinner Component
 const LoadingSpinner = () => (
@@ -60,11 +61,15 @@ const AppRoutes = ({
 }) => {
   const navigate = useNavigate();
 
-  // Parameter management handlers
   const handleParameterSelect = (parameter) => {
     // Prevent duplicates
     if (!selectedParameters.some(p => p.id === parameter.id)) {
-      setSelectedParameters(prev => [...prev, parameter]);
+      // Initialize the parameter with a random value
+      const initializedParameter = {
+        ...parameter,
+        value: randomizeParameterValue(parameter)
+      };
+      setSelectedParameters(prev => [initializedParameter, ...prev]);
     }
   };
 

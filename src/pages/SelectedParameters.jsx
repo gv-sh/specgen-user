@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Minus, Folder, Zap, Dices, RefreshCw, Trash2 } from 'lucide-react';
+import { Trash2, Folder, Zap, Dices } from 'lucide-react';
 import {
   Accordion,
   AccordionItem,
@@ -23,11 +23,42 @@ const SelectedParameters = ({
 }) => {
   const navigate = useNavigate();
   const [randomizing, setRandomizing] = useState(false);
+  const [newParameters, setNewParameters] = useState(new Set());
   const [storyYear, setStoryYear] = useState(() => {
     // Generate a random year between 2050 and 2150
     return Math.floor(Math.random() * (2150 - 2050 + 1)) + 2050;
   });
-  
+
+  // Track newly added parameters
+  useEffect(() => {
+    const handleNewParameter = (prevParams, currentParams) => {
+      // Only consider a parameter new if it wasn't in the previous state
+      const newIds = currentParams
+        .filter(param => !prevParams.some(p => p.id === param.id))
+        .map(param => param.id);
+      
+      if (newIds.length > 0) {
+        setNewParameters(prev => new Set([...prev, ...newIds]));
+        // Clear the highlight after animation
+        setTimeout(() => {
+          setNewParameters(prev => {
+            const updated = new Set(prev);
+            newIds.forEach(id => updated.delete(id));
+            return updated;
+          });
+        }, 1000);
+      }
+    };
+
+    // Keep track of previous parameters to detect new ones
+    const prevParameters = parameters;
+    return () => {
+      if (parameters !== prevParameters) {
+        handleNewParameter(prevParameters, parameters);
+      }
+    };
+  }, [parameters]);
+
   // Function to remove all parameters at once
   const handleRemoveAll = () => {
     // Call onRemoveParameter for each parameter
@@ -36,19 +67,39 @@ const SelectedParameters = ({
     });
   };
 
-  // Group and reverse for newest first
+  // Group parameters by category with new parameters first inside each category
   const parametersByCategory = useMemo(() => {
-    const grouped = {};
-    [...parameters].reverse().forEach((param) => {
+    // Step 1: Group parameters by category ID
+    const groupedByCategory = {};
+    
+    parameters.forEach(param => {
       const catId = param.categoryId || 'uncategorized';
       const catName = param.categoryName || 'Uncategorized';
-      if (!grouped[catId]) {
-        grouped[catId] = { id: catId, name: catName, parameters: [] };
+      
+      if (!groupedByCategory[catId]) {
+        groupedByCategory[catId] = {
+          id: catId,
+          name: catName,
+          newParams: [],
+          existingParams: []
+        };
       }
-      grouped[catId].parameters.unshift(param);
+      
+      // Add to the appropriate array based on whether it's new
+      if (newParameters.has(param.id)) {
+        groupedByCategory[catId].newParams.push(param);
+      } else {
+        groupedByCategory[catId].existingParams.push(param);
+      }
     });
-    return Object.values(grouped);
-  }, [parameters]);
+    
+    // Step 2: Create the final structure with new parameters first in each category
+    return Object.values(groupedByCategory).map(category => ({
+      id: category.id,
+      name: category.name,
+      parameters: [...category.newParams, ...category.existingParams]
+    }));
+  }, [parameters, newParameters]);
 
   const areAllConfigured = useMemo(() => {
     if (!parameters.length) return false;
@@ -118,7 +169,7 @@ const SelectedParameters = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="sticky top-0 z-10 bg-card pb-3">
+      <div className="sticky top-0 z-10 bg-card p-3">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-medium text-foreground">Selected Parameters</h2>
           <div className="flex items-center gap-2">
@@ -151,7 +202,7 @@ const SelectedParameters = ({
       </div>
 
       <div className="flex-grow overflow-auto" style={{ height: "calc(100% - 96px)" }}>
-        <div className="space-y-2">
+        <div className="space-y-3">
           {parametersByCategory.map((category) => (
             <div 
               key={category.id}
@@ -166,7 +217,7 @@ const SelectedParameters = ({
                   value={category.id}
                   className="border-none"
                 >
-                  <AccordionTrigger className="py-1 px-3 h-9 hover:no-underline">
+                  <AccordionTrigger className="p-3 hover:no-underline">
                     <div className="flex items-center gap-2">
                       <Folder className="h-3.5 w-3.5 text-muted-foreground" />
                       <span className="text-sm font-medium">{category.name}</span>
@@ -175,15 +226,18 @@ const SelectedParameters = ({
                       </Badge>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-3 pt-1 pb-2">
-                    <div className="space-y-0">
+                  <AccordionContent className="p-3">
+                    <div className="grid grid-cols-2 gap-4">
                       {category.parameters.map((parameter, paramIndex) => (
                         <div
                           key={parameter.id}
                           className={cn(
-                            "py-3",
-                            paramIndex !== 0 ? "border-t border-input" : ""
+                            "p-4 border border-input rounded-md relative",
+                            newParameters.has(parameter.id) && "animate-highlight"
                           )}
+                          style={{
+                            animationDelay: `${paramIndex * 100}ms`
+                          }}
                         >
                           <div className="space-y-2">
                             <div className="flex items-center justify-between">
@@ -207,7 +261,7 @@ const SelectedParameters = ({
                                   aria-label={`Remove ${parameter.name}`}
                                   title={`Remove ${parameter.name}`}
                                 >
-                                  <Minus className="h-3 w-3" />
+                                  <Trash2 className="h-3 w-3" />
                                 </Button>
                               </div>
                             </div>
@@ -239,14 +293,14 @@ const SelectedParameters = ({
       </div>
 
       {/* Year Selection */}
-      <div className="mb-4 mt-2">
+      <div className="m-3">
         <YearInput 
           value={storyYear} 
           onChange={setStoryYear} 
         />
       </div>
       
-      <div className="sticky bottom-0 py-3 border-t border-input bg-card z-10 mt-auto">
+      <div className="sticky bottom-0 p-3 border-t border-input bg-card z-10 mt-auto">
       <Button
         variant="default"
         onClick={handleGenerateClick}

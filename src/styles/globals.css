@@ -56,3 +56,16 @@ h1, h2, h3, h4, h5, h6 {
   .slide-in-from-bottom {
     transform: translateY(10px);
   }
+
+@keyframes highlight {
+  0% {
+    background-color: hsl(var(--primary) / 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animate-highlight {
+  animation: highlight 1s ease-out;
+}
