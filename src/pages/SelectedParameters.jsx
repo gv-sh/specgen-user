@@ -154,12 +154,12 @@ const SelectedParameters = ({
   if (!parameters.length) {
     return (
       <div className="h-full flex flex-col">
-        <h2 className="text-sm font-medium pb-3 text-foreground">Selected Parameters</h2>
+        <h2 className="text-sm font-medium pt-4 pb-3 text-foreground">Selected Parameters</h2>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-md">
             <p className="text-sm font-medium mb-2">No parameters selected yet.</p>
             <p className="text-xs text-muted-foreground mb-4">
-              Browse the genres on the left, then add parameters from each genre
+              Browse the categories on the left, then add parameters from each genre
               to customize your story.
             </p>
             {onShowTour && (
@@ -181,30 +181,34 @@ const SelectedParameters = ({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="sticky top-0 z-10 bg-card p-3">
+      <div className="sticky top-0 z-10 bg-card p-3 pl-0 pr-0">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium text-foreground">Selected Parameters</h2>
+          <div className="flex items-left gap-2">
+            <h2 className="text-sm font-medium text-foreground">Selected Parameters</h2>
+            <Badge variant="secondary" className = "rounded-4">{parameters.length}</Badge>
+          </div>
+          
           <div className="flex items-center gap-2">
             {onShowTour && (
               <Button
-                variant="ghost"
+                variant="link"
                 size="sm"
                 onClick={onShowTour}
                 className="h-7 px-2 flex items-center gap-1.5"
                 aria-label="Take a guided tour"
                 title="Take a guided tour"
               >
-                <HelpCircle className="h-3.5 w-3.5 text-primary" />
+                <HelpCircle className="h-3.5 w-3.5" />
                 <span className="text-xs font-medium">Guided Tour</span>
               </Button>
             )}
             <Button
-              variant="ghost"
+              variant="accent"
               size="sm"
               onClick={() => handleRandomize('all')}
               className={cn(
-                "h-7 px-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-md flex items-center gap-1.5",
-                "border border-purple-300 hover:border-purple-200 rounded-md transition-all duration-200",
+                "h-7 px-2 text-white shadow-md flex items-center gap-1.5",
+                "hover: rounded-md transition-all duration-200",
                 "hover:shadow-lg hover:brightness-110 hover:-translate-y-px animate-shimmer",
                 randomizing ? "animate-pulse" : ""
               )}
@@ -224,7 +228,7 @@ const SelectedParameters = ({
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
-            <Badge variant="outline">{parameters.length}</Badge>
+            
           </div>
         </div>
       </div>
@@ -249,7 +253,7 @@ const SelectedParameters = ({
                     <div className="flex items-center gap-2">
                       <Folder className="h-3.5 w-3.5 text-muted-foreground" />
                       <span className="text-sm font-medium">{category.name}</span>
-                      <Badge variant="outline" className="ml-1 text-xs">
+                      <Badge variant="secondary" className="ml-1 text-xs">
                         {category.parameters.length}
                       </Badge>
                     </div>
@@ -275,7 +279,7 @@ const SelectedParameters = ({
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleRandomize('parameter', null, parameter.id)}
-                                  className="h-6 w-6 text-purple-500 hover:text-purple-600 hover:bg-purple-100/50"
+                                  className="h-6 w-6 text-accent bg-0 hover:text-accent-foreground hover:bg-accent/100"
                                   aria-label={`Randomize ${parameter.name}`}
                                   title={`Randomize ${parameter.name}`}
                                 >

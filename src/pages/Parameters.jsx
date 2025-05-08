@@ -14,7 +14,7 @@ const MemoizedParameter = memo(({ parameter, onAddParameter, isSelected }) => {
       <h3 className="text-sm truncate">{parameter.name}</h3>
       <Button
         onClick={() => !isSelected && onAddParameter(parameter)}
-        variant={isSelected ? "secondary" : "outline"}
+        variant={isSelected ? "secondary" : "link_hover"}
         size="sm"
         disabled={isSelected}
         className="min-w-[60px] h-8"
@@ -130,13 +130,15 @@ const Parameters = ({
   return (
     <div className="space-y-4">
       {!currentCategory ? (
-        <div className="flex flex-col items-center justify-center h-[calc(100%-5rem)]">
-          <h3 className="text-sm font-medium mb-1">Select a Genre</h3>
+        <div className="flex flex-col items-left justify-center h-[calc(100%-5rem)]">
+          <h3 className="text-sm font-medium mb-1 pt-3">Add Parameters</h3>
           <p className="text-muted-foreground text-xs">
-            Choose a genre from the left panel to see parameters.
+            Choose a category from the left panel to see the parameters within it.
           </p>
         </div>
-      ) : filteredParameters?.length === 0 ? (
+      ) : 
+      
+      filteredParameters?.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[calc(100%-5rem)] text-center">
           {searchQuery ? (
             <>
@@ -153,13 +155,22 @@ const Parameters = ({
             <>
               <h3 className="text-sm font-medium mb-1">No parameters available</h3>
               <p className="text-muted-foreground text-xs">
-                Select a different genre to explore parameters.
+                Select a different category to explore parameters.
               </p>
             </>
           )}
         </div>
+        
       ) : (
-        <div className="max-h-[calc(100vh-160px)] overflow-auto">
+  
+        <div className="max-h-[calc(100vh-160px)] pt-3 overflow-auto">
+          <div className="flex flex-col items-left justify-center h-[calc(100%-5rem)]"> 
+            <h3 className=" text-sm font-medium mb-1">Add Parameters</h3>
+            <p className=" text-muted-foreground text-xs border-b pb-3">
+            Add the parameters you want to shape your story with.
+            </p>
+        </div>
+          
           {filteredParameters.map(parameter => (
             <MemoizedParameter
               key={parameter.id}

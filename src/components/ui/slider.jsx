@@ -30,7 +30,7 @@ const Slider = React.forwardRef(({
   };
 
   return (
-    <div className={cn("relative flex w-full touch-none select-none items-center", className)}>
+    <div className={cn("relative flex w-full touch-none select-none items-center primary", className)}>
       <input
         type="range"
         ref={ref}

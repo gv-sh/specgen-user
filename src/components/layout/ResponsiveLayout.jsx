@@ -55,7 +55,7 @@ export const Column = ({
         className
       )}
     >
-      <div className="h-full p-4 overflow-hidden">
+      <div className="h-full pl-4 pr-4 overflow-hidden">
         {children}
       </div>
     </div>

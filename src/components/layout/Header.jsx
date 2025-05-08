@@ -34,7 +34,7 @@ const Header = ({ onShowTour }) => {
           {/* Logo with Tooltip */}
           <Tooltip 
             content="Anantabhavi: Infinite Imagination" 
-            position="bottom"
+            position="right"
           >
             <Link to="/" className="font-semibold text-lg">
               Anantabhavi

@@ -81,7 +81,7 @@ const Categories = ({ onCategorySelect }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-full py-4">
-        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/50 border-t-primary"></div>
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary/100 border-t-primary"></div>
       </div>
     );
   }
@@ -105,7 +105,7 @@ const Categories = ({ onCategorySelect }) => {
   return (
     <div className="flex flex-col h-full space-y-4">
       <div>
-        <h2 className="text-sm font-medium text-foreground">Explore Genres</h2>
+        <h2 className="text-sm font-medium text-foreground pt-3">Select Category</h2>
       </div>
       
       <div className="flex-grow overflow-auto">
@@ -121,8 +121,8 @@ const Categories = ({ onCategorySelect }) => {
                 className={cn(
                   "flex w-full items-center justify-between px-3 py-2 text-sm rounded-md",
                   isSelected 
-                    ? "bg-accent text-accent-foreground" 
-                    : "hover:bg-accent/50 hover:text-accent-foreground"
+                    ? "bg-primary text-accent-foreground" 
+                    : "hover:bg-primary/100 hover:text-accent-foreground"
                 )}
                 onClick={() => handleCategorySelect(category)}
                 title={category.description || 'No description available'}

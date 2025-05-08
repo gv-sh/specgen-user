@@ -94,3 +94,7 @@ h1, h2, h3, h4, h5, h6 {
   background-blend-mode: soft-light;
   animation: shimmer 2.5s infinite;
 }
+
+@theme{
+  --spacing : 1px;
+}

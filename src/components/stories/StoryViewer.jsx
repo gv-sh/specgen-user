@@ -204,7 +204,7 @@ const StoryViewer = ({
               return null;
             }
             return (
-              <p key={index} className="mb-4">{paragraph}</p>
+              <p key={index} className=" text-sm/8  mb-4">{paragraph}</p>
             );
           })}
         </div>

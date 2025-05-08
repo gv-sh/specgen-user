@@ -19,10 +19,10 @@ const MainLayout = ({ children, onShowTour, className }) => {
     <div className={cn("min-h-screen bg-background text-foreground flex flex-col", className)}>
       <Header onShowTour={onShowTour} />
       
-      <main className={cn("flex-1 container pt-20 pb-16", libraryPadding)}>
+      <main className={cn("flex-1 pt-14 container", libraryPadding)}>
         <div className={useDynamicHeight 
           ? "min-h-[calc(100vh-theme(spacing.20)-theme(spacing.16))]" 
-          : "h-[calc(100vh-theme(spacing.20)-theme(spacing.16))]"}>
+          : "h-[calc(100vh-theme(spacing.14)-theme(spacing.13))] bg-background"}>
           {children}
         </div>
       </main>
