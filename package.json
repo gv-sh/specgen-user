@@ -1,7 +1,27 @@
 {
-  "name": "user",
+  "name": "@gv-sh/specgen-user",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "build/",
+    "public/",
+    "src/",
+    "package.json",
+    "README.md"
+  ],
+  "main": "build/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gv-sh/specgen-user.git"
+  },
+  "keywords": ["react", "fiction", "generator", "user-interface"],
+  "homepage": "https://github.com/gv-sh/specgen-user#readme",
+  "bugs": {
+    "url": "https://github.com/gv-sh/specgen-user/issues"
+  },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
@@ -27,7 +47,8 @@
     "start:alt": "cross-env REACT_APP_API_URL=http://localhost:3000 react-scripts start",
     "build": "cross-env REACT_APP_API_URL=http://localhost:3000 react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "prepublishOnly": "npm run build"
   },
   "eslintConfig": {
     "extends": [

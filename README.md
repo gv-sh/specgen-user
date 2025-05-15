@@ -32,7 +32,7 @@ The user interface for SpecGen, allowing users to generate speculative fiction b
    npm start
    ```
 
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Open [http://localhost:3002](http://localhost:3002) to view it in your browser.
 
 ## Building for Production
 
