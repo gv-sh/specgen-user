@@ -61,10 +61,10 @@ const StoryGenerator = ({
           </div>
 
           {/* Error message if any */}
-          {(error || generationError) && (
+          {error && (
             <Alert className="mt-4" variant="destructive">
               <AlertTriangle className="h-4 w-4 mr-2" />
-              <AlertDescription>{error || generationError}</AlertDescription>
+              <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
         </div>
