@@ -55,7 +55,7 @@
     "autoprefixer": "^10.4.16"
   },
   "scripts": {
-    "start": "cross-env PORT=3002 REACT_APP_API_URL=http://localhost:3000 node scripts/start.js",
+    "start": "cross-env PORT=3002 REACT_APP_API_URL=http://localhost:3000 react-scripts start",
     "start:alt": "cross-env REACT_APP_API_URL=http://localhost:3000 react-scripts start",
     "build": "cross-env REACT_APP_API_URL=http://localhost:3000 react-scripts build",
     "test": "react-scripts test",
