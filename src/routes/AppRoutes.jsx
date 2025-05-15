@@ -17,29 +17,8 @@ const Landing = lazy(() => import('../pages/Landing'));
 const Categories = lazy(() => import('../pages/Categories'));
 const Parameters = lazy(() => import('../pages/Parameters'));
 const SelectedParameters = lazy(() => import('../pages/SelectedParameters'));
-const Generation = lazy(() => import('../pages/Generation')); // Still using Generation for the generating route
+const Generation = lazy(() => import('../pages/Generation'));
 const About = lazy(() => import('../pages/About'));
-
-// Create simple components for Library and Story pages until we can properly implement the files
-const LibraryPage = () => {
-  return (
-    <div className="bg-card rounded-md border shadow-sm h-full">
-      <Suspense fallback={<LoadingSpinner />}>
-        <Generation viewMode="library" />
-      </Suspense>
-    </div>
-  );
-};
-
-const StoryPage = () => {
-  return (
-    <div className="bg-card rounded-md border shadow-sm h-full">
-      <Suspense fallback={<LoadingSpinner />}>
-        <Generation viewMode="story" />
-      </Suspense>
-    </div>
-  );
-};
 
 const AppRoutes = ({ 
   showTour,

@@ -23,7 +23,6 @@
     "generator",
     "user-interface"
   ],
-  "homepage": "https://github.com/gv-sh/specgen-user#readme",
   "bugs": {
     "url": "https://github.com/gv-sh/specgen-user/issues"
   },

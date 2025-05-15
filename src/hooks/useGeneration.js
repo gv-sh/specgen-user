@@ -16,7 +16,7 @@ export const useGeneration = (
   const [activeStory, setActiveStory] = useState(null);
   const [storyTitle, setStoryTitle] = useState("Untitled Story");
   const [storyYear, setStoryYear] = useState(generateRandomYear());
-  const [highlightedStoryId, setHighlightedStoryId] = useState(null);
+  const [highlightedStoryId] = useState(null);
   const [showRecoveryBanner, setShowRecoveryBanner] = useState(false);
   const [lastGeneratedStoryId, setLastGeneratedStoryId] = useState(null);
 
