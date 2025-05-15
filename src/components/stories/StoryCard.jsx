@@ -8,16 +8,6 @@ import { cn } from '../../lib/utils';
 const StoryCard = ({ story, isHighlighted, onClick }) => {
   const navigate = useNavigate();
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const options = {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    };
-    return date.toLocaleDateString('en-US', options);
-  };
-
   // Enhanced image handling function
   const getStoryImage = (story) => {
     if (!story) return null;

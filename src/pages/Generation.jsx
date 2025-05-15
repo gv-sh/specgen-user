@@ -92,7 +92,6 @@ const Generation = ({
     storyTitle,
     showRecoveryBanner,
     highlightedStoryId,
-    handleGeneration,
     regenerateStory
   } = useGeneration(
     selectedParameters,

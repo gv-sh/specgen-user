@@ -1,10 +1,8 @@
 // src/routes/AppRoutes.jsx
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import ResponsiveLayout, { Column } from '../components/layout/ResponsiveLayout';
 import GuidedTour from '../components/GuidedTour';
-import StoryGenerator from '../components/stories/StoryGenerator';
-import GenerationControls from '../components/generation/GenerationControls';
 import { randomizeParameterValue } from '../utils/parameterUtils';
 
 // Loading Spinner Component
@@ -24,8 +22,6 @@ const About = lazy(() => import('../pages/About'));
 
 // Create simple components for Library and Story pages until we can properly implement the files
 const LibraryPage = () => {
-  const navigate = useNavigate();
-  
   return (
     <div className="bg-card rounded-md border shadow-sm h-full">
       <Suspense fallback={<LoadingSpinner />}>
@@ -36,8 +32,6 @@ const LibraryPage = () => {
 };
 
 const StoryPage = () => {
-  const navigate = useNavigate();
-  
   return (
     <div className="bg-card rounded-md border shadow-sm h-full">
       <Suspense fallback={<LoadingSpinner />}>
@@ -95,11 +89,6 @@ const AppRoutes = ({
       setGenerationInProgress(true);
     }
     navigate('/generating');
-  };
-
-  const handleBackToHome = () => {
-    // Navigate to parameters page for editing
-    navigate('/parameters');
   };
 
   return (

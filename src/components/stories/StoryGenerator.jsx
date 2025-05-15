@@ -10,7 +10,6 @@ const StoryGenerator = ({
   onGenerationComplete
 }) => {
   const [progress, setProgress] = useState(0);
-  const [generationError, setGenerationError] = useState(null);
 
   useEffect(() => {
     let progressInterval = null;

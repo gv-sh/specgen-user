@@ -2,9 +2,8 @@
 import React, { useState, useEffect, useMemo, memo } from 'react';
 import { fetchParameters } from '../services/api';
 import { Alert, AlertDescription } from '../components/ui/alert';
-import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
-import { Search, X, ArrowLeft, Frown } from 'lucide-react';
+import { Frown } from 'lucide-react';
 
 
 // Memoized parameter component for performance

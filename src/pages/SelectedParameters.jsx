@@ -11,7 +11,6 @@ import {
 } from '../components/ui/accordion';
 import { cn } from '../lib/utils';
 import ParameterValueInput from '../components/parameters/ParameterValueInput';
-import YearInput from '../components/parameters/YearInput';
 import { randomizeParameterValue } from '../utils/parameterUtils';
 import { useNavigate } from 'react-router-dom';
 

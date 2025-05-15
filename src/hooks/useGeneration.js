@@ -23,16 +23,8 @@ export const useGeneration = (
   // Ref to prevent double loading
   const storiesLoaded = useRef(false);
 
-  // Load stories only once when component mounts
-  useEffect(() => {
-    if (!storiesLoaded.current) {
-      loadStories();
-      storiesLoaded.current = true;
-    }
-  }, []);
-
   // Load stories from API or storage
-  const loadStories = async () => {
+  const loadStories = useCallback(async () => {
     if (loading) return;
 
     setLoading(true);
@@ -108,7 +100,15 @@ export const useGeneration = (
     } finally {
       setLoading(false);
     }
-  };
+  }, [loading]);
+
+  // Load stories only once when component mounts
+  useEffect(() => {
+    if (!storiesLoaded.current) {
+      loadStories();
+      storiesLoaded.current = true;
+    }
+  }, [loadStories]);
 
   // Handle generation with proper parameter handling
   const handleGeneration = useCallback(async (providedParameters = null) => {
@@ -306,7 +306,7 @@ export const useGeneration = (
       setLoading(false);
       setGenerationInProgress(false);
     }
-  }, [loading, stories, storyYear]);
+  }, [loading, stories, storyYear, setGenerationInProgress]);
 
   // Handle auto-generation logic
   useEffect(() => {
