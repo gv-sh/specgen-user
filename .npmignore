@@ -43,3 +43,9 @@ CLAUDE.md
 
 # Build output (for dev only)
 coverage/
+
+# Exclude specific files but keep CSS and config
+!src/index.css
+!tailwind.config.js
+!postcss.config.js
+!src/config/shadcn.js
