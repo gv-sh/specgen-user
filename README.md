@@ -1,6 +1,6 @@
 # SpecGen User Interface
 
-[![Version](https://img.shields.io/badge/version-0.7.1-blue.svg)](https://github.com/gv-sh/specgen-user)
+[![Version](https://img.shields.io/badge/version-0.7.2-blue.svg)](https://github.com/gv-sh/specgen-user)
 
 The user interface for SpecGen, allowing users to generate speculative fiction based on selected parameters.
 
