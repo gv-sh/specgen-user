@@ -229,7 +229,7 @@ export const useGeneration = (
       sessionStorage.removeItem('specgen-generating');
       return newStoryId;
     }
-  }, [storyTitle, selectedParameters, setGenerationInProgress, loading, stories]);
+  }, [storyYear, storyTitle, selectedParameters, setGenerationInProgress, loading, stories]);
 
   // Handle regeneration of a story
   const regenerateStory = useCallback(async (storyToRegenerate) => {
@@ -351,7 +351,7 @@ export const useGeneration = (
         setGenerationInProgress(false);
       }
     }
-  }, [handleGeneration, loading, setGenerationInProgress]);
+  }, [handleGeneration, loading, setGenerationInProgress, storyYear]);
 
   return {
     loading,
