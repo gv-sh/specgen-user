@@ -173,7 +173,7 @@ const Generation = ({
 
   if (currentViewMode === 'generating') {
     return (
-      <div className="bg-card rounded-md border shadow-sm h-full overflow-auto">
+      <div className="bg-card rounded-md h-full overflow-auto">
         <GeneratingView
           loading={loading}
           error={error}
@@ -188,27 +188,27 @@ const Generation = ({
   if (currentViewMode === 'story') {
     // If we're in story mode but don't have an active story and are still loading
     if (!activeStory && loading) {
-      return (
-        <div className="bg-card rounded-md border shadow-sm h-full overflow-auto">
-          <GenerationControls
-            onBackToLibrary={handleBackToLibrary}
-            storyTitle="Loading story..."
-          />
-          <div className="flex items-center justify-center h-[calc(100%-4rem)]">
-            <div className="text-center">
-              <RefreshCw className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Loading story</h3>
-              <p className="text-muted-foreground">Please wait...</p>
-            </div>
-          </div>
-        </div>
-      );
+    return (
+    <div className="bg-card rounded-md h-full overflow-auto">
+    <GenerationControls
+    onBackToLibrary={handleBackToLibrary}
+    storyTitle="Loading story..."
+    />
+    <div className="flex items-center justify-center h-[calc(100%-4rem)]">
+    <div className="text-center">
+    <RefreshCw className="h-10 w-10 text-primary animate-spin mx-auto mb-4" />
+    <h3 className="text-lg font-medium mb-2">Loading story</h3>
+    <p className="text-muted-foreground">Please wait...</p>
+    </div>
+    </div>
+    </div>
+    );
     }
     
     // If we're in story mode but don't have an active story and aren't loading
     if (!activeStory && !loading) {
       return (
-        <div className="bg-card rounded-md border shadow-sm h-full overflow-auto">
+        <div className="bg-card rounded-md h-full overflow-auto">
           <GenerationControls
             onBackToLibrary={handleBackToLibrary}
             storyTitle="Error"
@@ -237,7 +237,7 @@ const Generation = ({
     }
     
     return (
-      <div className="bg-card rounded-md border shadow-sm h-full overflow-auto">
+      <div className="bg-card rounded-md h-full overflow-auto">
         <StoryView
           activeStory={activeStory}
           generatedContent={generatedContent}
@@ -252,7 +252,7 @@ const Generation = ({
   }
 
   return (
-    <div className="bg-card rounded-md border shadow-sm h-full overflow-auto">
+    <div className="bg-card rounded-md h-full overflow-auto">
       <LibraryView
         stories={stories}
         setActiveStory={(story) => {

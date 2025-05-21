@@ -124,7 +124,7 @@ const AppRoutes = ({
         } />
 
         <Route path="/generating" element={
-          <div className="bg-card rounded-md border shadow-sm h-full">
+          <div className="bg-card rounded-md border-l border-r shadow-sm h-full">
             <Suspense fallback={<LoadingSpinner />}>
               <Generation
                 setGeneratedContent={setGeneratedContent}
@@ -141,7 +141,7 @@ const AppRoutes = ({
 
         {/* Individual Story Page */}
         <Route path="/story" element={
-          <div className="bg-card rounded-md border shadow-sm h-full">
+          <div className="bg-card rounded-md border-l border-r shadow-sm h-full">
             <Suspense fallback={<LoadingSpinner />}>
               <Generation
                 setGeneratedContent={setGeneratedContent}
@@ -158,7 +158,7 @@ const AppRoutes = ({
 
         {/* Library Page */}
         <Route path="/library" element={
-          <div className="bg-card rounded-md border shadow-sm h-full">
+          <div className="bg-card rounded-md border-l border-r shadow-sm h-full">
             <Suspense fallback={<LoadingSpinner />}>
               <Generation
                 setGeneratedContent={setGeneratedContent}

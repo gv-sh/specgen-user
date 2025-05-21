@@ -120,7 +120,7 @@ const StoryPage = () => {
   
   if (loading) {
     return (
-      <div className="bg-card rounded-md border shadow-sm h-full overflow-auto">
+      <div className="bg-card rounded-md h-full overflow-auto">
         <GenerationControls
           onBackToLibrary={handleBackToLibrary}
           storyTitle="Loading story..."
@@ -138,7 +138,7 @@ const StoryPage = () => {
   
   if (error || !activeStory) {
     return (
-      <div className="bg-card rounded-md border shadow-sm h-full overflow-auto">
+      <div className="bg-card rounded-md h-full overflow-auto">
         <GenerationControls
           onBackToLibrary={handleBackToLibrary}
           storyTitle="Error"
@@ -157,7 +157,7 @@ const StoryPage = () => {
   }
   
   return (
-    <div className="bg-card rounded-md shadow-sm h-full overflow-auto">
+    <div className="bg-card rounded-md h-full overflow-auto">
       <GenerationControls
         activeStory={activeStory}
         onBackToLibrary={handleBackToLibrary}

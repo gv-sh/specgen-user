@@ -111,13 +111,16 @@ export const useGeneration = (
   }, [loadStories]);
 
   // Handle generation with proper parameter handling
-  const handleGeneration = useCallback(async (providedParameters = null) => {
+  const handleGeneration = useCallback(async (providedParameters = null, yearOverride = null) => {
     if (loading) return null;
 
     let newStoryId = null;
     setError(null);
     setGeneratedContent(null);
     setLastGeneratedStoryId(null);
+    
+    // Use the provided year if available, otherwise use state
+    const yearToUse = yearOverride !== null ? yearOverride : storyYear;
 
     // Handle both array and object formats for parameters
     const paramsToUse = providedParameters || selectedParameters;
@@ -155,7 +158,7 @@ export const useGeneration = (
         parameterValues,
         Object.keys(parameterValues),
         'combined',
-        storyYear,
+        yearToUse,
         null
       );
 
@@ -186,7 +189,7 @@ export const useGeneration = (
             : response.imageData ? `data:image/png;base64,${response.imageData}` : null,
           parameterValues,
           metadata: response.metadata,
-          year: response.year || storyYear
+          year: response.year || yearToUse
         };
 
         newStoryId = newStory.id;
@@ -226,7 +229,7 @@ export const useGeneration = (
       sessionStorage.removeItem('specgen-generating');
       return newStoryId;
     }
-  }, [storyYear, storyTitle, selectedParameters, setGenerationInProgress, loading, stories]);
+  }, [storyTitle, selectedParameters, setGenerationInProgress, loading, stories]);
 
   // Handle regeneration of a story
   const regenerateStory = useCallback(async (storyToRegenerate) => {
@@ -323,6 +326,8 @@ export const useGeneration = (
         if (paramsString) {
           const parsedParams = JSON.parse(paramsString);
           const yearString = sessionStorage.getItem('specgen-story-year');
+          const yearToUse = yearString ? parseInt(yearString, 10) : storyYear;
+          
           if (yearString) {
             setStoryYear(parseInt(yearString, 10));
           }
@@ -330,7 +335,12 @@ export const useGeneration = (
           if (parsedParams.length > 0 || (typeof parsedParams === 'object' && Object.keys(parsedParams).length > 0)) {
             setShowRecoveryBanner(true);
             setGenerationInProgress(true);
-            handleGeneration(parsedParams);
+            
+            // We need to delay the generation slightly to allow storyYear state to update
+            setTimeout(() => {
+              // Pass the year directly to handleGeneration
+              handleGeneration(parsedParams, yearToUse);
+            }, 50);
           }
         }
       } catch (error) {

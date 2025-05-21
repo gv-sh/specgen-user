@@ -161,23 +161,28 @@ const Parameters = ({
         </div>
         
       ) : (
-  
-        <div className="max-h-[calc(100vh-160px)] pt-3 overflow-auto">
-          <div className="flex flex-col items-left justify-center h-[calc(100%-5rem)]"> 
-            <h3 className=" text-sm font-medium mb-1">Add Parameters</h3>
-            <p className=" text-muted-foreground text-xs border-b pb-3">
-            Add the parameters you want to shape your story with.
-            </p>
-        </div>
+        <div className="flex flex-col h-full pt-3">
+          {/* Sticky header section */}
+          <div className="sticky top-0 z-10 bg-card pb-2">
+            <div className="flex flex-col items-left">
+              <h3 className="text-sm font-medium mb-1">Add Parameters</h3>
+              <p className="text-muted-foreground text-xs border-b pb-3">
+                Add the parameters you want to shape your story with.
+              </p>
+            </div>
+          </div>
           
-          {filteredParameters.map(parameter => (
-            <MemoizedParameter
-              key={parameter.id}
-              parameter={parameter}
-              onAddParameter={handleAddParameter}
-              isSelected={isParameterSelected(parameter)}
-            />
-          ))}
+          {/* Scrollable parameters list */}
+          <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+            {filteredParameters.map(parameter => (
+              <MemoizedParameter
+                key={parameter.id}
+                parameter={parameter}
+                onAddParameter={handleAddParameter}
+                isSelected={isParameterSelected(parameter)}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>
