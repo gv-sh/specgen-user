@@ -6,10 +6,17 @@ import {
   Download, 
   Share, 
   RefreshCw, 
-  PlusCircle
+  PlusCircle,
+  Printer
 } from 'lucide-react';
 import { downloadTextFile, downloadImage } from '../../utils/exportUtils';
 import { useNavigate } from 'react-router-dom';
+// import { Preview, print } from 'react-html2pdf';
+import { print } from 'react-html2pdf';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import ReactDOM from 'react-dom/client';
+
 
 const StoryViewer = ({ 
   story, 
@@ -147,7 +154,7 @@ const StoryViewer = ({
   };
   
   return (
-    <div className="container max-w-6xl mx-auto h-full flex flex-col">
+    <div className="container max-w-6xl mx-auto h-full flex flex-col" id={'jsx-template'}>
       {/* Header */}
       <header className="py-6 border-b">
         <div className="flex items-center justify-between">
@@ -217,10 +224,32 @@ const StoryViewer = ({
             <Button 
               variant="outline" 
               size="sm"
-              onClick={handleDownload}
+              // onClick={handleDownload}
+              onClick={() =>
+                downloadStyledPDF({
+                  story: { title: story.title, year: story.year, createdAt: story.createdAt },
+                  imageSource: imageSource,
+                  contentParagraphs: contentParagraphs
+                })
+              }
             >
               <Download className="h-4 w-4 mr-2" />
               Download
+            </Button>
+
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() =>
+                printStyledPDF({
+                  story: { title: story.title, year: story.year, createdAt: story.createdAt },
+                  imageSource: imageSource,
+                  contentParagraphs: contentParagraphs
+                })
+              }
+            >
+              <Printer className="h-4 w-4 mr-2" />
+              Print
             </Button>
             
             <Button 
@@ -231,6 +260,8 @@ const StoryViewer = ({
               <Share className="h-4 w-4 mr-2" />
               Share
             </Button>
+
+            
           </div>
           
           {/* Collection info with date moved here */}
@@ -249,3 +280,137 @@ const StoryViewer = ({
 };
 
 export default StoryViewer;
+
+const downloadStyledPDF = async ({ story, imageSource, contentParagraphs, returnInstance = false }) => {
+  const pageParagraphCount = 10; // Adjust this based on visual size
+  const pageChunks = [];
+
+  for (let i = 1; i < contentParagraphs.length; i += pageParagraphCount) {
+    pageChunks.push(contentParagraphs.slice(i, i + pageParagraphCount));
+  }
+
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 1;
+
+  const usableWidth = pageWidth - margin * 2;
+  const usableHeight = pageHeight - margin * 2;
+
+  for (let pageIndex = 0; pageIndex < pageChunks.length; pageIndex++) {
+    const container = document.createElement('div');
+    container.id = `pdf-render-container-${pageIndex}`;
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '794px';
+    container.style.padding = '15mm';
+    container.style.backgroundColor = '#fff';
+    container.style.columnCount = '2';
+    container.style.columnGap = '40px';
+    container.style.fontSize = '10px';
+    container.style.lineHeight = '1.8';
+    document.body.appendChild(container);
+
+    const jsxContent = (
+      <div>
+        {pageIndex === 0 && (
+          <>
+            <h1 className="text-3xl text-gray-900 font-bold mb-2 tracking-tight ">{story.title}</h1>
+            <p className="text-gray-500 mb-4 text-base ">Year {story.year}</p>
+              {imageSource && (
+                <div className="mb-5 break-inside-avoid">
+                  <img
+                    src={imageSource}
+                    alt={story.title}
+                    className="w-full mx-auto rounded-sm shadow-md"
+                  />
+                </div>
+              )}
+          </>
+        )}
+
+        {pageChunks[pageIndex].map((paragraph, idx) => (
+          <p key={idx} className="mb-5 text-[13px] text-gray-900 font-worksans leading-relaxed">
+            {paragraph}
+          </p>
+        ))}
+
+       
+        <div className="flex items-center text-[10px] text-gray-700 space-x-2 text-sm border-t mb-2">
+          <span>Created on</span>
+          <span>{formatDate(story.createdAt)}</span>
+          <span>|</span>
+          <span>Anantabhavi</span>
+        </div>
+        
+
+      </div>
+
+      
+
+    );
+
+    const root = ReactDOM.createRoot(container);
+    root.render(jsxContent);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      scrollY: -window.scrollY,
+      backgroundColor: '#fff',
+      windowWidth: container.scrollWidth
+    });
+
+    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+    const imgProps = {
+      width: canvas.width,
+      height: canvas.height
+    };
+
+    const scaledWidth = pageWidth;
+    const scaledHeight = (canvas.height * scaledWidth) / canvas.width;
+
+    if (pageIndex > 0) pdf.addPage();
+    pdf.addImage(imgData, 'JPEG', 0, 0, scaledWidth, scaledHeight);
+
+    root.unmount();
+    document.body.removeChild(container);
+  }
+
+  const safeTitle = story.title.replace(/\s+/g, '_').toLowerCase();
+
+  if (returnInstance) {
+    return pdf;
+  } else {
+    pdf.save(`${safeTitle}.pdf`);
+  }
+};
+
+const printStyledPDF = async ({ story, imageSource, contentParagraphs }) => {
+  const pdf = await downloadStyledPDF({
+    story,
+    imageSource,
+    contentParagraphs,
+    returnInstance: true // enable PDF return instead of save
+  });
+
+  const pdfBlob = pdf.output('blob');
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+  const printWindow = window.open(pdfUrl);
+  printWindow.onload = function () {
+    printWindow.focus();
+    printWindow.print();
+  };
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const options = { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric'
+  };
+  return date.toLocaleDateString('en-US', options);
+};
