@@ -194,7 +194,7 @@ const SelectedParameters = ({
                 variant="link"
                 size="sm"
                 onClick={onShowTour}
-                className="h-7 px-2 flex items-center gap-1.5"
+                className="h-7 px-2 flex items-center gap-1.5 text-primary hover:text-accent"
                 aria-label="Take a guided tour"
                 title="Take a guided tour"
               >
@@ -208,8 +208,9 @@ const SelectedParameters = ({
               onClick={() => handleRandomize('all')}
               className={cn(
                 "h-7 px-2 text-white shadow-md flex items-center gap-1.5",
-                "hover: rounded-md transition-all duration-200",
+                "hover:text-accent-foreground rounded-md transition-all duration-200",
                 "hover:shadow-lg hover:brightness-110 hover:-translate-y-px animate-shimmer",
+                "text-accent-foreground bg-primary/100",
                 randomizing ? "animate-pulse" : ""
               )}
               aria-label="Randomize all parameters"
@@ -222,7 +223,7 @@ const SelectedParameters = ({
               variant="ghost"
               size="icon"
               onClick={handleRemoveAll}
-              className="h-7 w-7 text-destructive"
+              className="h-7 w-7 text-destructive text-accent-foreground hover: text-accent"
               aria-label="Remove all parameters"
               title="Remove all parameters"
             >
@@ -289,7 +290,7 @@ const SelectedParameters = ({
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => onRemoveParameter(parameter)}
-                                  className="h-6 w-6 text-destructive"
+                                  className="h-6 w-6 text-accent"
                                   aria-label={`Remove ${parameter.name}`}
                                   title={`Remove ${parameter.name}`}
                                 >
@@ -344,7 +345,7 @@ const SelectedParameters = ({
             variant="default"
             onClick={handleGenerateClick}
             disabled={!areAllConfigured}
-            className="whitespace-nowrap h-10 w-1/3"
+            className="whitespace-nowrap h-10 w-1/3 text-accent-foreground"
           >
             <Zap className="h-4 w-4 mr-2" />
             <span className="font-medium">

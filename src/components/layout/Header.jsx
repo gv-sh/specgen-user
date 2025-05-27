@@ -33,7 +33,7 @@ const Header = ({ onShowTour }) => {
         <div className="flex items-center w-full">
           {/* Logo with Tooltip */}
           <Tooltip 
-            content="Anantabhavi: Infinite Imagination" 
+            content="Kannada for “Infinite Futures” yet to unfold." 
             position="right"
           >
             <Link to="/" className="font-semibold text-lg">

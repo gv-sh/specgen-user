@@ -29,31 +29,31 @@ const GuidedTour = ({ onClose }) => {
   const steps = [
     {
       title: "Welcome to Anantabhavi",
-      content: "This tool helps you create detailed specifications for generating customized fiction and imagery based on your chosen parameters.",
+      content: "A space where your choices shape the future. Select world building parameters and the AI will weave them into a speculative story inspired by the world you imagine.",
       position: "center",
       icon: <Sparkles className="h-4 w-4 text-primary" />
     },
     {
-      title: "Browse Genres",
-      content: "Start by selecting a genre from the left panel. Each genre contains unique parameters for your story.",
+      title: "Browse Categories",
+      content: "Start by selecting a category from the left panel. Each category contains unique parameters to build your story.",
       position: "left",
       icon: <BookOpen className="h-4 w-4 text-primary" />
     },
     {
       title: "Explore Parameters",
-      content: "After selecting a genre, browse its parameters in the middle panel. Add the ones you want to include in your generation.",
+      content: "After choosing a category, explore through the parameters in the middle panel and add the ones you'd like to incorporate into your story.",
       position: "center-left",
       icon: <Layers className="h-4 w-4 text-primary" />
     },
     {
-      title: "Select Multiple Genres",
-      content: "You can select parameters from different genres. Simply click on another genre to see its parameters.",
+      title: "Multiple Categories",
+      content: "You can select parameters from multiple different categories. Simply click on another category to explore its parameters.",
       position: "left",
       icon: <Boxes className="h-4 w-4 text-primary" />
     },
     {
       title: "Configure Parameters",
-      content: "Adjust your selected parameters in the right panel to fine-tune how your story will be generated.",
+      content: "Adjust your selected parameters in the right panel to fine-tune how your story will be crafted.",
       position: "center-right",
       icon: <Settings2 className="h-4 w-4 text-primary" />
     },
@@ -65,7 +65,7 @@ const GuidedTour = ({ onClose }) => {
     },
     {
       title: "Generate Content",
-      content: "Click Generate to create a story and image based on your selected parameters.",
+      content: "Choose the year you want your story to take place in, then click Generate to create a story and visual based on your selected parameters.",
       position: "center",
       icon: <ZoomIn className="h-4 w-4 text-primary" />
     }
