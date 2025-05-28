@@ -1,6 +1,6 @@
 {
   "name": "@gv-sh/specgen-user",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -57,7 +57,8 @@
   "scripts": {
     "start": "cross-env PORT=3002 REACT_APP_API_URL=http://localhost:3000 react-scripts start",
     "start:alt": "cross-env REACT_APP_API_URL=http://localhost:3000 react-scripts start",
-    "build": "cross-env REACT_APP_API_URL=http://localhost:3000 react-scripts build",
+    "build": "cross-env REACT_APP_API_URL=/api react-scripts build",
+    "build:dev": "cross-env REACT_APP_API_URL=http://localhost:3000 react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "prepublishOnly": "npm run build"
