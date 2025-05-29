@@ -34,6 +34,14 @@ const AppRoutes = ({
 }) => {
   const navigate = useNavigate();
 
+  // Clear parameters when navigating to landing page
+  const handleClearSession = () => {
+    setSelectedParameters([]);
+    setSelectedCategory([]);
+    sessionStorage.removeItem('specgen-parameters');
+    sessionStorage.removeItem('specgen-auto-generate');
+  };
+
   const handleParameterSelect = (parameter) => {
     // Prevent duplicates
     if (!selectedParameters.some(p => p.id === parameter.id)) {
@@ -79,7 +87,7 @@ const AppRoutes = ({
         {/* Landing Page */}
         <Route path="/" element={
           <Suspense fallback={<LoadingSpinner />}>
-            <Landing />
+            <Landing onClearSession={handleClearSession} />
           </Suspense>
         } />
 

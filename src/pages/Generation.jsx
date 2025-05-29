@@ -107,7 +107,8 @@ const Generation = ({
   const handleBackToLibrary = () => {
     setActiveStory(null);
     setGeneratedContent(null);
-    navigate('/library');
+    // Clear URL parameters to prevent re-loading the story
+    navigate('/library', { replace: true });
   };
   
   // Use URL parameters to set the active story if on story page
@@ -120,6 +121,11 @@ const Generation = ({
           if (story) {
             setActiveStory(story);
           }
+        }
+      } else if (location.pathname === '/library') {
+        // Ensure we're in library mode when on library path
+        if (activeStory) {
+          setActiveStory(null);
         }
       }
     };

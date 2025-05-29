@@ -1,12 +1,22 @@
 // src/pages/Landing.jsx
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import ParticleAnimation from "particle-animation";
 import GalaxyParticles from '../components/ui/GalaxyParticles';
 import Shaders from '../components/ui/Shaders';
+import { useParameters } from '../contexts/ParameterContext';
 
-const Landing = () => {
+const Landing = ({ onClearSession }) => {
+  const { removeAllParameters } = useParameters();
+
+  useEffect(() => {
+    // Clear all parameters when landing page is accessed
+    removeAllParameters();
+    // Clear App-level state and sessionStorage
+    if (onClearSession) {
+      onClearSession();
+    }
+  }, [removeAllParameters, onClearSession]);
   
   return (
     <div className="flex items-center justify-center h-full">
