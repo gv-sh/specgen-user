@@ -1,6 +1,5 @@
 // src/pages/About.jsx
 import React from 'react';
-import { BookOpen } from 'lucide-react';
 import { Clover } from 'lucide-react';
 import { MessageCircleQuestion } from 'lucide-react';
 

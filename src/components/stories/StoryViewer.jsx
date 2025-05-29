@@ -12,7 +12,6 @@ import {
 import { downloadTextFile, downloadImage } from '../../utils/exportUtils';
 import { useNavigate } from 'react-router-dom';
 // import { Preview, print } from 'react-html2pdf';
-import { print } from 'react-html2pdf';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ReactDOM from 'react-dom/client';
@@ -120,18 +119,6 @@ const StoryViewer = ({
   // Get the image source
   const imageSource = getStoryImage(story);
   
-  // Handle download button click
-  const handleDownload = () => {
-    // Download text file
-    const textFilename = `${story.title.replace(/\s+/g, '-').toLowerCase()}.txt`;
-    downloadTextFile(story.content, textFilename);
-    
-    // Download image if available
-    if (imageSource) {
-      const imgFilename = `${story.title.replace(/\s+/g, '-').toLowerCase()}.png`;
-      downloadImage(imageSource, imgFilename);
-    }
-  };
 
   // Handle share button click
   const handleShare = async () => {
@@ -294,8 +281,6 @@ const downloadStyledPDF = async ({ story, imageSource, contentParagraphs, return
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 1;
 
-  const usableWidth = pageWidth - margin * 2;
-  const usableHeight = pageHeight - margin * 2;
 
   for (let pageIndex = 0; pageIndex < pageChunks.length; pageIndex++) {
     const container = document.createElement('div');
@@ -364,10 +349,6 @@ const downloadStyledPDF = async ({ story, imageSource, contentParagraphs, return
     });
 
     const imgData = canvas.toDataURL('image/jpeg', 1.0);
-    const imgProps = {
-      width: canvas.width,
-      height: canvas.height
-    };
 
     const scaledWidth = pageWidth;
     const scaledHeight = (canvas.height * scaledWidth) / canvas.width;
