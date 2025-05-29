@@ -81,5 +81,6 @@
   }
 }
 
-
-
+canvas {
+  background-color: transparent !important;
+}
