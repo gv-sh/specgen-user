@@ -57,7 +57,7 @@ const StoryGenerator = ({
           {/* Warning message */}
           <div className="text-sm text-amber-600 dark:text-amber-400 mt-6 mb-4 max-w-md mx-auto p-3 border border-amber-200 dark:border-amber-900 rounded-md bg-amber-50 dark:bg-amber-950/30">
             <AlertTriangle className="h-4 w-4 inline-block mr-2" />
-            Please don't close this window or navigate away until generation is complete.
+            Please stay on this page while the content is generating. This usually takes around 30–45 seconds.
           </div>
 
           {/* Error message if any */}
