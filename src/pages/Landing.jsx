@@ -25,8 +25,8 @@ const Landing = ({ onClearSession }) => {
       <GalaxyParticles />
       <Shaders />
       {/* Foreground content */}
-      <div className="content__inner w-3/4 absolute z-10 top-1/2 left-3/4 transform -translate-x-3/4 -translate-y-1/2 text-center text-white">
-      <div className="max-w-4xl">
+      <div className="content__inner absolute z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white">
+      <div className="max-w-4xl mx-auto px-8">
           <h1 className="text-[84px] font-bold text-primary leading-[72px] mb-8 tracking-tight">
             What kind of future do you envision? 
           </h1>

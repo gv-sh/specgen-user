@@ -9,7 +9,6 @@ import {
   PlusCircle,
   Printer
 } from 'lucide-react';
-import { downloadTextFile, downloadImage } from '../../utils/exportUtils';
 import { useNavigate } from 'react-router-dom';
 // import { Preview, print } from 'react-html2pdf';
 import jsPDF from 'jspdf';
@@ -19,7 +18,6 @@ import ReactDOM from 'react-dom/client';
 
 const StoryViewer = ({ 
   story, 
-  onBackToLibrary, 
   onRegenerateStory, 
   onCreateNew, 
   loading
@@ -278,8 +276,6 @@ const downloadStyledPDF = async ({ story, imageSource, contentParagraphs, return
 
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  const margin = 1;
 
 
   for (let pageIndex = 0; pageIndex < pageChunks.length; pageIndex++) {
