@@ -105,7 +105,10 @@ const Categories = ({ onCategorySelect }) => {
   return (
     <div className="flex flex-col h-full space-y-4">
       <div>
-        <h2 className="text-sm font-medium text-foreground pt-3">Select Category</h2>
+        <h2 className="text-sm font-medium text-foreground mb-1 pt-3">Select Category</h2>
+        <p className="text-muted-foreground text-xs">
+            What kind of world do you want to build?
+          </p>
       </div>
       
       <div className="flex-grow overflow-auto">

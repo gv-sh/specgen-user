@@ -38,7 +38,7 @@ export const Column = ({
   
   // Determine border classes based on position
   const borderClasses = position === 'left' 
-    ? "border border-r-0" 
+    ? "border" 
     : position === 'middle'
       ? "border-t border-b border-r-0" // No left border for middle column
       : position === 'right'

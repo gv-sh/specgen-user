@@ -57,7 +57,10 @@ const SelectedParameters = ({
         handleNewParameter(prevParameters, parameters);
       }
     };
+
+    
   }, [parameters]);
+
 
   // Function to remove all parameters at once
   const handleRemoveAll = () => {
@@ -153,13 +156,13 @@ const SelectedParameters = ({
   if (!parameters.length) {
     return (
       <div className="h-full flex flex-col">
-        <h2 className="text-sm font-medium pt-4 pb-3 text-foreground">Selected Parameters</h2>
+        <h2 className="text-sm font-medium pt-3 mb-1 text-foreground">Selected Parameters</h2>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-md">
             <p className="text-sm font-medium mb-2">No parameters selected yet.</p>
             <p className="text-xs text-muted-foreground mb-4">
-              Browse the categories on the left, then add parameters from each genre
-              to customize your story.
+              Browse the categories on the left, then add parameters from each category
+              to shape your ideal future.
             </p>
             {onShowTour && (
               <Button 
@@ -182,9 +185,14 @@ const SelectedParameters = ({
     <div className="flex flex-col h-full">
       <div className="sticky top-0 z-10 bg-card p-3 pl-0 pr-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-left gap-2">
-            <h2 className="text-sm font-medium text-foreground">Selected Parameters</h2>
-            <Badge variant="secondary" className = "rounded-4">{parameters.length}</Badge>
+          <div className="flex flex-col items-start gap-1">
+            <div className="flex items-left gap-2">
+              <h2 className="text-sm font-medium text-foreground mb-1">Selected Parameters</h2>
+              <Badge variant="secondary" className = "rounded-4">{parameters.length}</Badge>
+            </div>
+            <p className="text-muted-foreground text-xs">
+              This is your ideal future taking shape!
+            </p>
           </div>
           
           <div className="flex items-center gap-2">
@@ -305,7 +313,7 @@ const SelectedParameters = ({
                             )}
 
                             {/* Value input */}
-                            <div className="p-3 bg-muted/40 rounded-md border border-input">
+                            <div className=" bg-muted/40 p-3 rounded-md">
                               <ParameterValueInput
                                 parameter={parameter}
                                 value={parameter.value}

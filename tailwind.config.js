@@ -19,6 +19,7 @@ module.exports = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        darkText: "hsl(var(--dark-text))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
@@ -73,6 +74,18 @@ module.exports = {
         70: '17.5rem',
         80: '20rem',
         96: '24rem', // already in Tailwind, repeated for clarity
+      },
+
+      scale: {
+        200: '2',
+        300: '3',
+        400: '4',
+        500: '5',
+        600: '6',
+        700: '7',
+        800: '8',
+        900: '9',
+        1000: '10', // = 1000%
       },
       
       keyframes: {
