@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../ui/button';
 import { Alert, AlertDescription } from '../ui/alert';
-import { PlusCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { PlusCircle, AlertTriangle, RefreshCw, X } from 'lucide-react';
 import StoryCard from './StoryCard';
 import StoryFilters from './StoryFilters';
 import { EmptyLibrary, NoSearchResults } from './EmptyStates';
@@ -22,6 +22,9 @@ const StoryLibrary = ({
   const [yearFilter, setYearFilter] = useState('');
   const [sortOrder, setSortOrder] = useState('newest');
   const [allYears, setAllYears] = useState([]);
+  
+  // State for storage notifications
+  const [storageNotification, setStorageNotification] = useState(null);
   
   // Handle search filter changes
   const handleSearchChange = (e) => {
@@ -51,6 +54,42 @@ const StoryLibrary = ({
     });
     setAllYears([...years].sort((a, b) => a - b));
   }, [stories]);
+
+  // Listen for storage events
+  useEffect(() => {
+    const handleStorageQuotaExceeded = (event) => {
+      const { removedCount, remainingCount } = event.detail;
+      setStorageNotification({
+        type: 'warning',
+        title: 'Storage Limit Reached',
+        message: `Removed ${removedCount} older stories. ${remainingCount} stories remain in your library.`,
+        action: 'Consider backing up important stories.'
+      });
+      
+      // Auto-hide notification after 10 seconds
+      setTimeout(() => setStorageNotification(null), 10000);
+    };
+
+    const handleStorageSaveFailed = (event) => {
+      setStorageNotification({
+        type: 'error',
+        title: 'Failed to Save Story',
+        message: 'Unable to save your story due to storage limitations.',
+        action: 'Try clearing your browser cache or using a different browser.'
+      });
+      
+      // Auto-hide notification after 15 seconds
+      setTimeout(() => setStorageNotification(null), 15000);
+    };
+
+    window.addEventListener('storageQuotaExceeded', handleStorageQuotaExceeded);
+    window.addEventListener('storageSaveFailed', handleStorageSaveFailed);
+
+    return () => {
+      window.removeEventListener('storageQuotaExceeded', handleStorageQuotaExceeded);
+      window.removeEventListener('storageSaveFailed', handleStorageSaveFailed);
+    };
+  }, []);
   
   // Filtered stories based on search and year filter
   const filteredStories = useMemo(() => {
@@ -120,6 +159,29 @@ const StoryLibrary = ({
             >
               <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
               Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {storageNotification && (
+        <Alert className="mb-6" variant={storageNotification.type === 'error' ? 'destructive' : 'default'}>
+          <AlertTriangle className="h-4 w-4 mr-2" />
+          <AlertDescription className="flex items-center justify-between w-full">
+            <div>
+              <div className="font-medium">{storageNotification.title}</div>
+              <div className="text-sm mt-1">{storageNotification.message}</div>
+              {storageNotification.action && (
+                <div className="text-sm text-muted-foreground mt-1">{storageNotification.action}</div>
+              )}
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setStorageNotification(null)}
+              className="ml-4"
+            >
+              <X className="h-3.5 w-3.5" />
             </Button>
           </AlertDescription>
         </Alert>

@@ -169,9 +169,9 @@ const saveToGenerationHistory = (generation) => {
     // Add new generation at the beginning
     history = [generation, ...history];
 
-    // Limit to 10 stories instead of 100
-    if (history.length > 10) {
-      history = history.slice(0, 10);
+    // Limit to 50 stories to prevent excessive clearing
+    if (history.length > 50) {
+      history = history.slice(0, 50);
     }
 
     // Remove imageData to save space
@@ -189,9 +189,27 @@ const saveToGenerationHistory = (generation) => {
       if (storageError.name === 'QuotaExceededError') {
         // Clear older items and try again with fewer items
         localStorage.removeItem('specgen-cached-stories');
-        history = history.slice(0, 5);
-        localStorage.setItem('specgen-history', JSON.stringify(history));
-        console.warn('Storage quota nearly exceeded, reduced history size');
+        const originalLength = history.length;
+        history = history.slice(0, 25); // Keep 25 instead of 5
+        
+        try {
+          localStorage.setItem('specgen-history', JSON.stringify(history));
+          console.warn(`Storage quota exceeded. Reduced story library from ${originalLength} to ${history.length} stories.`);
+          
+          // Emit a custom event to notify UI components
+          window.dispatchEvent(new CustomEvent('storageQuotaExceeded', {
+            detail: { 
+              removedCount: originalLength - history.length,
+              remainingCount: history.length 
+            }
+          }));
+        } catch (retryError) {
+          console.error('Failed to save stories even after reducing size:', retryError);
+          // Emit error event for UI to handle
+          window.dispatchEvent(new CustomEvent('storageSaveFailed', {
+            detail: { error: retryError.message }
+          }));
+        }
       }
     }
   } catch (error) {
