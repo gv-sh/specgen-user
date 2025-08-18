@@ -2,9 +2,7 @@
 import React from 'react';
 import { Clover } from 'lucide-react';
 import { MessageCircleQuestion } from 'lucide-react';
-import { BadgeInfo } from 'lucide-react';
 
-// import qloImage from '/QLO_logo_color.png'; // adjust path as needed
 
 const About = () => {
   return (
@@ -125,10 +123,6 @@ const About = () => {
           industry experts, funders, civil society organizations, and community members
           can unite to reimagine, experiment, and co-create regenerative models
           for tomorrow.
-        </p>
-
-        <p className="break-before-column relative text-muted-foreground leading-relaxed mb-4">
-          
         </p>
         
       </div>

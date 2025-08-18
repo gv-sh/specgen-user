@@ -33,7 +33,7 @@ const Landing = ({ onClearSession }) => {
               <span key={i}>
                 {word === "futures" ? (
                   <a
-                    href="/library" // 👈 put your target page here
+                    href="/library" 
                     className="
                       group relative inline-block italic cursor-pointer
                       transition-all duration-500 ease-out

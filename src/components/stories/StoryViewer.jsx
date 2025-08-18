@@ -266,6 +266,15 @@ const StoryViewer = ({
 
 export default StoryViewer;
 
+const preload = src =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = src;
+    });
+
 const downloadStyledPDF = async ({ story, imageSource, contentParagraphs, returnInstance = false }) => {
   const pageParagraphCount = 10; // Adjust this based on visual size
   const pageChunks = [];
@@ -292,15 +301,6 @@ const downloadStyledPDF = async ({ story, imageSource, contentParagraphs, return
     container.style.fontSize = '10px';
     container.style.lineHeight = '1.8';
     document.body.appendChild(container);
-
-    const preload = src =>
-    new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = resolve;
-      img.onerror = reject;
-      img.src = src;
-    });
 
   // before rendering the page with the image:
   if (imageSource) await preload(imageSource);
