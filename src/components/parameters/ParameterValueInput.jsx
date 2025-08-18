@@ -4,6 +4,7 @@ import { Select } from '../ui/select';
 import { Slider } from '../ui/slider';
 import { Switch } from '../ui/switch';
 import { Checkbox } from '../ui/checkbox';
+import { Input } from '../ui/input';
 
 const ParameterValueInput = ({ parameter, value, onChange }) => {
   switch (parameter.type) {
@@ -82,9 +83,12 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
       );
 
     case 'Toggle Switch':
+      const onLabel = parameter.values?.on || 'Enabled';
+      const offLabel = parameter.values?.off || 'Disabled';
+      
       return (
         <div className="flex items-center justify-between">
-          <span className="text-sm">{value ? 'Enabled' : 'Disabled'}</span>
+          <span className="text-sm">{value ? onLabel : offLabel}</span>
           <Switch
             checked={!!value}
             onCheckedChange={(checked) => onChange(checked)}
@@ -95,27 +99,33 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
     case 'Checkbox':
       return (
         <div className="grid grid-cols-2 gap-2">
-          {parameter.values.map((option) => (
-            <div key={option.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={`checkbox-${parameter.id}-${option.id}`}
-                checked={(value || []).includes(option.id)}
-                onCheckedChange={(checked) => {
-                  const currentValue = value || [];
-                  const newValue = checked
-                    ? [...currentValue, option.id]
-                    : currentValue.filter((v) => v !== option.id);
-                  onChange(newValue);
-                }}
-              />
-              <label
-                htmlFor={`checkbox-${parameter.id}-${option.id}`}
-                className="text-sm"
-              >
-                {option.label}
-              </label>
-            </div>
-          ))}
+          {parameter.values.map((option, index) => {
+            // Handle both {id, label} format and {label} format
+            const optionId = option.id || `option-${index}`;
+            const optionLabel = option.label || option;
+            
+            return (
+              <div key={optionId} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`checkbox-${parameter.id}-${optionId}`}
+                  checked={(value || []).includes(optionId)}
+                  onCheckedChange={(checked) => {
+                    const currentValue = value || [];
+                    const newValue = checked
+                      ? [...currentValue, optionId]
+                      : currentValue.filter((v) => v !== optionId);
+                    onChange(newValue);
+                  }}
+                />
+                <label
+                  htmlFor={`checkbox-${parameter.id}-${optionId}`}
+                  className="text-sm"
+                >
+                  {optionLabel}
+                </label>
+              </div>
+            );
+          })}
         </div>
       );
 
@@ -142,6 +152,20 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
               </label>
             </div>
           ))}
+        </div>
+      );
+
+    case 'Text':
+    case 'Input':
+      return (
+        <div className="max-w-[400px]">
+          <Input
+            type="text"
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={parameter.description || 'Enter text...'}
+            className="w-full"
+          />
         </div>
       );
 
