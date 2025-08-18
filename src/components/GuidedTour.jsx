@@ -136,7 +136,7 @@ const GuidedTour = ({ onClose }) => {
   if (!isVisible) return null;
   
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 backdrop-blur-sm pointer-events-auto">
+    <div className="fixed inset-0 bg-black/40 z-50 pointer-events-auto">
       <div
         className={`absolute pointer-events-auto ${getPositionClasses()}`}
       >

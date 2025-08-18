@@ -1,6 +1,6 @@
 // src/routes/AppRoutes.jsx
-import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import React, { Suspense, lazy, useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import ResponsiveLayout, { Column } from '../components/layout/ResponsiveLayout';
 import GuidedTour from '../components/GuidedTour';
 import { randomizeParameterValue } from '../utils/parameterUtils';
@@ -33,6 +33,17 @@ const AppRoutes = ({
   setGenerationInProgress
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Auto-start tour when first visiting /parameters page
+  useEffect(() => {
+    if (location.pathname === '/parameters') {
+      const tourCompleted = localStorage.getItem('anantabhavi-tour-completed');
+      if (!tourCompleted) {
+        setShowTour(true);
+      }
+    }
+  }, [location.pathname, setShowTour]);
 
   // Clear parameters when navigating to landing page
   const handleClearSession = () => {
