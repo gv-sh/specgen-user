@@ -91,7 +91,7 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
           <span className="text-sm">{value ? onLabel : offLabel}</span>
           <Switch
             checked={!!value}
-            onCheckedChange={(checked) => onChange(checked)}
+            onChange={(e) => onChange(e.target.checked)}
           />
         </div>
       );
@@ -109,9 +109,9 @@ const ParameterValueInput = ({ parameter, value, onChange }) => {
                 <Checkbox
                   id={`checkbox-${parameter.id}-${optionId}`}
                   checked={(value || []).includes(optionId)}
-                  onCheckedChange={(checked) => {
+                  onChange={(e) => {
                     const currentValue = value || [];
-                    const newValue = checked
+                    const newValue = e.target.checked
                       ? [...currentValue, optionId]
                       : currentValue.filter((v) => v !== optionId);
                     onChange(newValue);
