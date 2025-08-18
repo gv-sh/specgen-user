@@ -2,12 +2,13 @@ import * as React from "react"
 
 import { cn } from "../../lib/utils"
 
-const Switch = React.forwardRef(({ className, checked, ...props }, ref) => (
+const Switch = React.forwardRef(({ className, checked, onChange, ...props }, ref) => (
   <div className="flex items-center space-x-2">
     <input
       type="checkbox"
       role="switch"
       checked={checked}
+      onChange={onChange}
       className={cn(
         "peer inline-flex h-[20px] w-[36px] shrink-0 cursor-pointer appearance-none items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
         checked ? "bg-primary" : "bg-input",
