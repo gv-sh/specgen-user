@@ -1,6 +1,6 @@
 {
   "name": "@gv-sh/specgen-user",
-  "version": "0.14.1",
+  "version": "0.14.2",
   "private": false,
   "publishConfig": {
     "access": "public"
