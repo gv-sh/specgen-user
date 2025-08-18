@@ -92,3 +92,14 @@
 canvas {
   background-color: transparent !important;
 }
+
+/* Fix dropdown options visibility in dark mode */
+.dark select option {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.dark select option:checked {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
