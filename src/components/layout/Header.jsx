@@ -32,11 +32,11 @@ const Header = ({ onShowTour }) => {
         <div className="flex items-center w-full">
           {/* Logo with Tooltip */}
           <Tooltip 
-            content="Kannada for “Infinite Futures” yet to unfold." 
+            content="Stories from futures untold" 
             position="right"
           >
-            <Link to="/" className="font-semibold text-lg">
-              Anantabhavi
+            <Link to="/" className="font-medium text-lg text-primary ">
+              Futures of Hope
             </Link>
           </Tooltip>
           

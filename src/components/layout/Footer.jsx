@@ -16,7 +16,13 @@ const Footer = () => {
             target="_blank" 
             rel="noopener noreferrer"
             className="text-primary hover:underline"
-          >Mathscapes</a>.
+          >Mathscapes</a>. Commissioned by <a 
+            href="https://drive.google.com/file/d/1ig1VdKZne2DFyQ4S1zR5Er2Ie42GUlNr/view?usp=drivesdk" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >Quest Learning Observatory</a>.
+
         </p>
       </div>
     </footer>

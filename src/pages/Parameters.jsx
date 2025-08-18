@@ -132,7 +132,7 @@ const Parameters = ({
         <div className="flex flex-col items-left justify-center h-[calc(100%-5rem)]">
           <h3 className="text-sm font-medium mb-1 pt-3">Add Parameters</h3>
           <p className="text-muted-foreground text-xs">
-            Choose a category from the left panel to see the parameters within it.
+            Shape your future. Choose what matters most to you.
           </p>
         </div>
       ) : 

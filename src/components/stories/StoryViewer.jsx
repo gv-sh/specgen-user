@@ -266,6 +266,15 @@ const StoryViewer = ({
 
 export default StoryViewer;
 
+const preload = src =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = src;
+    });
+
 const downloadStyledPDF = async ({ story, imageSource, contentParagraphs, returnInstance = false }) => {
   const pageParagraphCount = 10; // Adjust this based on visual size
   const pageChunks = [];
@@ -285,44 +294,49 @@ const downloadStyledPDF = async ({ story, imageSource, contentParagraphs, return
     container.style.left = '-9999px';
     container.style.top = '0';
     container.style.width = '794px';
-    container.style.padding = '15mm';
+    container.style.padding = '10mm';
     container.style.backgroundColor = '#fff';
-    container.style.columnCount = '2';
+    container.style.columnCount = '1';
     container.style.columnGap = '40px';
     container.style.fontSize = '10px';
     container.style.lineHeight = '1.8';
     document.body.appendChild(container);
 
+  // before rendering the page with the image:
+  if (imageSource) await preload(imageSource);
+
     const jsxContent = (
       <div>
         {pageIndex === 0 && (
           <>
-            <h1 className="text-3xl text-gray-900 font-bold mb-2 tracking-tight ">{story.title}</h1>
-            <p className="text-gray-500 mb-4 text-base ">Year {story.year}</p>
-              {imageSource && (
-                <div className="mb-5 break-inside-avoid">
-                  <img
-                    src={imageSource}
-                    alt={story.title}
-                    className="w-full mx-auto rounded-sm shadow-md"
-                  />
-                </div>
-              )}
+
+            {imageSource && (
+              <div className="not-prose w-3/4 mx-auto h-[450px] mb-5 rounded-sm shadow-md relative overflow-hidden">
+                <img
+                  src={imageSource}
+                  alt={story.title}
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full"
+                />
+              </div>
+            )}
+            <h1 className="mx-auto w-3/4 text-2xl text-gray-900 font-bold mb-2 tracking-tight ">{story.title}</h1>
+            <p className="mx-auto w-3/4 text-gray-500 mb-4 text-base ">Year {story.year}</p>
+              
           </>
         )}
 
         {pageChunks[pageIndex].map((paragraph, idx) => (
-          <p key={idx} className="mb-5 text-[13px] text-gray-900 font-worksans leading-relaxed">
+          <p key={idx} className="w-3/4 mb-5 mx-auto text-[13px] text-gray-900 font-worksans leading-relaxed">
             {paragraph}
           </p>
         ))}
 
        
-        <div className="flex items-center text-[10px] text-gray-700 space-x-2 text-sm border-t mb-2">
+        <div className="w-3/4 mx-auto flex items-center text-[10px] text-gray-700 space-x-2 text-sm border-t mt-10 mb-2">
           <span>Created on</span>
           <span>{formatDate(story.createdAt)}</span>
           <span>|</span>
-          <span>Anantabhavi</span>
+          <span>Futures of Hope</span>
         </div>
         
 
