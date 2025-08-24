@@ -22,7 +22,6 @@ jobs:
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
-          cache: 'npm'
       
       - name: Extract version from tag
         id: extract-version
@@ -39,10 +38,15 @@ jobs:
       
       - name: Configure npm for reliability
         run: |
-          npm config set fetch-retries 3
+          npm config set fetch-retries 5
           npm config set fetch-retry-mintimeout 10000
-          npm config set fetch-retry-maxtimeout 60000
-          npm config set fetch-timeout 300000
+          npm config set fetch-retry-maxtimeout 120000
+          npm config set fetch-timeout 600000
+          npm config set maxsockets 1
+          npm config set prefer-offline false
+      
+      - name: Clean npm cache
+        run: npm cache clean --force
       
       - name: Install dependencies with retry
         uses: nick-invision/retry@v2
@@ -50,7 +54,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 30
-          command: npm ci --prefer-offline --no-audit --no-fund
+          command: npm install --no-audit --no-fund
       
       - name: Build React app
         uses: nick-invision/retry@v2
