@@ -28,7 +28,7 @@ const GuidedTour = ({ onClose }) => {
   // Define tour steps with icons
   const steps = [
     {
-      title: "Welcome to Anantabhavi",
+      title: "Welcome",
       content: "A space where your choices shape the future. Select world building parameters and the AI will weave them into a speculative story inspired by the world you imagine.",
       position: "center",
       icon: <Sparkles className="h-4 w-4 text-primary" />
