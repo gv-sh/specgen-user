@@ -35,13 +35,10 @@ const AppRoutes = ({
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Auto-start tour when first visiting /parameters page
+  // Auto-start tour when visiting /parameters page
   useEffect(() => {
     if (location.pathname === '/parameters') {
-      const tourCompleted = localStorage.getItem('anantabhavi-tour-completed');
-      if (!tourCompleted) {
-        setShowTour(true);
-      }
+      setShowTour(true);
     }
   }, [location.pathname, setShowTour]);
 

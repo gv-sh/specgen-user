@@ -44,6 +44,8 @@
     "@testing-library/user-event": "^13.5.0",
     "autoprefixer": "^10.4.16",
     "axios": "^1.8.4",
+    "canvg": "^4.0.3",
+    "dompurify": "^3.2.6",
     "gasp": "^0.0.2",
     "gsap": "^3.13.0",
     "html2canvas": "^1.4.1",

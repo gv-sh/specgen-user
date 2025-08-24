@@ -90,9 +90,6 @@ const GuidedTour = ({ onClose }) => {
   const completeTour = () => {
     setIsVisible(false);
     
-    // Store in localStorage that the user has seen the tour
-    localStorage.setItem('anantabhavi-tour-completed', 'true');
-    
     // Notify parent component
     if (onClose) onClose();
   };
