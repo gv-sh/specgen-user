@@ -22,6 +22,7 @@ jobs:
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
       
       - name: Extract version from tag
         id: extract-version
@@ -36,14 +37,36 @@ jobs:
           # Verify the change was made
           grep "version-" README.md
       
-      - name: Install dependencies
-        run: npm install
+      - name: Configure npm for reliability
+        run: |
+          npm config set fetch-retries 3
+          npm config set fetch-retry-mintimeout 10000
+          npm config set fetch-retry-maxtimeout 60000
+          npm config set fetch-timeout 300000
+      
+      - name: Install dependencies with retry
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm ci --prefer-offline --no-audit --no-fund
       
       - name: Build React app
-        run: npm run build
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 15
+          max_attempts: 2
+          retry_wait_seconds: 60
+          command: npm run build
       
       - name: Publish to NPM
-        run: npm publish
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       
