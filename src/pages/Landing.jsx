@@ -32,8 +32,8 @@ const Landing = ({ onClearSession }) => {
             {["What", "kind", "of", "futures", "do", "you", "envision?"].map((word, i) => (
               <span key={i}>
                 {word === "futures" ? (
-                  <a
-                    href="/library" 
+                  <Link
+                    to="/library" 
                     className="
                       group relative inline-block italic cursor-pointer
                       transition-all duration-500 ease-out
@@ -57,7 +57,7 @@ const Landing = ({ onClearSession }) => {
                     >
                       you can read →
                     </span>
-                  </a>
+                  </Link>
                 ) : (
                   word
                 )}
