@@ -59,9 +59,17 @@ const LazyImage = ({
     };
   }, [src]);
 
-  const handleLoad = () => {
+  const handleLoad = (e) => {
     setIsLoaded(true);
-    onLoad?.();
+    // Call onLoad after opacity transition completes
+    const imgEl = e.target;
+    const handleTransitionEnd = (event) => {
+      if (event.propertyName === 'opacity') {
+        onLoad?.();
+        imgEl.removeEventListener('transitionend', handleTransitionEnd);
+      }
+    };
+    imgEl.addEventListener('transitionend', handleTransitionEnd);
   };
 
   const handleError = () => {
