@@ -34,14 +34,15 @@ Tests the performance of the story library with progressive loading:
 
 ### 2. Service Performance Tests
 
-#### API Service (`src/services/api.test.js`)
+#### API Service (`src/services/api-simple.test.js` & `src/services/api-mock.test.js`)
 Tests the performance of API calls and caching:
 
-- **Cache Operations**: Read/write operations < 100ms
-- **Memory Management**: Object URL cleanup for images
-- **Concurrent Requests**: Multiple simultaneous calls < 500ms
+- **Cache Operations**: localStorage read/write operations < 100ms  
+- **Memory Management**: Object URL creation/cleanup for images
+- **Mock Performance**: Function mocking and setup efficiency
+- **Concurrent Requests**: Multiple simultaneous calls < 200ms
 - **Error Handling**: Timeout and network error recovery
-- **Large Responses**: Processing 2000+ records < 200ms
+- **Large Responses**: Processing 1000+ records < 100ms
 
 ### 3. Integration Performance Tests
 
@@ -96,8 +97,11 @@ npm test LazyImage.test.jsx
 # Run LibraryPage performance tests
 npm test LibraryPage.test.jsx
 
-# Run API service performance tests
-npm test api.test.js
+# Run API service cache performance tests
+npm test api-simple.test.js
+
+# Run API service mock performance tests
+npm test api-mock.test.js
 
 # Run integration performance tests
 npm test performance-integration.test.jsx
