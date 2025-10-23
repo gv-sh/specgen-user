@@ -66,7 +66,7 @@ const LibraryPage = () => {
       // Fetch from API using new summary endpoint
       const params = {
         page,
-        limit: pagination.limit,
+        limit: pagination?.limit || 20,
         ...options.filters
       };
 
