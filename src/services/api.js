@@ -247,7 +247,7 @@ export const fetchContentSummary = async (params = {}) => {
 /**
  * Fetch image for a specific story
  * @param {string} storyId - Story ID
- * @returns {Promise<string>} - Image URL or data URL
+ * @returns {Promise<{url: string, cleanup: function}>} - Object with image URL and cleanup function
  */
 export const fetchStoryImage = async (storyId) => {
   try {
@@ -256,7 +256,13 @@ export const fetchStoryImage = async (storyId) => {
     });
     
     // Convert blob to object URL for efficient memory usage
-    return URL.createObjectURL(response.data);
+    const url = URL.createObjectURL(response.data);
+    
+    // Return URL with cleanup function to prevent memory leaks
+    return {
+      url,
+      cleanup: () => URL.revokeObjectURL(url)
+    };
   } catch (error) {
     console.error(`Error fetching image for story ${storyId}:`, error);
     throw error;
