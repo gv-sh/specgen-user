@@ -13,7 +13,8 @@ const StoryCard = ({ story, isHighlighted, onClick }) => {
 
   // Generate image URL from new API endpoint
   const getImageUrl = (story) => {
-    if (!story || !story.hasImage || imageError) return null;
+    // Only exclude if hasImage is explicitly false; allow undefined for backward compatibility
+    if (!story || story.hasImage === false || imageError) return null;
     return `${config.API_URL}/api/content/${story.id}/image`;
   };
 
