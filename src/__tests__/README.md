@@ -59,7 +59,7 @@ Comprehensive integration tests covering complete user workflows:
 
 The following benchmarks are established for optimal user experience:
 
-| Operation | Benchmark | Test Coverage |
+|Operation | Benchmark | Test Coverage |
 |-----------|-----------|---------------|
 | Initial render | < 100ms | ✅ All components |
 | Skeleton display | < 50ms | ✅ LazyImage, LibraryPage |
