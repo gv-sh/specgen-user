@@ -87,7 +87,9 @@ const LazyImage = ({
     <div 
       className={`animate-pulse bg-gray-200 ${skeletonClassName || className}`}
       style={{ ...style }}
-      aria-label={`Loading ${alt}`}
+      aria-label={alt}
+      role="img"
+      aria-busy="true"
     />
   );
 
