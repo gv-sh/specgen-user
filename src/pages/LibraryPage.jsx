@@ -53,7 +53,7 @@ const LibraryPage = () => {
             const parsed = JSON.parse(cachedData);
             console.log('Using cached story summary data');
             setStories(parsed.data || []);
-            setPagination(parsed.pagination || pagination);
+            setPagination(parsed.pagination || { page: 1, limit: 20, total: 0, totalPages: 0, hasNext: false, hasPrev: false });
             setLoading(false);
             setIsInitialLoad(false);
             return;
