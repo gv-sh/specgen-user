@@ -85,7 +85,7 @@ const LazyImage = ({
   // Skeleton placeholder
   const Skeleton = () => (
     <div 
-      className={`animate-pulse bg-gray-200 ${skeletonClassName || className}`}
+      className={`animate-pulse bg-gray-200 ${skeletonClassName || 'lazy-image-skeleton'}`}
       style={{ ...style }}
       aria-label={alt}
       role="img"
