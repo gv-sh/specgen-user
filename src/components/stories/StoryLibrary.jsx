@@ -12,10 +12,13 @@ const StoryLibrary = ({
   onStorySelect, 
   onCreateNew,
   onDeleteStory, 
+  onLoadMore,
+  onRefresh,
   highlightedStoryId,
   loading,
+  isInitialLoad,
   error,
-  onReload // New prop for manual reload
+  pagination
 }) => {
   // State for filtering and search
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,8 +42,8 @@ const StoryLibrary = ({
 
   // Handle retry loading
   const handleRetry = () => {
-    if (onReload && typeof onReload === 'function') {
-      onReload();
+    if (onRefresh && typeof onRefresh === 'function') {
+      onRefresh();
     }
   };
   
@@ -204,17 +207,54 @@ const StoryLibrary = ({
         <EmptyLibrary onCreateNew={onCreateNew} />
       ) : !loading && filteredStories.length === 0 ? (
         <NoSearchResults onClearFilters={clearFilters} />
-      ) : !loading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStories.map((story) => (
-            <StoryCard 
-              key={story.id}
-              story={story}
-              isHighlighted={highlightedStoryId === story.id}
-              onClick={() => onStorySelect(story)}
-            />
-          ))}
-        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredStories.map((story) => (
+              <StoryCard 
+                key={story.id}
+                story={story}
+                isHighlighted={highlightedStoryId === story.id}
+                onClick={() => onStorySelect(story)}
+              />
+            ))}
+          </div>
+          
+          {/* Pagination and Load More */}
+          {pagination && pagination.total > 0 && (
+            <div className="mt-8 flex flex-col items-center gap-4">
+              {/* Pagination Info */}
+              <div className="text-sm text-muted-foreground">
+                Showing {stories.length} of {pagination.total} stories
+                {pagination.totalPages > 1 && (
+                  <span> (Page {pagination.page} of {pagination.totalPages})</span>
+                )}
+              </div>
+              
+              {/* Load More Button */}
+              {pagination.hasNext && (
+                <Button 
+                  onClick={onLoadMore}
+                  disabled={loading}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      Load More Stories
+                      <PlusCircle className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

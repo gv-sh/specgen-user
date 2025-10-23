@@ -218,35 +218,89 @@ const saveToGenerationHistory = (generation) => {
 };
 
 /**
- * Fetch previous generations from history
+ * Fetch content summary without images for fast loading
+ * @param {Object} params - Query parameters (page, limit, type, year, etc.)
+ * @returns {Promise<Object>} Promise resolving to content summaries with pagination
+ */
+export const fetchContentSummary = async (params = {}) => {
+  try {
+    const cacheKey = `content-summary-${JSON.stringify(params)}`;
+    const cachedData = apiCache.get(cacheKey);
+
+    if (cachedData) {
+      console.log('Using cached content summary data');
+      return cachedData;
+    }
+
+    const response = await api.get('/content/summary', { params });
+
+    // Cache the response (valid for 10 minutes for summaries)
+    apiCache.set(cacheKey, response.data, 10 * 60 * 1000);
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching content summary:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch image for a specific story
+ * @param {string} storyId - Story ID
+ * @returns {Promise<{url: string, cleanup: function}>} - Object with image URL and cleanup function
+ */
+export const fetchStoryImage = async (storyId) => {
+  try {
+    const response = await api.get(`/content/${storyId}/image`, {
+      responseType: 'blob'
+    });
+    
+    // Convert blob to object URL for efficient memory usage
+    const url = URL.createObjectURL(response.data);
+    
+    // Return URL with cleanup function to prevent memory leaks
+    return {
+      url,
+      cleanup: () => URL.revokeObjectURL(url)
+    };
+  } catch (error) {
+    console.error(`Error fetching image for story ${storyId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch previous generations from history (legacy function - now uses summary endpoint)
  * @param {Object} filters - Optional filters for stories
  * @returns {Promise<Object>} Promise resolving to previous generations
  */
 export const fetchPreviousGenerations = async (filters = {}) => {
   try {
-    // Make API call to fetch stories
-    const response = await api.get('/content');
+    // Convert old filter format to new API parameters
+    const params = {
+      page: filters.page || 1,
+      limit: filters.limit || 20
+    };
 
-    // If API call succeeded
-    if (response.data && response.data.success) {
-      let stories = response.data.data || [];
+    if (filters.year) {
+      params.year = parseInt(filters.year, 10);
+    }
 
-      // Filter to only include stories with content
-      stories = stories.filter(story => story.content);
+    if (filters.type) {
+      params.type = filters.type;
+    }
 
-      // Apply additional filters if provided
-      if (filters.year) {
-        stories = stories.filter(item =>
-          item.year === parseInt(filters.year, 10) ||
-          item.year?.toString() === filters.year
-        );
-      }
+    // Use the new summary endpoint for better performance
+    const response = await fetchContentSummary(params);
 
+    if (response && response.success) {
+      let stories = response.data || [];
+
+      // Apply client-side search filter if provided (server doesn't support search yet)
       if (filters.search) {
         const searchTerm = filters.search.toLowerCase();
         stories = stories.filter(item =>
-          (item.title && item.title.toLowerCase().includes(searchTerm)) ||
-          (item.content && item.content.toLowerCase().includes(searchTerm))
+          (item.title && item.title.toLowerCase().includes(searchTerm))
         );
       }
 
@@ -259,7 +313,8 @@ export const fetchPreviousGenerations = async (filters = {}) => {
 
       return {
         success: true,
-        data: stories
+        data: stories,
+        pagination: response.pagination
       };
     }
 

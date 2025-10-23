@@ -1,35 +1,21 @@
 // src/components/stories/StoryCard.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '../ui/card';
-import { Calendar } from 'lucide-react';
+import { Calendar, BookOpen } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import LazyImage from '../ui/LazyImage';
+import config from '../../config';
 
 const StoryCard = ({ story, isHighlighted, onClick }) => {
   const navigate = useNavigate();
+  const [imageError, setImageError] = useState(false);
 
-  // Enhanced image handling function
-  const getStoryImage = (story) => {
-    if (!story) return null;
-
-    // Handle base64 image data
-    if (story.imageData) {
-      if (typeof story.imageData === 'string') {
-        // If it already starts with data:image, it's already properly formatted
-        if (story.imageData.startsWith('data:image')) {
-          return story.imageData;
-        }
-        // Otherwise, assume it's raw base64 and add proper prefix
-        return `data:image/png;base64,${story.imageData}`;
-      }
-    }
-
-    // Handle image URL if that's what the API returns
-    if (story.imageUrl) {
-      return story.imageUrl;
-    }
-
-    return null;
+  // Generate image URL from new API endpoint
+  const getImageUrl = (story) => {
+    // Only exclude if hasImage is explicitly false; allow undefined for backward compatibility
+    if (!story || story.hasImage === false || imageError) return null;
+    return `${config.API_URL}/api/content/${story.id}/image`;
   };
 
   // Handle title extraction from story
@@ -39,17 +25,6 @@ const StoryCard = ({ story, isHighlighted, onClick }) => {
     // Use title if available
     if (story.title && story.title !== "Untitled Story") {
       return story.title;
-    }
-
-    // Try to extract title from content
-    if (story.content) {
-      const contentLines = story.content.split('\n');
-      for (const line of contentLines) {
-        if (line.trim().startsWith('**Title:')) {
-          const extractedTitle = line.trim().replace(/\*\*/g, '').replace('Title:', '').trim();
-          if (extractedTitle) return extractedTitle;
-        }
-      }
     }
 
     return "Untitled Story";
@@ -64,8 +39,9 @@ const StoryCard = ({ story, isHighlighted, onClick }) => {
     }
   };
 
-  // Get image source
-  const imageSource = getStoryImage(story);
+  // Get image URL for lazy loading
+  const imageUrl = getImageUrl(story);
+  const storyTitle = getStoryTitle(story);
 
   return (
     <Card
@@ -75,37 +51,49 @@ const StoryCard = ({ story, isHighlighted, onClick }) => {
       )}
       onClick={handleClick}
     >
-      {imageSource && (
-        <div className="h-48 w-full overflow-hidden">
-          <img
-            src={imageSource}
-            alt={getStoryTitle(story)}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              console.error("Image failed to load:", imageSource);
-              e.target.onerror = null;
-              e.target.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
-            }}
-          />
+      {/* Image with lazy loading */}
+      {imageUrl ? (
+        <LazyImage
+          src={imageUrl}
+          alt={storyTitle}
+          className="w-full h-48 object-cover"
+          skeletonClassName="w-full h-48"
+          onError={() => setImageError(true)}
+        />
+      ) : (
+        // Fallback for stories without images
+        <div className="w-full h-48 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+          <BookOpen className="h-12 w-12 text-white opacity-80" />
         </div>
       )}
 
       <CardContent className="p-5">
-        <h3 className="text-xl font-semibold line-clamp-2 mb-2">{getStoryTitle(story)}</h3>
-        <div className="flex items-center text-sm text-muted-foreground">
+        <h3 className="text-xl font-semibold line-clamp-2 mb-2">{storyTitle}</h3>
+        
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
           {story.year && (
             <div className="flex items-center">
               <Calendar className="h-3.5 w-3.5 mr-1.5" />
               Year {story.year}
             </div>
           )}
+          
+          {/* Story type badge */}
+          <div className="flex items-center">
+            <span className="px-2 py-1 bg-muted rounded-md text-xs font-medium capitalize">
+              {story.type}
+            </span>
+          </div>
         </div>
 
-        {!imageSource && story.content && (
-          <p className="text-muted-foreground line-clamp-3 mt-3">
-            {story.content.split('\n\n')[0].replace(/\*\*Title:.*?\*\*/g, '')}
-          </p>
-        )}
+        {/* Creation date */}
+        <div className="text-xs text-muted-foreground mt-2">
+          {story.createdAt && new Date(story.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          })}
+        </div>
       </CardContent>
     </Card>
   );
