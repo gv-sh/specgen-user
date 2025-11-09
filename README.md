@@ -49,14 +49,18 @@ This will create an optimized build in the `build` folder.
 ## Technologies
 
 - React
-- Material-UI for components
+- Tailwind CSS for styling
+- shadcn/ui components
+- lucide-react for icons
 - Axios for API calls
 - React Router for navigation
-- Emotion for styling
+- GSAP for animations
+- Three.js for 3D graphics
+- jsPDF & html2canvas for PDF generation
 
 ## Development
 
-The user interface is built with React and Material-UI, providing a modern and responsive design for generating fiction. It communicates with the SpecGen server API to fetch categories and parameters, and to generate fiction based on user selections.
+The user interface is built with React and Tailwind CSS, providing a modern and responsive design for generating fiction. It communicates with the SpecGen server API to fetch categories and parameters, and to generate fiction based on user selections.
 
 ### Key Components
 

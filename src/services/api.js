@@ -6,9 +6,6 @@ import { apiCache } from '../utils/performanceUtils';
 // Use environment variable for API URL with fallback to config
 const API_BASE_URL = `${config.API_URL}/api`;
 
-// Log the actual API URL being used for debugging
-console.log('API Base URL:', API_BASE_URL);
-
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -27,7 +24,6 @@ export const fetchCategories = async () => {
     const cachedData = apiCache.get(cacheKey);
 
     if (cachedData) {
-      console.log('Using cached categories data');
       return cachedData;
     }
 
@@ -56,7 +52,6 @@ export const fetchParameters = async (categoryId) => {
     const cachedData = apiCache.get(cacheKey);
 
     if (cachedData) {
-      console.log(`Using cached parameters data for category ${categoryId}`);
       return cachedData;
     }
 
@@ -107,8 +102,6 @@ export const generateContent = async (parameterValues, categoryIds, contentType 
     if (title) {
       payload.title = title;
     }
-
-    console.log('Generation payload:', JSON.stringify(payload, null, 2));
 
     // Make the API call
     const response = await api.post('/generate', payload);
@@ -184,7 +177,6 @@ const saveToGenerationHistory = (generation) => {
     // Try to save, but catch quota errors
     try {
       localStorage.setItem('specgen-history', JSON.stringify(history));
-      console.log('Saved story to history:', generation.id);
     } catch (storageError) {
       if (storageError.name === 'QuotaExceededError') {
         // Clear older items and try again with fewer items
@@ -228,7 +220,6 @@ export const fetchContentSummary = async (params = {}) => {
     const cachedData = apiCache.get(cacheKey);
 
     if (cachedData) {
-      console.log('Using cached content summary data');
       return cachedData;
     }
 
@@ -344,8 +335,6 @@ const fallbackToLocalStorage = (filters = {}) => {
       parameterValues: item.parameterValues || {},
       metadata: item.metadata || {}
     }));
-
-    console.log('Fallback: Using localStorage for stories');
 
     // Apply filters
     let filteredHistory = [...processedHistory];

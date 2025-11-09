@@ -10,7 +10,6 @@ import {
   Printer
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-// import { Preview, print } from 'react-html2pdf';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ReactDOM from 'react-dom/client';
@@ -394,14 +393,4 @@ const printStyledPDF = async ({ story, imageSource, contentParagraphs }) => {
     printWindow.focus();
     printWindow.print();
   };
-};
-
-const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  const options = { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric'
-  };
-  return date.toLocaleDateString('en-US', options);
 };

@@ -33,9 +33,8 @@ export const useGeneration = (
     try {
       // Try API first
       const response = await fetchPreviousGenerations();
-      
+
       if (response.success && response.data) {
-        console.log(`Loaded ${response.data.length} stories from API`);
         setStories(response.data);
         setError(null);
         
@@ -72,8 +71,6 @@ export const useGeneration = (
         if (cachedStoriesJSON) {
           const cachedStories = JSON.parse(cachedStoriesJSON);
           if (cachedStories && cachedStories.length > 0) {
-            console.log('Using cached story data');
-            
             // Add placeholder content for minimal stories
             const displayStories = cachedStories.map(story => {
               if (story.isMinimal) {
