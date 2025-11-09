@@ -51,7 +51,6 @@ const LibraryPage = () => {
         if (cachedData && cacheValid) {
           try {
             const parsed = JSON.parse(cachedData);
-            console.log('Using cached story summary data');
             setStories(parsed.data || []);
             setPagination(parsed.pagination || { page: 1, limit: 20, total: 0, totalPages: 0, hasNext: false, hasPrev: false });
             setLoading(false);
@@ -71,10 +70,8 @@ const LibraryPage = () => {
       };
 
       const response = await fetchContentSummary(params);
-      
+
       if (response.success && response.data) {
-        console.log(`Loaded ${response.data.length} stories from API (page ${page})`);
-        
         if (page === 1) {
           // Replace stories for first page
           setStories(response.data);
@@ -108,7 +105,6 @@ const LibraryPage = () => {
         if (cachedData) {
           try {
             const parsed = JSON.parse(cachedData);
-            console.log('Falling back to cached story data');
             setStories(parsed.data || []);
             setPagination(parsed.pagination || { page: 1, limit: 20, total: 0, totalPages: 0, hasNext: false, hasPrev: false });
             setError('Using cached data. Please check your connection.');
