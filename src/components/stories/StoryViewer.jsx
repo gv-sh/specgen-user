@@ -1,11 +1,11 @@
 // src/components/stories/StoryViewer.jsx
 import React from 'react';
 import { Button } from '../ui/button';
-import { 
-  Calendar, 
-  Download, 
-  Share, 
-  RefreshCw, 
+import {
+  Calendar,
+  Download,
+  Share,
+  RefreshCw,
   PlusCircle,
   Printer
 } from 'lucide-react';
@@ -14,6 +14,16 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import ReactDOM from 'react-dom/client';
 
+// Format date helper function (moved outside component for reuse in PDF generation)
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const options = {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  };
+  return date.toLocaleDateString('en-US', options);
+};
 
 const StoryViewer = ({ 
   story, 
@@ -101,18 +111,7 @@ const StoryViewer = ({
     
     return null;
   };
-  
-  // Format date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const options = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric'
-    };
-    return date.toLocaleDateString('en-US', options);
-  };
-  
+
   // Get the image source
   const imageSource = getStoryImage(story);
   
