@@ -48,6 +48,17 @@
             "type": "integer",
             "description": "Year associated with this category",
             "example": 2050
+          },
+          "sort_order": {
+            "type": "integer",
+            "description": "Order in which to display this category",
+            "example": 0
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the category was created",
+            "example": "2023-04-15T12:34:56.789Z"
           }
         },
         "required": [
@@ -79,7 +90,8 @@
             "description": "Visibility level of this parameter",
             "enum": [
               "Basic",
-              "Advanced"
+              "Advanced",
+              "Hide"
             ],
             "example": "Basic"
           },
@@ -87,90 +99,44 @@
             "type": "string",
             "description": "Type of the parameter input",
             "enum": [
-              "Dropdown",
-              "Slider",
-              "Toggle Switch",
-              "Radio Buttons",
-              "Checkbox"
+              "select",
+              "text",
+              "number",
+              "boolean",
+              "range"
             ],
-            "example": "Dropdown"
+            "example": "select"
           },
           "categoryId": {
             "type": "string",
             "description": "ID of the category this parameter belongs to",
             "example": "science-fiction"
           },
-          "values": {
-            "oneOf": [
-              {
-                "type": "array",
-                "description": "For Dropdown, Radio Buttons, and Checkbox types",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "example": "near-future"
-                    },
-                    "label": {
-                      "type": "string",
-                      "example": "Near Future"
-                    }
-                  }
-                },
-                "example": [
-                  {
-                    "id": "near-future",
-                    "label": "Near Future"
-                  },
-                  {
-                    "id": "advanced",
-                    "label": "Advanced"
-                  }
-                ]
-              },
-              {
-                "type": "object",
-                "description": "For Toggle Switch type",
-                "properties": {
-                  "on": {
-                    "type": "string",
-                    "example": "Yes"
-                  },
-                  "off": {
-                    "type": "string",
-                    "example": "No"
-                  }
-                },
-                "example": {
-                  "on": "Yes",
-                  "off": "No"
-                }
-              }
-            ]
+          "required": {
+            "type": "integer",
+            "description": "Whether this parameter is required (0 = false, 1 = true)",
+            "example": 0
           },
-          "config": {
-            "type": "object",
-            "description": "Configuration for Slider type",
-            "properties": {
-              "min": {
-                "type": "number",
-                "example": 0
-              },
-              "max": {
-                "type": "number",
-                "example": 100
-              },
-              "step": {
-                "type": "number",
-                "example": 1
-              }
-            },
-            "example": {
-              "min": 0,
-              "max": 100,
-              "step": 1
-            }
+          "sort_order": {
+            "type": "integer",
+            "description": "Order in which to display this parameter",
+            "example": 0
+          },
+          "parameter_values": {
+            "type": "string",
+            "description": "JSON string containing parameter values (for select type)",
+            "example": "[{\"id\":\"near-future\",\"label\":\"Near Future\"},{\"id\":\"advanced\",\"label\":\"Advanced\"}]"
+          },
+          "parameter_config": {
+            "type": "string",
+            "description": "JSON string containing parameter configuration (for range/number types)",
+            "example": "{\"min\":0,\"max\":100,\"step\":1}"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the parameter was created",
+            "example": "2023-04-15T12:34:56.789Z"
           }
         },
         "required": [
@@ -190,71 +156,61 @@
           },
           "title": {
             "type": "string",
-            "description": "Title of the generated content",
+            "description": "Title of the generated content (max 200 characters)",
             "example": "Space Explorer Adventure"
           },
-          "type": {
+          "fiction_content": {
             "type": "string",
-            "description": "Type of content (fiction or image)",
-            "enum": [
-              "fiction",
-              "image"
-            ],
-            "example": "fiction"
-          },
-          "content": {
-            "type": "string",
-            "description": "The generated fiction content (only for fiction type)",
+            "description": "The generated fiction content (max 50,000 characters)",
             "example": "The starship Nebula drifted silently through the endless void of space..."
           },
-          "imageUrl": {
+          "image_blob": {
             "type": "string",
-            "description": "URL of the generated image (only for image type)",
-            "example": "https://example.com/generated-image.jpg"
+            "description": "Base64-encoded image data",
+            "example": "iVBORw0KGgoAAAANSUhEUgAA..."
           },
-          "year": {
+          "image_thumbnail": {
+            "type": "string",
+            "description": "Base64-encoded thumbnail image data",
+            "example": "iVBORw0KGgoAAAANSUhEUgAA..."
+          },
+          "image_format": {
+            "type": "string",
+            "description": "Format of the image (e.g., png, jpg)",
+            "example": "png"
+          },
+          "image_size_bytes": {
             "type": "integer",
-            "description": "Year in which the story is set",
-            "example": 2085
+            "description": "Size of the image in bytes",
+            "example": 524288
           },
-          "parameterValues": {
-            "type": "object",
-            "description": "Parameters used to generate this content",
-            "example": {
-              "science-fiction": {
-                "science-fiction-technology-level": "Near Future",
-                "science-fiction-alien-life": true
-              }
-            }
+          "thumbnail_size_bytes": {
+            "type": "integer",
+            "description": "Size of the thumbnail in bytes",
+            "example": 32768
+          },
+          "prompt_data": {
+            "type": "string",
+            "description": "JSON string containing the prompt data used to generate this content",
+            "example": "{\"science-fiction\":{\"science-fiction-technology-level\":\"Near Future\",\"science-fiction-alien-life\":true}}"
           },
           "metadata": {
-            "type": "object",
-            "description": "Additional metadata about the generation",
-            "example": {
-              "model": "gpt-4o-mini",
-              "tokens": 1250
-            }
+            "type": "string",
+            "description": "JSON string containing additional metadata about the generation",
+            "example": "{\"model\":\"gpt-4o-mini\",\"tokens\":1250}"
           },
-          "createdAt": {
+          "created_at": {
             "type": "string",
             "format": "date-time",
             "description": "When the content was created",
-            "example": "2023-04-15T12:34:56.789Z"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the content was last updated",
             "example": "2023-04-15T12:34:56.789Z"
           }
         },
         "required": [
           "id",
           "title",
-          "type",
-          "parameterValues",
-          "createdAt",
-          "updatedAt"
+          "fiction_content",
+          "created_at"
         ]
       },
       "ContentList": {
@@ -323,9 +279,9 @@
       },
       "GenerationParameters": {
         "type": "object",
-        "description": "Object containing parameterValues object that maps category IDs to parameter selections. The parameterValues object has category IDs as keys, with each value being an object of parameter ID/value pairs.\n",
+        "description": "Object containing prompt_data that maps category IDs to parameter selections.\n",
         "properties": {
-          "parameterValues": {
+          "prompt_data": {
             "type": "object",
             "description": "Map of category IDs to parameter selections",
             "example": {
@@ -336,27 +292,9 @@
               },
               "fantasy": {
                 "fantasy-magic-system": "Elemental",
-                "fantasy-mythical-creatures": [
-                  "Dragons",
-                  "Elves"
-                ]
+                "fantasy-mythical-creatures": "Dragons"
               }
             }
-          },
-          "contentType": {
-            "type": "string",
-            "description": "Type of content to generate ('fiction', 'image', or 'combined')",
-            "enum": [
-              "fiction",
-              "image",
-              "combined"
-            ],
-            "default": "fiction"
-          },
-          "year": {
-            "type": "integer",
-            "description": "Year in which the story is set (e.g., 2050, 2100)",
-            "example": 2085
           },
           "title": {
             "type": "string",
@@ -365,7 +303,7 @@
           }
         },
         "required": [
-          "parameterValues"
+          "prompt_data"
         ]
       },
       "GenerationResponse": {
@@ -376,78 +314,13 @@
             "description": "Whether the generation was successful",
             "example": true
           },
-          "content": {
-            "type": "string",
-            "description": "Generated story content (only provided for fiction or combined type)",
-            "example": "The starship Nebula drifted silently through the endless void of space..."
-          },
-          "imageData": {
-            "type": "string",
-            "description": "Base64-encoded image data (only provided for image or combined type)",
-            "example": "iVBORw0KGgoAAAANSUhEUgAA..."
-          },
-          "title": {
-            "type": "string",
-            "description": "Title of the generated story (either provided or extracted from content)",
-            "example": "The Last Frontier"
-          },
-          "year": {
-            "type": "integer",
-            "description": "Year in which the story is set",
-            "example": 2085
-          },
-          "metadata": {
-            "type": "object",
-            "properties": {
-              "model": {
-                "type": "string",
-                "description": "The AI model used for generation (for fiction or image type)",
-                "example": "gpt-4o-mini"
-              },
-              "tokens": {
-                "type": "integer",
-                "description": "Total tokens used for this generation (for fiction type)",
-                "example": 1250
-              },
-              "prompt": {
-                "type": "string",
-                "description": "Prompt used for image generation (for image type)",
-                "example": "A futuristic city with flying vehicles..."
-              },
-              "fiction": {
-                "type": "object",
-                "description": "Fiction generation metadata (for combined type)",
-                "properties": {
-                  "model": {
-                    "type": "string",
-                    "example": "gpt-4o-mini"
-                  },
-                  "tokens": {
-                    "type": "integer",
-                    "example": 1250
-                  }
-                }
-              },
-              "image": {
-                "type": "object",
-                "description": "Image generation metadata (for combined type)",
-                "properties": {
-                  "model": {
-                    "type": "string",
-                    "example": "dall-e-3"
-                  },
-                  "prompt": {
-                    "type": "string",
-                    "example": "A fantasy landscape with dragons and elves..."
-                  }
-                }
-              }
-            }
+          "data": {
+            "$ref": "#/components/schemas/Content"
           }
         },
         "required": [
           "success",
-          "metadata"
+          "data"
         ]
       },
       "GenerationError": {
@@ -925,112 +798,13 @@
     "/api/content": {
       "get": {
         "summary": "Get all generated content",
-        "description": "Retrieve a list of all generated content, with optional filtering by type or year",
+        "description": "Retrieve a list of all generated content",
         "tags": [
           "Content"
-        ],
-        "parameters": [
-          {
-            "in": "query",
-            "name": "type",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "fiction",
-                "image"
-              ]
-            },
-            "description": "Filter content by type"
-          },
-          {
-            "in": "query",
-            "name": "year",
-            "schema": {
-              "type": "integer"
-            },
-            "description": "Filter content by story year"
-          }
         ],
         "responses": {
           "200": {
             "description": "List of generated content",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ContentListResponse"
-                }
-              }
-            }
-          },
-          "500": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
-    "/api/content/years": {
-      "get": {
-        "summary": "Get all years with content",
-        "description": "Retrieve a list of all years that have generated content",
-        "tags": [
-          "Content"
-        ],
-        "responses": {
-          "200": {
-            "description": "List of years with content",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "integer"
-                      },
-                      "example": [
-                        2050,
-                        2085,
-                        2100,
-                        2150
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": {
-            "$ref": "#/components/responses/Error"
-          }
-        }
-      }
-    },
-    "/api/content/year/{year}": {
-      "get": {
-        "summary": "Get content by year",
-        "description": "Retrieve all content set in a specific year",
-        "tags": [
-          "Content"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "year",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "Year to filter by"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of content for the specified year",
             "content": {
               "application/json": {
                 "schema": {
@@ -1091,7 +865,7 @@
       },
       "put": {
         "summary": "Update generated content",
-        "description": "Update a generated content's title, content, imageUrl, or year",
+        "description": "Update a generated content's title or fiction content",
         "tags": [
           "Content"
         ],
@@ -1117,20 +891,10 @@
                     "description": "New title for the content",
                     "example": "Updated Space Adventure"
                   },
-                  "content": {
+                  "fiction_content": {
                     "type": "string",
-                    "description": "New content (for fiction type only)",
+                    "description": "New fiction content",
                     "example": "Updated story content..."
-                  },
-                  "imageUrl": {
-                    "type": "string",
-                    "description": "New image URL (for image type only)",
-                    "example": "https://example.com/new-image.jpg"
-                  },
-                  "year": {
-                    "type": "integer",
-                    "description": "New year for the story setting",
-                    "example": 2095
                   }
                 }
               }
@@ -1283,8 +1047,8 @@
     },
     "/api/generate": {
       "post": {
-        "summary": "Generate fiction text or an image based on selected parameters",
-        "description": "Sends the provided parameter selections to the AI service and returns either a generated story or image URL based on the contentType. The request body must contain a 'parameterValues' object with category IDs as keys, and each category having parameter IDs as keys with their respective values.\n",
+        "summary": "Generate fiction text based on selected parameters",
+        "description": "Sends the provided parameter selections to the AI service and returns generated content. The request body must contain a 'prompt_data' object with category IDs as keys, and each category having parameter IDs as keys with their respective values.\n",
         "tags": [
           "Generation"
         ],
@@ -1295,27 +1059,12 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "parameterValues"
+                  "prompt_data"
                 ],
                 "properties": {
-                  "parameterValues": {
+                  "prompt_data": {
                     "type": "object",
                     "description": "Map of category IDs to parameter selections"
-                  },
-                  "contentType": {
-                    "type": "string",
-                    "enum": [
-                      "fiction",
-                      "image",
-                      "combined"
-                    ],
-                    "default": "fiction",
-                    "description": "Type of content to generate ('fiction', 'image', or 'combined')"
-                  },
-                  "year": {
-                    "type": "integer",
-                    "description": "Optional year in which to set the story",
-                    "example": 2085
                   },
                   "title": {
                     "type": "string",
@@ -1328,47 +1077,25 @@
                 "fictionGeneration": {
                   "summary": "Fiction generation request",
                   "value": {
-                    "parameterValues": {
+                    "prompt_data": {
                       "science-fiction": {
                         "science-fiction-technology-level": "Near Future",
                         "science-fiction-alien-life": true,
                         "science-fiction-space-exploration-focus": 7
                       }
                     },
-                    "contentType": "fiction",
-                    "year": 2085
+                    "title": "The Last Frontier"
                   }
                 },
-                "imageGeneration": {
-                  "summary": "Image generation request",
+                "fantasyGeneration": {
+                  "summary": "Fantasy generation request",
                   "value": {
-                    "parameterValues": {
+                    "prompt_data": {
                       "fantasy": {
                         "fantasy-magic-system": "Elemental",
-                        "fantasy-mythical-creatures": [
-                          "Dragons",
-                          "Elves"
-                        ]
+                        "fantasy-mythical-creatures": "Dragons"
                       }
                     },
-                    "contentType": "image",
-                    "year": 2150
-                  }
-                },
-                "combinedGeneration": {
-                  "summary": "Combined fiction and image generation request",
-                  "value": {
-                    "parameterValues": {
-                      "fantasy": {
-                        "fantasy-magic-system": "Elemental",
-                        "fantasy-mythical-creatures": [
-                          "Dragons",
-                          "Elves"
-                        ]
-                      }
-                    },
-                    "contentType": "combined",
-                    "year": 2100,
                     "title": "The Crystal Caves of Eldoria"
                   }
                 }
@@ -1616,19 +1343,20 @@
                   "type": {
                     "type": "string",
                     "enum": [
-                      "Dropdown",
-                      "Slider",
-                      "Toggle Switch",
-                      "Radio Buttons",
-                      "Checkbox"
+                      "select",
+                      "text",
+                      "number",
+                      "boolean",
+                      "range"
                     ],
-                    "example": "Dropdown"
+                    "example": "select"
                   },
                   "visibility": {
                     "type": "string",
                     "enum": [
                       "Basic",
-                      "Advanced"
+                      "Advanced",
+                      "Hide"
                     ],
                     "default": "Basic",
                     "example": "Basic"
@@ -1638,135 +1366,63 @@
                     "example": "science-fiction"
                   },
                   "required": {
-                    "type": "boolean",
-                    "description": "Whether this parameter is required",
-                    "default": false,
-                    "example": true
+                    "type": "integer",
+                    "description": "Whether this parameter is required (0 = false, 1 = true)",
+                    "default": 0,
+                    "example": 1
                   },
-                  "values": {
-                    "oneOf": [
-                      {
-                        "type": "array",
-                        "description": "For Dropdown, Radio Buttons, and Checkbox types",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "example": "hero"
-                            },
-                            "label": {
-                              "type": "string",
-                              "example": "Hero"
-                            }
-                          }
-                        },
-                        "example": [
-                          {
-                            "label": "Hero"
-                          },
-                          {
-                            "label": "Villain"
-                          },
-                          {
-                            "label": "Sidekick"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "description": "For Toggle Switch type",
-                        "properties": {
-                          "on": {
-                            "type": "string",
-                            "example": "Yes"
-                          },
-                          "off": {
-                            "type": "string",
-                            "example": "No"
-                          }
-                        },
-                        "example": {
-                          "on": "Yes",
-                          "off": "No"
-                        }
-                      }
-                    ]
+                  "sort_order": {
+                    "type": "integer",
+                    "description": "Order in which to display this parameter",
+                    "default": 0,
+                    "example": 0
                   },
-                  "config": {
-                    "type": "object",
-                    "description": "For Slider type",
-                    "properties": {
-                      "min": {
-                        "type": "number",
-                        "example": 100
-                      },
-                      "max": {
-                        "type": "number",
-                        "example": 10000
-                      },
-                      "step": {
-                        "type": "number",
-                        "example": 100
-                      }
-                    },
-                    "example": {
-                      "min": 100,
-                      "max": 10000,
-                      "step": 100
-                    }
+                  "parameter_values": {
+                    "type": "string",
+                    "description": "JSON string containing parameter values (for select type)",
+                    "example": "[{\"id\":\"hero\",\"label\":\"Hero\"},{\"id\":\"villain\",\"label\":\"Villain\"},{\"id\":\"sidekick\",\"label\":\"Sidekick\"}]"
+                  },
+                  "parameter_config": {
+                    "type": "string",
+                    "description": "JSON string containing parameter configuration (for range/number types)",
+                    "example": "{\"min\":100,\"max\":10000,\"step\":100}"
                   }
                 }
               },
               "examples": {
-                "dropdown": {
-                  "summary": "Example Dropdown Parameter",
+                "select": {
+                  "summary": "Example Select Parameter",
                   "value": {
                     "name": "Character Type",
-                    "type": "Dropdown",
+                    "type": "select",
                     "visibility": "Basic",
                     "categoryId": "science-fiction",
-                    "required": true,
-                    "values": [
-                      {
-                        "label": "Hero"
-                      },
-                      {
-                        "label": "Villain"
-                      },
-                      {
-                        "label": "Sidekick"
-                      }
-                    ]
+                    "required": 1,
+                    "sort_order": 0,
+                    "parameter_values": "[{\"id\":\"hero\",\"label\":\"Hero\"},{\"id\":\"villain\",\"label\":\"Villain\"},{\"id\":\"sidekick\",\"label\":\"Sidekick\"}]"
                   }
                 },
-                "slider": {
-                  "summary": "Example Slider Parameter",
+                "range": {
+                  "summary": "Example Range Parameter",
                   "value": {
                     "name": "Story Length",
-                    "type": "Slider",
+                    "type": "range",
                     "visibility": "Basic",
                     "categoryId": "science-fiction",
-                    "required": false,
-                    "config": {
-                      "min": 100,
-                      "max": 10000,
-                      "step": 100
-                    }
+                    "required": 0,
+                    "sort_order": 1,
+                    "parameter_config": "{\"min\":100,\"max\":10000,\"step\":100}"
                   }
                 },
-                "toggle": {
-                  "summary": "Example Toggle Parameter",
+                "boolean": {
+                  "summary": "Example Boolean Parameter",
                   "value": {
                     "name": "Happy Ending",
-                    "type": "Toggle Switch",
+                    "type": "boolean",
                     "visibility": "Basic",
                     "categoryId": "science-fiction",
-                    "required": false,
-                    "values": {
-                      "on": "Yes",
-                      "off": "No"
-                    }
+                    "required": 0,
+                    "sort_order": 2
                   }
                 }
               }
@@ -1882,80 +1538,28 @@
                     "type": "string",
                     "enum": [
                       "Basic",
-                      "Advanced"
+                      "Advanced",
+                      "Hide"
                     ],
                     "example": "Advanced"
                   },
                   "required": {
-                    "type": "boolean",
-                    "example": true
+                    "type": "integer",
+                    "example": 1
                   },
-                  "values": {
-                    "oneOf": [
-                      {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "example": "updated-hero"
-                            },
-                            "label": {
-                              "type": "string",
-                              "example": "Updated Hero"
-                            }
-                          }
-                        },
-                        "example": [
-                          {
-                            "label": "Updated Hero"
-                          },
-                          {
-                            "label": "Updated Villain"
-                          }
-                        ]
-                      },
-                      {
-                        "type": "object",
-                        "properties": {
-                          "on": {
-                            "type": "string",
-                            "example": "Updated Yes"
-                          },
-                          "off": {
-                            "type": "string",
-                            "example": "Updated No"
-                          }
-                        },
-                        "example": {
-                          "on": "Updated Yes",
-                          "off": "Updated No"
-                        }
-                      }
-                    ]
+                  "sort_order": {
+                    "type": "integer",
+                    "example": 5
                   },
-                  "config": {
-                    "type": "object",
-                    "properties": {
-                      "min": {
-                        "type": "number",
-                        "example": 200
-                      },
-                      "max": {
-                        "type": "number",
-                        "example": 20000
-                      },
-                      "step": {
-                        "type": "number",
-                        "example": 200
-                      }
-                    },
-                    "example": {
-                      "min": 200,
-                      "max": 20000,
-                      "step": 200
-                    }
+                  "parameter_values": {
+                    "type": "string",
+                    "description": "JSON string containing parameter values",
+                    "example": "[{\"id\":\"updated-hero\",\"label\":\"Updated Hero\"},{\"id\":\"updated-villain\",\"label\":\"Updated Villain\"}]"
+                  },
+                  "parameter_config": {
+                    "type": "string",
+                    "description": "JSON string containing parameter configuration",
+                    "example": "{\"min\":200,\"max\":20000,\"step\":200}"
                   }
                 }
               }
